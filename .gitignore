@@ -1,0 +1,15 @@
+# Visual Studio
+.vs/
+
+# Build outputs
+bin/
+obj/
+Debug/
+Release/
+
+# Logs
+*.log
+
+# Secrets
+firebase-adminsdk*.json
+appsettings.Production.json
