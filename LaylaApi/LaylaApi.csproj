@@ -34,10 +34,4 @@
     <Folder Include="wwwroot\firebase\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="App_Data\Firebase\firebase-adminsdk.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
 </Project>
