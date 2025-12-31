@@ -1,7 +1,6 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
-using LaylaApi.Models.MainModels;
 using LaylaApi.Services.FirebaseServices.Interfaces;
 
 namespace LaylaApi.DomainEvents.Handlers

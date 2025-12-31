@@ -1,4 +1,8 @@
-﻿using LaylaApi.DomainEvents.Domain.Common;
+﻿using Azure.Core;
+using LaylaApi.DomainEvents.Domain.Common;
+using LaylaApi.DomainEvents.Domain.Events;
+using LaylaApi.Models.DtosModels.AuthDtos;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace LaylaApi.Models.MainModels
@@ -31,22 +35,28 @@ namespace LaylaApi.Models.MainModels
         public ICollection<Apartment>? Apartments { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<RefreshToken>? RefreshToken { get; set; }
-        public static User Create(string fullName, string email, string phoneNumber, string passwordHash, string role = "Renter", bool generateVerificationToken = true)
+        public static User Create(RegisterRequest request, string passwordHash, string emailVerificationToken)
         {
             var user = new User
             {
-                FullName = fullName.Trim(),
-                Email = email.Trim().ToLower(),
-                PhoneNumber = phoneNumber.Trim(),
+                FullName = request.FullName,
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
                 PasswordHash = passwordHash,
-                Role = role,
-                CreatedAt = DateTime.UtcNow,
+                Role = "User",
                 EmailConfirmed = false,
-                Lang = "en"
+                EmailVerificationToken = emailVerificationToken,
+                EmailVerificationTokenExpires = DateTime.UtcNow.AddHours(24),
+                Lang = request.Lang,
             };
 
-            //user.AddDomainEvent(new UserRegisteredEvent(user));
+            user.AddDomainEvent(new UserRegisteredEvent(user));
             return user;
+        }
+
+        public void PasswordReset(User user, string token)
+        {
+            user.AddDomainEvent(new PasswordResetRequestedEvent(user, token));
         }
     }
 }

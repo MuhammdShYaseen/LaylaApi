@@ -12,4 +12,3 @@ namespace LaylaApi.DomainEvents.Domain.Events
         }
     }
 }
-}

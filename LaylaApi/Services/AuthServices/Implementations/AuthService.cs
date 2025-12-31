@@ -17,7 +17,6 @@ namespace LaylaApi.Services.AuthServices.Implementations
     {
         private readonly LaylaContext _context;
         private readonly JwtSettings _jwtSettings;
-        private readonly IEmailService _emailService;
         private readonly IUserService _userService;
 
         public AuthService(LaylaContext context, IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService)
@@ -37,27 +36,9 @@ namespace LaylaApi.Services.AuthServices.Implementations
             // تجزئة كلمة المرور (BCrypt)
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var user = new User
-            {
-                FullName = request.FullName,
-                Email = request.Email,
-                PhoneNumber = request.PhoneNumber,
-                PasswordHash = passwordHash,
-                Role = "User",
-                EmailConfirmed = false,
-                EmailVerificationToken = GenerateRandomToken(),
-                EmailVerificationTokenExpires = DateTime.UtcNow.AddHours(24)
-            };
+            var user = User.Create(request, passwordHash, GenerateRandomToken());
             await _userService.AddAsync(user);
 
-           // _context.Users.Add(user);
-           // await _context.SaveChangesAsync();
-
-            // إرسال إيميل التحقق (ضع رابط التحقق مع التوكن)
-            //var verifyUrl = $"https://your-frontend-domain/verify-email?token={user.EmailVerificationToken}";
-            //await _emailService.SendEmailAsync(user.Email, "تأكيد البريد الإلكتروني", $"اضغط لتأكيد بريدك: {verifyUrl}");
-
-            // لا نُصدر JWT حتى يتم تأكيد الإيميل (اختياري) — هنا نُرجع توكنات لكن يمكنك منعها
             var authResponse = await GenerateAuthResponseAsync(user, originIp);
             return authResponse;
         }
@@ -140,12 +121,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
 
             await _context.SaveChangesAsync();
 
-            var resetUrl = $"https://your-frontend-domain/reset-password?token={user.ResetPasswordToken}";
-
-            await _emailService.SendEmailAsync(user.Email,
-                "إعادة تعيين كلمة المرور",
-                $"اضغط على الرابط لتعيين كلمة مرور جديدة: {resetUrl}");
-
+            user.PasswordReset(user, user.ResetPasswordToken);
             return true;
         }
 

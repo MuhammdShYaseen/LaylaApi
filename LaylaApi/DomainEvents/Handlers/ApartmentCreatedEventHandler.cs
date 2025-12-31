@@ -1,6 +1,4 @@
-﻿using Google.Apis;
-using LaylaApi.DataAccess;
-using LaylaApi.DomainEvents.Domain.Dispatcher;
+﻿using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Helper.Localization;
 using LaylaApi.Resources.Localization;
@@ -16,7 +14,7 @@ namespace LaylaApi.DomainEvents.Handlers
         private readonly INotificationService _notificationService;
         private readonly IStringLocalizer<Notifications> _localizer;
         private readonly IEmailService _emailService;
-        public ApartmentCreatedEventHandler( INotificationService notificationService, IStringLocalizer<Notifications> localizer,IEmailService emailService)
+        public ApartmentCreatedEventHandler(INotificationService notificationService, IStringLocalizer<Notifications> localizer,IEmailService emailService)
         {
             _notificationService = notificationService;
              _emailService = emailService;

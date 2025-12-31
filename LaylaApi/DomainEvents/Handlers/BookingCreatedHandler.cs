@@ -1,11 +1,9 @@
-﻿using LaylaApi.DataAccess;
-using LaylaApi.DomainEvents.Domain.Dispatcher;
+﻿using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Helper.Localization;
 using LaylaApi.Resources.Localization;
 using LaylaApi.Services.AuthServices.Interfaces;
 using LaylaApi.Services.FirebaseServices.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace LaylaApi.DomainEvents.Handlers

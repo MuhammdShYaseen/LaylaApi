@@ -4,15 +4,10 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class UserRegisteredEvent : IEvent
     {
-        public int UserId { get; }
-        public string Email { get; }
-        public string FullName { get; }
-
-        public UserRegisteredEvent(int userId, string email, string fullName)
+        public User User { get; }
+        public UserRegisteredEvent(User user)
         {
-            UserId = userId;
-            Email = email;
-            FullName = fullName;
+            User = user;
         }
     }
 }

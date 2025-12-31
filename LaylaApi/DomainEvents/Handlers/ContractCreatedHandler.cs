@@ -14,7 +14,7 @@ namespace LaylaApi.DomainEvents.Handlers
         private readonly IEmailService _emailService;
         private readonly IStringLocalizer<Notifications> _notificationLocalizer;
 
-        public ContractCreatedHandler( INotificationService notificationService, IEmailService emailService,IStringLocalizer<Notifications> notificationLocalizer)
+        public ContractCreatedHandler(INotificationService notificationService, IEmailService emailService,IStringLocalizer<Notifications> notificationLocalizer)
         {
             _notificationService = notificationService;
             _emailService = emailService;
@@ -46,7 +46,7 @@ namespace LaylaApi.DomainEvents.Handlers
                 await _notificationService.SendToUserAsync(ownerId, title, body);
 
                 var emailSubject = _notificationLocalizer["ContractCreated_Owner_Title"];
-                var emailBody = _notificationLocalizer["ContractCreated_Owner_Body", bookingId, apartmentTitle ];
+                var emailBody = _notificationLocalizer["ContractCreated_Owner_Body", bookingId, apartmentTitle];
 
                 await _emailService.SendEmailAsync(ownerEmail, emailSubject, emailBody);
             }
@@ -59,7 +59,7 @@ namespace LaylaApi.DomainEvents.Handlers
 
                 await _notificationService.SendToUserAsync(renterId, title, body);
 
-                var emailSubject = _notificationLocalizer["CContractCreated_Renter_Title"];
+                var emailSubject = _notificationLocalizer["ContractCreated_Renter_Title"];
                 var emailBody = _notificationLocalizer["ContractCreated_Renter_Body", apartmentTitle];
 
                 await _emailService.SendEmailAsync(renterEmail, emailSubject, emailBody);
