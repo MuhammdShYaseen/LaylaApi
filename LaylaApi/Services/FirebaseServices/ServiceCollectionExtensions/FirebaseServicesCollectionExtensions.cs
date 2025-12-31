@@ -15,14 +15,17 @@ namespace LaylaApi.Services.FirebaseServices.ServiceCollectionExtensions
         }
         public static void AddFirebaseApp(this WebApplicationBuilder builder)
         {
-            var firebaseConfig = builder.Configuration.GetSection("Firebase");
-            var credentialsPath = firebaseConfig["CredentialsPath"];
+            var path = builder.Configuration["FIREBASE_CREDENTIALS_PATH"];
+            if (!File.Exists(path))
+                throw new Exception("Firebase credentials file not found");
+            if (string.IsNullOrWhiteSpace(path))
+                throw new Exception("FIREBASE_CREDENTIALS_PATH Problem");
 
             if (FirebaseApp.DefaultInstance == null)
             {
                 FirebaseApp.Create(new AppOptions
                 {
-                    Credential = GoogleCredential.FromFile(credentialsPath)
+                    Credential = GoogleCredential.FromFile(path)
                 });
             }
         }
