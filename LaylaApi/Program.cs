@@ -1,0 +1,58 @@
+
+using LaylaApi.Services.AuthServices.ServiceCollectionExtensions;
+using LaylaApi.Services.DataCRUD.ServiceCollectionExtensions;
+using LaylaApi.Services.FirebaseServices.ServiceCollectionExtensions;
+using LaylaApi.Middleware.ErrorHandler;
+using LaylaApi.Middleware.RateLimiter;
+using LaylaApi.Middleware.SwaggerEx;
+using LaylaApi.DataAccess.ServiceCollectionExtensions;
+using LaylaApi.Services.AdminDashboardService.ServiceCollectionExtensions;
+using LaylaApi.DomainEvents.Extensions;
+using LaylaApi.Resources.Localization.CollectionExtensions;
+using LaylaApi.Helper.AuthHelper;
+namespace LaylaApi
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+            Logging.SerilogConfiguration.Configure(builder);
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+            builder.AddFirebaseApp();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddModelStateValidationHandler();
+            builder.Services.AddCustomRateLimiter();
+            builder.Services.AddLaylaContextExtension(builder.Configuration);
+            builder.Services.AddJwtAuthentication(builder.Configuration);
+            builder.Services.AddDomainEvents();
+            builder.Services.AddAuthServices();
+            builder.Services.AddLocalizationExtension();
+            builder.Services.AddDataCRUDServices();
+            builder.Services.AddAdminDashBoardService();
+            builder.Services.AddFirebaseServices();
+            builder.Services.AddCustomSwagger();
+
+            var app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseCustomSwaggerUI();
+            }
+            app.UseCorrelationId();
+            app.UseErrorHandler();
+            app.UseRequestResponseLogging();
+            app.UseHttpsRedirection();
+            app.UseRateLimiter();
+            app.UseStaticFiles();
+            app.UseRequestLocalization();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.MapControllers();
+            app.Run();
+        }
+    }
+}

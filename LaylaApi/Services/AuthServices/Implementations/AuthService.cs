@@ -1,0 +1,238 @@
+﻿using LaylaApi.DataAccess;
+using LaylaApi.Models.DtosModels.AuthDtos;
+using LaylaApi.Models.MainModels;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Security.Cryptography;
+using LaylaApi.Services.AuthServices.Interfaces;
+using LaylaApi.Helper.AuthHelper;
+using LaylaApi.Services.DataCRUD.Interfaces;
+namespace LaylaApi.Services.AuthServices.Implementations
+{
+    public class AuthService : IAuthService
+    {
+        private readonly LaylaContext _context;
+        private readonly JwtSettings _jwtSettings;
+        private readonly IEmailService _emailService;
+        private readonly IUserService _userService;
+
+        public AuthService(LaylaContext context, IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService)
+        {
+            _context = context;
+            _jwtSettings = jwtOptions.Value;
+            _emailService = emailService;
+            _userService = userService;
+        }
+
+        public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string originIp)
+        {
+            // تحقق وجود المستخدم
+            var existing = await _context.Users.AnyAsync(u => u.Email == request.Email);
+            if (existing) throw new Exception("Email is already registered.");
+
+            // تجزئة كلمة المرور (BCrypt)
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            var user = new User
+            {
+                FullName = request.FullName,
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
+                PasswordHash = passwordHash,
+                Role = "User",
+                EmailConfirmed = false,
+                EmailVerificationToken = GenerateRandomToken(),
+                EmailVerificationTokenExpires = DateTime.UtcNow.AddHours(24)
+            };
+            await _userService.AddAsync(user);
+
+           // _context.Users.Add(user);
+           // await _context.SaveChangesAsync();
+
+            // إرسال إيميل التحقق (ضع رابط التحقق مع التوكن)
+            //var verifyUrl = $"https://your-frontend-domain/verify-email?token={user.EmailVerificationToken}";
+            //await _emailService.SendEmailAsync(user.Email, "تأكيد البريد الإلكتروني", $"اضغط لتأكيد بريدك: {verifyUrl}");
+
+            // لا نُصدر JWT حتى يتم تأكيد الإيميل (اختياري) — هنا نُرجع توكنات لكن يمكنك منعها
+            var authResponse = await GenerateAuthResponseAsync(user, originIp);
+            return authResponse;
+        }
+
+        public async Task<bool> VerifyEmailAsync(string token)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+            if (user == null) return false;
+            if (user.EmailVerificationTokenExpires == null || user.EmailVerificationTokenExpires < DateTime.UtcNow) return false;
+
+            user.EmailConfirmed = true;
+            user.EmailVerificationToken = null;
+            user.EmailVerificationTokenExpires = null;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<AuthResponse> LoginAsync(LoginRequest request, string originIp)
+        {
+            //var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _userService.GetByEmailAsync(request.Email);
+            if (user == null) throw new Exception("Invalid credentials.");
+
+            // تحقق من كلمة المرور
+            bool validPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+            if (!validPassword) throw new Exception("Invalid credentials.");
+
+            // (اختياري) تحقق من EmailConfirmed
+            if (!user.EmailConfirmed) throw new Exception("Email not confirmed.");
+
+            var authResponse = await GenerateAuthResponseAsync(user, originIp);
+            return authResponse;
+        }
+
+        public async Task<AuthResponse?> RefreshTokenAsync(string token, string originIp)
+        {
+            var refreshToken = await _context.RefreshTokens.Include(r => r.User).FirstOrDefaultAsync(rt => rt.Token == token);
+            if (refreshToken == null || !refreshToken.IsActive) return null;
+
+            // استبدال التوكن القديم بآخر جديد (rotate)
+            refreshToken.Revoked = DateTime.UtcNow;
+            refreshToken.RevokedByIp = originIp;
+
+            var newRefreshToken = CreateRefreshToken(originIp, refreshToken.UserId);
+            refreshToken.ReplacedByToken = newRefreshToken.Token;
+
+            await _context.RefreshTokens.AddAsync(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            // اصدار JWT جديد
+            var jwt = GenerateJwtToken(refreshToken.User!);
+            return new AuthResponse
+            {
+                JwtToken = jwt.Token,
+                RefreshToken = newRefreshToken.Token,
+                ExpiresInSeconds = _jwtSettings.TokenExpirationMinutes * 60,
+                UserId = refreshToken.User!.Id,
+                Email = refreshToken.User.Email
+            };
+        }
+
+        public async Task<bool> RevokeRefreshTokenAsync(string token, string originIp)
+        {
+            var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token);
+            if (refreshToken == null || !refreshToken.IsActive) return false;
+
+            refreshToken.Revoked = DateTime.UtcNow;
+            refreshToken.RevokedByIp = originIp;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SendPasswordResetAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null) return false;
+
+            user.ResetPasswordToken = GenerateRandomToken();
+            user.ResetPasswordTokenExpires = DateTime.UtcNow.AddHours(1);
+
+            await _context.SaveChangesAsync();
+
+            var resetUrl = $"https://your-frontend-domain/reset-password?token={user.ResetPasswordToken}";
+
+            await _emailService.SendEmailAsync(user.Email,
+                "إعادة تعيين كلمة المرور",
+                $"اضغط على الرابط لتعيين كلمة مرور جديدة: {resetUrl}");
+
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.ResetPasswordToken == token &&
+                u.ResetPasswordTokenExpires > DateTime.UtcNow);
+
+            if (user == null) return false;
+
+            // تعيين كلمة المرور الجديدة
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            // مسح التوكن
+            user.ResetPasswordToken = null;
+            user.ResetPasswordTokenExpires = null;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        #region Helpers
+
+        private string GenerateRandomToken()
+            => Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
+
+        private (string Token, DateTime Expires) GenerateJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.TokenExpirationMinutes),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+            var token = tokenHandler.WriteToken(securityToken);
+            return (token, tokenDescriptor.Expires!.Value);
+        }
+
+        private RefreshToken CreateRefreshToken(string ipAddress, int userId)
+        {
+            return new RefreshToken
+            {
+                Token = GenerateRandomToken(),
+                Expires = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress,
+                UserId = userId
+            };
+        }
+
+        private async Task<AuthResponse> GenerateAuthResponseAsync(User user, string originIp)
+        {
+            var jwt = GenerateJwtToken(user);
+
+            // أنشئ refresh token و خزنه
+            var refreshToken = CreateRefreshToken(originIp, user.Id);
+            user.RefreshToken ??= new List<RefreshToken>();
+            user.RefreshToken.Add(refreshToken);
+
+            await _context.SaveChangesAsync();
+
+            return new AuthResponse
+            {
+                JwtToken = jwt.Token,
+                RefreshToken = refreshToken.Token,
+                ExpiresInSeconds = _jwtSettings.TokenExpirationMinutes * 60,
+                UserId = user.Id,
+                Email = user.Email
+            };
+        }
+
+        #endregion
+    }
+}
