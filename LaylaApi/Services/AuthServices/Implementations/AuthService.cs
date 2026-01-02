@@ -23,7 +23,6 @@ namespace LaylaApi.Services.AuthServices.Implementations
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
-            _emailService = emailService;
             _userService = userService;
         }
 
