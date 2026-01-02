@@ -106,8 +106,6 @@ namespace LaylaApi.Controllers
             // Create entity
             var review = _mapper.Map<Review>(dto);
             review.UserId = userId;
-            review.CreatedAt = DateTime.UtcNow;
-
             var created = await _reviewService.AddAsync(review);
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, _mapper.Map<ReviewDto>(created));

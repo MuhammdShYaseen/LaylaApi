@@ -1,6 +1,7 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
@@ -32,6 +33,15 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         }
         public async Task<Review> AddAsync(Review review)
         {
+            var user = await _context.Users.FirstOrDefaultAsync (u => u.Id == review.UserId);
+            if (user == null) 
+                throw new KeyNotFoundException("user not found");
+
+            var apartment = await _context.Apartments.Include(a => a.Owner).FirstOrDefaultAsync(a => a.Id == review.ApartmentId);
+            if (apartment == null)
+                throw new KeyNotFoundException("apartment not found");
+
+            review = Review.Create(review, apartment, user);
             _context.Reviews.Add(review);
             await _context.SaveChangesAsync();
             return review;
