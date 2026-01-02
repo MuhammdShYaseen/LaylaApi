@@ -10,6 +10,7 @@ using LaylaApi.Services.AdminDashboardService.ServiceCollectionExtensions;
 using LaylaApi.DomainEvents.Extensions;
 using LaylaApi.Resources.Localization.CollectionExtensions;
 using LaylaApi.Helper.AuthHelper;
+using LaylaApi.Options;
 namespace LaylaApi
 {
     public class Program
@@ -19,6 +20,7 @@ namespace LaylaApi
             var builder = WebApplication.CreateBuilder(args);
             Logging.SerilogConfiguration.Configure(builder);
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+            builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("FrontEnd"));
             builder.AddFirebaseApp();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             builder.Services.AddControllers();
