@@ -1,0 +1,2 @@
+2026-01-02 12:57:54.842 +03:00 [INF] EventQueueHostedService started.
+2026-01-02 12:58:54.772 +03:00 [INF] HTTP POST /api/Report responded 401 in 60 ms | User: Anonymous

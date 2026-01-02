@@ -1,7 +1,6 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
-using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
