@@ -25,7 +25,7 @@ namespace LaylaApi.DomainEvents.Handlers
         {
             var resetUrl = $"{_frontendOptions.RestPasswordURL}{@event.Token}";
             var subject = _localizer["PasswordReset_Email_Subject"];
-            var body = _localizer["PasswordReset_Email_Body", resetUrl];
+            var body = _localizer["PasswordReset_Email_Body", "\n" + resetUrl];
             var userEmail = @event.User.Email;
             await _emailService.SendEmailAsync(userEmail, subject, body);
         }

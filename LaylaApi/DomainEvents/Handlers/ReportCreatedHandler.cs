@@ -1,21 +1,20 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
+using LaylaApi.Resources.Localization;
 using LaylaApi.Services.FirebaseServices.Interfaces;
+using Microsoft.Extensions.Localization;
 
 namespace LaylaApi.DomainEvents.Handlers
 {
     public class ReportCreatedHandler : IEventHandler<ReportCreatedEvent>
     {
-        private readonly LaylaContext _context;
         private readonly INotificationService _notificationService;
-        private readonly ILogger<ReportCreatedHandler> _logger;
-
-        public ReportCreatedHandler(LaylaContext context, INotificationService notificationService, ILogger<ReportCreatedHandler> logger)
+        private readonly IStringLocalizer<Notifications> _localizer;
+        public ReportCreatedHandler(LaylaContext context, INotificationService notificationService, IStringLocalizer<Notifications> localizer)
         {
-            _context = context;
             _notificationService = notificationService;
-            _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task HandleAsync(ReportCreatedEvent @event, CancellationToken ct = default)
@@ -24,7 +23,9 @@ namespace LaylaApi.DomainEvents.Handlers
             {
                 var apartmentId = @event._report.ApartmentId;
                 var reporterId = @event._report.ReporterId;
-                await _notificationService.SendAdminAsync("تبليغ جديد", $"تم إنشاء تبليغ جديد للشقة رقم {apartmentId} من المستخدم {reporterId}");
+                var title = _localizer["Report_New"];
+                var body = _localizer["Report_Body", apartmentId, reporterId];
+                await _notificationService.SendAdminAsync(title, body);
             }
              
            

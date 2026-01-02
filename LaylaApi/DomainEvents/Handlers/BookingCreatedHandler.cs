@@ -39,7 +39,7 @@ namespace LaylaApi.DomainEvents.Handlers
             using (LocalizationHelper.UseCulture(ownerLanguage))
             {
                 var title = _notificationsLocalizer["BookingCreated_Owner_Title"];
-                var body = _notificationsLocalizer["BookingCreated_Owner_Body" , renterName, apartmentTitle , startDate ,  endDate];
+                var body = _notificationsLocalizer["BookingCreated_Owner_Body", renterName, apartmentTitle, startDate, endDate];
 
                 await _notificationService.SendToUserAsync(ownerId, title, body);
                 await _emailService.SendEmailAsync(ownerEmail, title, body);
@@ -49,7 +49,7 @@ namespace LaylaApi.DomainEvents.Handlers
             using (LocalizationHelper.UseCulture(renterLanguage))
             {
                 var title = _notificationsLocalizer["BookingCreated_Renter_Title"];
-                var body = _notificationsLocalizer["BookingCreated_Renter_Body" , apartmentTitle , startDate ,endDate];
+                var body = _notificationsLocalizer["BookingCreated_Renter_Body", apartmentTitle, startDate, endDate];
 
                 await _notificationService.SendToUserAsync(renterId, title, body);
                 await _emailService.SendEmailAsync(renterEmail, title, body);

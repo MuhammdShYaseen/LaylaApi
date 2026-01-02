@@ -27,7 +27,7 @@ namespace LaylaApi.DomainEvents.Handlers
             using (LocalizationHelper.UseCulture(@event.Apartment.Owner!.Lang))
             {
                 var title = _localizer["ApartmentCreated_Title"];
-                var body = _localizer["ApartmentCreated_Body"] + @event.Apartment.Title;
+                var body = _localizer["ApartmentCreated_Body"] + " " + @event.Apartment.Title;
 
                 await _notificationService.SendToUserAsync(@event.Apartment.OwnerId, title, body);
                 await _emailService.SendEmailAsync(@event.Apartment.Owner.Email, title, body);

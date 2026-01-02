@@ -4,17 +4,11 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class ReviewCreatedEvent : IEvent
     {
-        public int ReviewId { get; }
-        public int ApartmentId { get; }
-        public int UserId { get; }
-        public int Rating { get; }
+       public Review Review { get; }
 
-        public ReviewCreatedEvent(int reviewId, int apartmentId, int userId, int rating)
+        public ReviewCreatedEvent(Review review)
         {
-            ReviewId = reviewId;
-            ApartmentId = apartmentId;
-            UserId = userId;
-            Rating = rating;
+            Review = review;
         }   
     }
 }

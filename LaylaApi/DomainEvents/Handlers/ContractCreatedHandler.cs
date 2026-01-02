@@ -12,13 +12,13 @@ namespace LaylaApi.DomainEvents.Handlers
     {
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
-        private readonly IStringLocalizer<Notifications> _notificationLocalizer;
+        private readonly IStringLocalizer<Notifications> _localizer;
 
         public ContractCreatedHandler(INotificationService notificationService, IEmailService emailService,IStringLocalizer<Notifications> notificationLocalizer)
         {
             _notificationService = notificationService;
             _emailService = emailService;
-            _notificationLocalizer = notificationLocalizer;
+            _localizer = notificationLocalizer;
         }
 
         public async Task HandleAsync(ContractCreatedEvent @event, CancellationToken ct = default)
@@ -40,13 +40,13 @@ namespace LaylaApi.DomainEvents.Handlers
             // 🔔 إشعار + إيميل المالك
             using (LocalizationHelper.UseCulture(ownerLanguage))
             {
-                var title = _notificationLocalizer["ContractCreated_Owner_Title"];
-                var body = _notificationLocalizer[ "ContractCreated_Owner_Body", bookingId, apartmentTitle];
+                var title = _localizer["ContractCreated_Owner_Title"];
+                var body = _localizer[ "ContractCreated_Owner_Body", bookingId, apartmentTitle];
 
                 await _notificationService.SendToUserAsync(ownerId, title, body);
 
-                var emailSubject = _notificationLocalizer["ContractCreated_Owner_Title"];
-                var emailBody = _notificationLocalizer["ContractCreated_Owner_Body", bookingId, apartmentTitle];
+                var emailSubject = _localizer["ContractCreated_Owner_Title"];
+                var emailBody = _localizer["ContractCreated_Owner_Body", bookingId, apartmentTitle];
 
                 await _emailService.SendEmailAsync(ownerEmail, emailSubject, emailBody);
             }
@@ -54,13 +54,13 @@ namespace LaylaApi.DomainEvents.Handlers
             // 🔔 إشعار + إيميل المستأجر
             using (LocalizationHelper.UseCulture(renterLanguage))
             {
-                var title = _notificationLocalizer["ContractCreated_Renter_Title"];
-                var body = _notificationLocalizer["ContractCreated_Renter_Body", apartmentTitle];
+                var title = _localizer["ContractCreated_Renter_Title"];
+                var body = _localizer["ContractCreated_Renter_Body", apartmentTitle];
 
                 await _notificationService.SendToUserAsync(renterId, title, body);
 
-                var emailSubject = _notificationLocalizer["ContractCreated_Renter_Title"];
-                var emailBody = _notificationLocalizer["ContractCreated_Renter_Body", apartmentTitle];
+                var emailSubject = _localizer["ContractCreated_Renter_Title"];
+                var emailBody = _localizer["ContractCreated_Renter_Body", apartmentTitle];
 
                 await _emailService.SendEmailAsync(renterEmail, emailSubject, emailBody);
             }
