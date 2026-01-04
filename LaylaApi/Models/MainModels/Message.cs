@@ -32,7 +32,7 @@ namespace LaylaApi.Models.MainModels
                 VoiceFilePath = voiceFilePath,
                 VoiceDurationSeconds = voiceDurationSeconds
             };
-            message.AddDomainEvent(new MessageSentDomainEvent(message, receiverId));
+            message.AddDomainEvent(new MessageSentDomainEvent(message.Id, conversationId, senderId, receiverId));
             return message;
         } 
     }

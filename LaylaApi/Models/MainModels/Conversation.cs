@@ -16,14 +16,14 @@ namespace LaylaApi.Models.MainModels
 
         public static Conversation Create(int apartmentId, int ownerId, int userId)
         {
-            var conversation = new Conversation
+            return new Conversation
             {
                 ApartmentId = apartmentId,
-                OwnerId = userId,
+                OwnerId = ownerId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                IsClosedByOwner = false
             };
-            return conversation;
         }
     }
 }

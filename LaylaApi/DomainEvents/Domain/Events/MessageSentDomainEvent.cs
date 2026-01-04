@@ -5,11 +5,17 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class MessageSentDomainEvent : IEvent
     {
-        public Message Message { get; }
+        public int MessageId { get; }
+        public int ConversationId { get; }
+        public int SenderId { get; }
         public int ReceiverId { get; }
-        public MessageSentDomainEvent(Message message, int ReceiverId)
+
+        public MessageSentDomainEvent(int messageId, int conversationId, int senderId, int receiverId)
         {
-            Message = message;
+            MessageId = messageId;
+            ConversationId = conversationId;
+            SenderId = senderId;
+            ReceiverId = receiverId;
         }
     }
 }
