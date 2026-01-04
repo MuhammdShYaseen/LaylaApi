@@ -11,6 +11,7 @@ using LaylaApi.DomainEvents.Extensions;
 using LaylaApi.Resources.Localization.CollectionExtensions;
 using LaylaApi.Helper.AuthHelper;
 using LaylaApi.Options;
+using LaylaApi.Services.ChatServices.ServiceCollectionExtensions;
 namespace LaylaApi
 {
     public class Program
@@ -33,6 +34,7 @@ namespace LaylaApi
             builder.Services.AddAuthServices();
             builder.Services.AddLocalizationExtension();
             builder.Services.AddDataCRUDServices();
+            builder.Services.AddChatServiceExtensions();
             builder.Services.AddAdminDashBoardService();
             builder.Services.AddFirebaseServices();
             builder.Services.AddCustomSwagger();
@@ -49,6 +51,7 @@ namespace LaylaApi
             app.UseRequestResponseLogging();
             app.UseHttpsRedirection();
             app.UseRateLimiter();
+            //app.MapHub<ChatHub>("/hubs/chat").DisableRateLimiting();
             app.UseStaticFiles();
             app.UseRequestLocalization();
             app.UseAuthentication();

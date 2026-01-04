@@ -3,6 +3,7 @@ using LaylaApi.DataAccess;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.FirebaseServices.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Message = FirebaseAdmin.Messaging.Message;
 
 namespace LaylaApi.Services.FirebaseServices.Implementations
 {

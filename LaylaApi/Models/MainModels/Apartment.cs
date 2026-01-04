@@ -44,7 +44,7 @@ namespace LaylaApi.Models.MainModels
 
         [ForeignKey("OwnerId")]
         public User? Owner { get; set; }
-
+        public bool IsChatEnabled { get; set; } = true;
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<MediaFile>? MediaFiles { get; set; }
@@ -68,7 +68,8 @@ namespace LaylaApi.Models.MainModels
                 Title = dto.Title,
                 IsAvailable = dto.IsAvailable,
                 Owner = owner,
-                OwnerId = owner.Id
+                OwnerId = owner.Id,
+                IsChatEnabled = true
             };
 
             apartment.AddDomainEvent(new ApartmentCreatedEvent(apartment));

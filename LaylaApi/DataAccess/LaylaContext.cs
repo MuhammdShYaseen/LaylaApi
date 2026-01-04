@@ -26,6 +26,8 @@ namespace LaylaApi.DataAccess
         public DbSet<Report> Reports { get; set; }
         public DbSet<RefreshToken> RefreshTokens {  get; set; }
         public DbSet<DeviceToken> DeviceTokens { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -123,6 +125,12 @@ namespace LaylaApi.DataAccess
                 .WithMany()
                 .HasForeignKey(r => r.ApartmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            //Chat 
+            modelBuilder.Entity<Conversation>(e =>
+            {
+                e.HasIndex(x => new { x.ApartmentId, x.UserId }).IsUnique();
+            });
         }
         public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
