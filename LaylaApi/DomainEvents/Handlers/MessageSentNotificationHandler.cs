@@ -1,5 +1,4 @@
-﻿using LaylaApi.DataAccess;
-using LaylaApi.DomainEvents.Domain.Dispatcher;
+﻿using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Helper.Localization;
 using LaylaApi.Resources.Localization;
@@ -44,7 +43,7 @@ namespace LaylaApi.DomainEvents.Handlers
 
             return content.Length <= maxLength
                 ? content
-                : content.Substring(0, maxLength)+"...";
+                : content.Substring(0, maxLength) + "...";
         }
     }
 }
