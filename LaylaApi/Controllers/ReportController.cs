@@ -134,7 +134,8 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var report = await _reportService.GetByIdAsync(id);
-            if (report == null) throw new KeyNotFoundException();
+            if (report == null) 
+                throw new KeyNotFoundException();
 
             var userId = CurrentUserId();
 
