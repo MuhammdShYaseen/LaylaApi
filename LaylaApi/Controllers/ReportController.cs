@@ -79,27 +79,27 @@ namespace LaylaApi.Controllers
         {
             var userId = CurrentUserId();
             if (userId == 0)
-                return Unauthorized();
+                throw new UnauthorizedAccessException();
 
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                throw new BadHttpRequestException("ModelState is not Valid");
 
             if (model.ApartmentId <= 0)
-                return BadRequest(new { message = "ApartmentId is required." });
+                throw new BadHttpRequestException( "ApartmentId is required.");
 
             // تأكيد أن الشقة موجودة
             var apartment = await _apartmentService.GetByIdAsync(model.ApartmentId);
             if (apartment == null)
-                return NotFound(new { message = "Apartment not found." });
+                throw new KeyNotFoundException ("Apartment not found.");
 
             // منع التبليغ عن شقته الخاصة
             if (apartment.OwnerId == userId)
-                return BadRequest(new { message = "You cannot report your own apartment." });
+                throw new BadHttpRequestException("You cannot report your own apartment.");
 
             // منع التبليغ المكرر
             bool exists = await _reportService.ExistsAsync(userId, model.ApartmentId);
             if (exists)
-                return BadRequest(new { message = "You have already reported this apartment." });
+                throw new BadHttpRequestException("You have already reported this apartment.");
 
             // تجهيز الكيان
             var report = _mapper.Map<Report>(model);
@@ -120,10 +120,11 @@ namespace LaylaApi.Controllers
         {
             var allowed = new[] { "Pending", "Reviewed", "Resolved", "Rejected" };
             if (!allowed.Contains(status))
-                return BadRequest(new { message = "Invalid status value." });
+                throw new BadHttpRequestException("Invalid status value.");
 
             var updated = await _reportService.UpdateStatusAsync(id, status);
-            if (updated == null) return NotFound();
+            if (updated == null) 
+                throw new KeyNotFoundException();
 
             return Ok(_mapper.Map<ReportDto>(updated));
         }
@@ -133,15 +134,16 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var report = await _reportService.GetByIdAsync(id);
-            if (report == null) return NotFound();
+            if (report == null) throw new KeyNotFoundException();
 
             var userId = CurrentUserId();
 
             if (report.ReporterId != userId && !IsAdmin())
-                return Forbid();
+               throw new UnauthorizedAccessException();
 
             var success = await _reportService.DeleteAsync(id);
-            if (!success) return BadRequest(new { message = "Could not delete report." });
+            if (!success) 
+                throw new BadHttpRequestException("Could not delete report.");
 
             return Ok(new { message = "Report deleted." });
         }

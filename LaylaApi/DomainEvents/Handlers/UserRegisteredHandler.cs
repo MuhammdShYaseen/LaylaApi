@@ -26,10 +26,15 @@ namespace LaylaApi.DomainEvents.Handlers
         {
             var userName = @event.User.FullName;
             var userEmail = @event.User.Email;
-            var verificationUrl = $"{_frontendOptions.Verify} { @event.Token }";
-            var subject = _localizer["UserRegistered_Email_Subject",verificationUrl];
-            var body = _localizer["UserRegistered_Email_Body", userName, verificationUrl];
-            await _emailService.SendEmailAsync(userEmail, subject, body); 
+            var userLang = @event.User.Lang;
+            var verificationUrl = $"{_frontendOptions.Verify} {@event.Token}";
+
+            using (Helper.Localization.LocalizationHelper.UseCulture(userLang))
+            {
+                var subject = _localizer["UserRegistered_Email_Subject", verificationUrl];
+                var body = _localizer["UserRegistered_Email_Body", userName, verificationUrl];
+                await _emailService.SendEmailAsync(userEmail, subject, body);
+            }
         }
     }
 }

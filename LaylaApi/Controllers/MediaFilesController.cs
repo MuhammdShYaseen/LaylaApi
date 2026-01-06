@@ -48,13 +48,13 @@ namespace LaylaApi.Controllers
         {
             var apartment = await _ApartmentService.GetEntityByIdAsync(apartmentId);
             if (apartment == null)
-                return NotFound();
+                throw new KeyNotFoundException();
 
             if (HasApartmentFilesAccess(apartment) == false)
-                return Forbid();
+                throw new UnauthorizedAccessException();
 
             if (files == null || files.Count == 0)
-                return BadRequest("No files received.");
+                throw new  BadHttpRequestException("No files received.");
 
             if (!files.All(f => f.ContentType.StartsWith("image/") || f.ContentType.StartsWith("video/")))
                 return BadRequest("Only image and video files are allowed.");

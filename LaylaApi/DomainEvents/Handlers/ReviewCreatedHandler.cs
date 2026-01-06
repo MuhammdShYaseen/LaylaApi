@@ -24,11 +24,18 @@ namespace LaylaApi.DomainEvents.Handlers
         {
             var apartment = @event.Review.Apartment;
             var ownerId = apartment!.OwnerId;
-            var rating = @event.Review.Rating;
-            var title = _localizer["New_Review"];
-            var body = _localizer["Review_Body", rating];
+            var ownerLang = apartment.Owner!.Lang;
 
-            await _notificationService.SendToUserAsync(ownerId, title, body);
+            using (Helper.Localization.LocalizationHelper.UseCulture(ownerLang))
+            {
+               
+                var rating = @event.Review.Rating;
+                var title = _localizer["New_Review"];
+                var body = _localizer["Review_Body", rating];
+
+                await _notificationService.SendToUserAsync(ownerId, title, body);
+            }
+            
         }
     }
 }

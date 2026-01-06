@@ -23,11 +23,16 @@ namespace LaylaApi.DomainEvents.Handlers
 
         public async Task HandleAsync(PasswordResetRequestedEvent @event, CancellationToken ct = default)
         {
-            var resetUrl = $"{_frontendOptions.RestPasswordURL}{@event.Token}";
-            var subject = _localizer["PasswordReset_Email_Subject"];
-            var body = _localizer["PasswordReset_Email_Body", "\n" + resetUrl];
-            var userEmail = @event.User.Email;
-            await _emailService.SendEmailAsync(userEmail, subject, body);
+            var userLang = @event.User.Lang;
+            using (Helper.Localization.LocalizationHelper.UseCulture(userLang))
+            {
+                var resetUrl = $"{_frontendOptions.RestPasswordURL}{@event.Token}";
+                var subject = _localizer["PasswordReset_Email_Subject"];
+                var body = _localizer["PasswordReset_Email_Body", "\n" + resetUrl];
+                var userEmail = @event.User.Email;
+                await _emailService.SendEmailAsync(userEmail, subject, body);
+            }
+            
         }
     }
 }

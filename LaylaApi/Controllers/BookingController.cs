@@ -26,10 +26,9 @@ namespace LaylaApi.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-                var result = await _bookingService.AddAsync(model, userId);
-                return Ok(result);
-          
-            
+            var result = await _bookingService.AddAsync(model, userId);
+
+            return Ok(result);          
         }
 
         // 🔍 عرض الحجوزات الخاصة بالمستخدم
@@ -38,7 +37,9 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> MyBookings()
         {
             var renterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             var result = await _bookingService.GetByUserIdAsync(renterId);
+
             return Ok(result);
         }
 
@@ -59,6 +60,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> CheckAvailability(int apartmentId, DateTime start, DateTime end)
         {
             bool available = await _bookingService.IsDateAvailableAsync(apartmentId, start, end);
+
             return Ok(new { available });
         }
 
@@ -71,8 +73,10 @@ namespace LaylaApi.Controllers
 
             bool success = await _bookingService.CancelAsync(id, UserId);
 
-                if (!success) return NotFound();
-                    return Ok(new { message = "Booking cancelled successfully" });
+            if (!success)
+                throw new KeyNotFoundException();
+
+            return Ok(new { message = "Booking cancelled successfully" });
            
         }
         [HttpDelete("{id}/owner-cancel")]
@@ -83,7 +87,9 @@ namespace LaylaApi.Controllers
 
             var success = await _bookingService.CancelByOwnerAsync(id, ownerId, reason);
 
-            if (!success) return BadRequest("Cannot cancel this booking");
+            if (!success) 
+                throw new BadHttpRequestException("Cannot cancel this booking");
+
             return Ok(new { message = "Booking cancelled by owner" });
         }
 
@@ -93,27 +99,27 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                return Unauthorized();
+                throw new UnauthorizedAccessException();
 
             var booking = await _bookingService.GetEntityByIdAsync(id);
 
             if (booking == null)
-                return NotFound("Booking not found");
+                throw new KeyNotFoundException("Booking not found");
 
             if (booking.Apartment == null)
-                return NotFound("Apartment not found");
+                throw new KeyNotFoundException("Apartment not found");
 
             // Only the owner of the apartment can update the status
             if (booking.Apartment.OwnerId != userId && !User.IsInRole("Admin"))
-                return Forbid();
+               throw new UnauthorizedAccessException();
 
             if (!Enum.TryParse<BookingStatus>(status, true, out var newStatus))
-                return BadRequest("Invalid booking status");
+                throw new BadHttpRequestException("Invalid booking status");
 
             var result = await _bookingService.UpdateStatusAsync(id, newStatus);
 
             if (result == null)
-                return NotFound();
+               throw new KeyNotFoundException();
 
             return Ok(result);
         }
@@ -122,6 +128,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GetCalendar(int apartmentId)
         {
             var bookingsDto = await _bookingService.GetByApartmentIdAsync(apartmentId);
+
             var calendarEvents = bookingsDto
                 .Where(b => b.Status != BookingStatus.CancelledByRenter
                          && b.Status != BookingStatus.CancelledByOwner)

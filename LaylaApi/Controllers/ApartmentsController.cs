@@ -39,7 +39,7 @@ namespace LaylaApi.Controllers
             var result = await _apartmentService.UpdateAsync(id, dto, userId);
 
             if (result == null)
-                return NotFound("Apartment not found or you do not own it.");
+                throw new KeyNotFoundException("Apartment not found or you do not own it.");
 
             return Ok(result);
         }
@@ -50,7 +50,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest("Keyword cannot be empty.");
+                throw new BadHttpRequestException("Keyword cannot be empty.");
 
             var result = await _apartmentService.SearchAsync(keyword);
 
@@ -75,7 +75,7 @@ namespace LaylaApi.Controllers
             var success = await _apartmentService.DeleteAsync(id, userId);
 
             if (!success)
-                return BadRequest("Unable to delete apartment or you do not own it.");
+                throw new BadHttpRequestException("Unable to delete apartment or you do not own it.");
 
             return Ok(new { message = "Apartment deleted successfully." });
         }
@@ -93,7 +93,7 @@ namespace LaylaApi.Controllers
             var result = await _apartmentService.GetByIdAsync(id);
 
             if (result == null)
-                return NotFound("Apartment not found.");
+               throw new KeyNotFoundException("Apartment not found.");
 
             return Ok(result);
         }

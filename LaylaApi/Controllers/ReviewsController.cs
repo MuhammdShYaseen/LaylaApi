@@ -45,7 +45,8 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var review = await _reviewService.GetByIdAsync(id);
-            if (review == null) return NotFound();
+            if (review == null) 
+                throw new KeyNotFoundException();
             return Ok(_mapper.Map<ReviewDto>(review));
         }
 
@@ -79,13 +80,14 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Create([FromBody] ReviewCreateDto dto)
         {
             var userId = CurrentUserId();
-            if (userId == 0) return Unauthorized();
+            if (userId == 0) 
+                throw new UnauthorizedAccessException();
 
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                throw new BadHttpRequestException("Model State not valid");
 
             if (dto.ApartmentId <= 0)
-                return BadRequest(new { message = "ApartmentId is required." });
+                throw new BadHttpRequestException("ApartmentId is required.");
 
             // Must have completed booking for this apartment
             var bookings = await _bookingService.GetByUserIdAsync(userId);
@@ -96,12 +98,12 @@ namespace LaylaApi.Controllers
                 (b.Status == Booking.BookingStatus.Completed || b.EndDate <= DateTime.UtcNow));
 
             if (!hadBooking)
-                return Forbid("You can only review an apartment you have booked and stayed in.");
+                throw new UnauthorizedAccessException("You can only review an apartment you have booked and stayed in.");
 
             // Prevent duplicate review
             var exists = await _reviewService.ExistsAsync(userId, dto.ApartmentId);
             if (exists)
-                return BadRequest(new { message = "You have already reviewed this apartment." });
+                throw new BadHttpRequestException("You have already reviewed this apartment.");
 
             // Create entity
             var review = _mapper.Map<Review>(dto);
@@ -116,18 +118,20 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] ReviewCreateDto dto)
         {
             var userId = CurrentUserId();
-            if (userId == 0) return Unauthorized();
+            if (userId == 0) 
+                throw new UnauthorizedAccessException();
 
             var existing = await _reviewService.GetByIdAsync(id);
-            if (existing == null) return NotFound();
+            if (existing == null) 
+                throw new KeyNotFoundException();
 
             // Only owner or admin can edit
             if (existing.UserId != userId && !IsCurrentUserAdmin())
-                return Forbid("You can only update your own review.");
+                throw new UnauthorizedAccessException("You can only update your own review.");
 
             // Validate rating
             if (dto.Rating < 1 || dto.Rating > 5)
-                return BadRequest(new { message = "Rating must be between 1 and 5." });
+                throw new BadHttpRequestException("Rating must be between 1 and 5.");
 
             // Apply only allowed changes
             existing.Rating = dto.Rating;
@@ -135,7 +139,7 @@ namespace LaylaApi.Controllers
 
             var updated = await _reviewService.UpdateAsync(id, existing);
             if (updated == null)
-                return BadRequest(new { message = "Could not update review." });
+                throw new BadHttpRequestException("Could not update review.");
 
             return Ok(_mapper.Map<ReviewDto>(updated));
         }
@@ -145,16 +149,19 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var userId = CurrentUserId();
-            if (userId == 0) return Unauthorized();
+            if (userId == 0) 
+                throw new UnauthorizedAccessException();
 
             var existing = await _reviewService.GetByIdAsync(id);
-            if (existing == null) return NotFound();
+            if (existing == null) 
+                throw new KeyNotFoundException();
 
             if (existing.UserId != userId && !IsCurrentUserAdmin())
-                return Forbid("You can only delete your own review.");
+                throw new UnauthorizedAccessException("You can only delete your own review.");
 
             var success = await _reviewService.DeleteAsync(id);
-            if (!success) return BadRequest(new { message = "Could not delete review." });
+            if (!success) 
+                throw new BadHttpRequestException("Could not delete review.");
 
             return Ok(new { message = "Review deleted." });
         }
