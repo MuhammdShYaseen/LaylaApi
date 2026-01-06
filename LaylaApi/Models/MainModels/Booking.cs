@@ -58,9 +58,32 @@ namespace LaylaApi.Models.MainModels
                 UpdatedAt = DateTime.UtcNow,
             };
             booking.AddDomainEvent(new BookingCreatedEvent(booking));
-
-
             return booking;
+        }
+
+        public void ChangeStatus(BookingStatus newStatus)
+        {
+            if (Status == newStatus)
+                return;
+
+            var oldStatus = Status;
+            Status = newStatus;
+
+            AddDomainEvent(new BookingStatusChangedEvent(
+                bookingId: Id,
+                oldStatus: oldStatus,
+                newStatus: newStatus,
+                apartmentId: Apartment.Id,
+                apartmentTitle: Apartment.Title,
+                ownerId: Apartment.Owner.Id,
+                ownerEmail: Apartment.Owner.Email,
+                ownerLang: Apartment.Owner.Lang,
+                renterId: User.Id,
+                renterEmail: User.Email,
+                renterLang: User.Lang,
+                startDate: StartDate,
+                endDate: EndDate
+            ));
         }
     }
 }
