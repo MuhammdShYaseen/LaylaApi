@@ -12,6 +12,7 @@ using LaylaApi.Resources.Localization.CollectionExtensions;
 using LaylaApi.Helper.AuthHelper;
 using LaylaApi.Options;
 using LaylaApi.Services.ChatServices.ServiceCollectionExtensions;
+using LaylaApi.SignalR_Hubs;
 namespace LaylaApi
 {
     public class Program
@@ -22,6 +23,7 @@ namespace LaylaApi
             Logging.SerilogConfiguration.Configure(builder);
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
             builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("FrontEnd"));
+            builder.Services.Configure<ChatOptions>(builder.Configuration.GetSection("Chat"));
             builder.AddFirebaseApp();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             builder.Services.AddControllers();
@@ -51,7 +53,7 @@ namespace LaylaApi
             app.UseRequestResponseLogging();
             app.UseHttpsRedirection();
             app.UseRateLimiter();
-            //app.MapHub<ChatHub>("/hubs/chat").DisableRateLimiting();
+            app.MapHub<ChatHub>("/hubs/chat").DisableRateLimiting();
             app.UseStaticFiles();
             app.UseRequestLocalization();
             app.UseAuthentication();

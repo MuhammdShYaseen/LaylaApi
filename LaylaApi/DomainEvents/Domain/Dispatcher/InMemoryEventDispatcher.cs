@@ -7,10 +7,8 @@ namespace LaylaApi.DomainEvents.Domain.Dispatcher
     {
 
         private readonly Channel<IEvent> _channel;
-        private readonly ILogger<InMemoryEventDispatcher> _logger;
-        public InMemoryEventDispatcher(ILogger<InMemoryEventDispatcher> logger, int capacity = 1000)
+        public InMemoryEventDispatcher(int capacity = 1000)
         {
-            _logger = logger;
             var options = new BoundedChannelOptions(capacity)
             {
                 FullMode = BoundedChannelFullMode.Wait
@@ -24,7 +22,6 @@ namespace LaylaApi.DomainEvents.Domain.Dispatcher
         {
             if (@event == null) throw new ArgumentNullException(nameof(@event));
             await _channel.Writer.WriteAsync(@event, ct);
-            _logger.LogDebug("Event enqueued: {EventType}", @event.GetType().Name);
         }
 
         public void Dispose()
