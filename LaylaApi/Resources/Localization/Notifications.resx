@@ -192,4 +192,45 @@
   <data name="UserRegistered_Email_Body" xml:space="preserve">
     <value>Hello {0}, thank you for registering with Layla. Please confirm your email address using the following link:{1}</value>
   </data>
+  <data name="Booking_Accepted_Title">
+    <value>Booking Accepted</value>
+  </data>
+  <data name="Booking_Accepted_Body">
+    <value>Your booking for {0} has been accepted.</value>
+  </data>
+
+  <data name="Booking_Rejected_Title">
+    <value>Booking Rejected</value>
+  </data>
+  <data name="Booking_Rejected_Body">
+    <value>Your booking for {0} has been rejected.</value>
+  </data>
+
+  <data name="Booking_Confirmed_Title">
+    <value>Booking Confirmed</value>
+  </data>
+  <data name="Booking_Confirmed_Body">
+    <value>Your booking for {0} is confirmed.</value>
+  </data>
+
+  <data name="Booking_Cancelled_By_Owner_Title">
+    <value>Booking Cancelled by Owner</value>
+  </data>
+  <data name="Booking_Cancelled_By_Owner_Body">
+    <value>Your booking for {0} has been cancelled by the owner.</value>
+  </data>
+
+  <data name="Booking_Cancelled_By_Renter_Title">
+    <value>Booking Cancelled by Renter</value>
+  </data>
+  <data name="Booking_Cancelled_ByRenter_Body">
+    <value>The booking for {0} has been cancelled by the renter.</value>
+  </data>
+
+  <data name="Booking_Completed_Title">
+    <value>Booking Completed</value>
+  </data>
+  <data name="Booking_Completed_Body">
+    <value>Your stay at {0} has been completed successfully.</value>
+  </data>
 </root>

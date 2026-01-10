@@ -53,6 +53,12 @@ namespace LaylaApi.DomainEvents.Handlers
             }
         }
 
+        private async Task NotifyUser(int userId, string emailAddress, string title, string body)
+        {
+            await _email.SendEmailAsync(emailAddress, title, body);
+            await _notification.SendToUserAsync(userId, title, body);
+        }
+
         private async Task NotifyRenterAccepted(BookingStatusChangedEvent e)
         {
             using (Helper.Localization.LocalizationHelper.UseCulture(e.RenterLang ?? "en")) 
@@ -129,11 +135,7 @@ namespace LaylaApi.DomainEvents.Handlers
             }
         }
 
-        private async Task NotifyUser(int userId, string emailAddress,  string title, string body)
-        {
-            await _email.SendEmailAsync(emailAddress, title, body);
-            await _notification.SendToUserAsync(userId, title, body);
-        }
+        
 
 
     }

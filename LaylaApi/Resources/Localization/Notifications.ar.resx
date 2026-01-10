@@ -123,35 +123,30 @@
   <data name="ApartmentCreated_Body" xml:space="preserve">
     <value>تمت إضافة شقة جديدة بعنوان</value>
   </data>
-
   <data name="BookingCreated_Owner_Title" xml:space="preserve">
     <value>حجز جديد على شقتك</value>
   </data>
   <data name="BookingCreated_Owner_Body" xml:space="preserve">
     <value>قام {0} بإنشاء حجز على الشقة "{1}" من {2} إلى {3}.</value>
   </data>
-
   <data name="BookingCreated_Renter_Title" xml:space="preserve">
     <value>تم إنشاء الحجز بنجاح</value>
   </data>
   <data name="BookingCreated_Renter_Body" xml:space="preserve">
     <value>تم إنشاء حجزك للشقة "{0}" من {1} إلى {2}.</value>
   </data>
-
   <data name="ContractCreated_Owner_Title" xml:space="preserve">
     <value>تم إنشاء عقد جديد</value>
   </data>
   <data name="ContractCreated_Owner_Body" xml:space="preserve">
     <value>تم إنشاء عقد إيجار جديد ويتطلب توقيعك لإتمام العملية.</value>
   </data>
-
   <data name="ContractCreated_Renter_Title" xml:space="preserve">
     <value>تم إنشاء عقد الإيجار</value>
   </data>
   <data name="ContractCreated_Renter_Body" xml:space="preserve">
     <value>تم إنشاء عقد الإيجار الخاص بالشقة "{0}". يرجى مراجعة العقد وتوقيعه.</value>
   </data>
-
   <data name="ContractSigned_Title" xml:space="preserve">
     <value>تم توقيع العقد</value>
   </data>
@@ -161,11 +156,9 @@
   <data name="ContractSigned_ByRenter" xml:space="preserve">
     <value>قام المستأجر بتوقيع عقد الحجز رقم {0}.</value>
   </data>
-
   <data name="ContractSigned_Email_Subject" xml:space="preserve">
     <value>تحديث حالة عقد الإيجار</value>
   </data>
-
   <data name="ContractCompleted_Title" xml:space="preserve">
     <value>اكتمل عقد الإيجار</value>
   </data>
@@ -175,32 +168,70 @@
   <data name="ContractCompleted_Renter_Body" xml:space="preserve">
     <value>اكتمل عقد الإيجار الخاص بالشقة "{0}" بنجاح.</value>
   </data>
-
   <data name="PasswordReset_Email_Subject" xml:space="preserve">
     <value>إعادة تعيين كلمة المرور</value>
   </data>
   <data name="PasswordReset_Email_Body" xml:space="preserve">
     <value>لقد تلقينا طلبًا لإعادة تعيين كلمة المرور الخاصة بحسابك. لإتمام العملية، يرجى استخدام الرابط التالي:{0}</value>
   </data>
-
   <data name="Report_New" xml:space="preserve">
     <value>بلاغ جديد</value>
   </data>
   <data name="Report_Body" xml:space="preserve">
     <value>تم استلام بلاغ جديد بخصوص الشقة رقم {0}.</value>
   </data>
-
   <data name="New_Review" xml:space="preserve">
     <value>تقييم جديد</value>
   </data>
   <data name="Review_Body" xml:space="preserve">
     <value>تمت إضافة تقييم جديد بدرجة {0}.</value>
   </data>
-
   <data name="UserRegistered_Email_Subject" xml:space="preserve">
     <value>تأكيد إنشاء الحساب</value>
   </data>
   <data name="UserRegistered_Email_Body" xml:space="preserve">
     <value>مرحبًا {0}، شكرًا لتسجيلك في تطبيق Layla. يرجى تأكيد بريدك الإلكتروني عبر الرابط التالي:{1}</value>
   </data>
+
+    <data name="Booking_Accepted_Title">
+      <value>تم قبول الحجز</value>
+    </data>
+    <data name="Booking_Accepted_Body">
+      <value>تم قبول حجزك في {0}.</value>
+    </data>
+
+    <data name="Booking_Rejected_Title">
+      <value>تم رفض الحجز</value>
+    </data>
+    <data name="Booking_Rejected_Body">
+      <value>تم رفض حجزك في {0}.</value>
+    </data>
+
+    <data name="Booking_Confirmed_Title">
+      <value>تم تأكيد الحجز</value>
+    </data>
+    <data name="Booking_Confirmed_Body">
+      <value>تم تأكيد حجزك في {0}.</value>
+    </data>
+
+    <data name="Booking_Cancelled_By_Owner_Title">
+      <value>تم إلغاء الحجز بواسطة المالك</value>
+    </data>
+    <data name="Booking_Cancelled_By_Owner_Body">
+      <value>تم إلغاء حجزك في {0} بواسطة المالك.</value>
+    </data>
+
+    <data name="Booking_Cancelled_By_Renter_Title">
+      <value>تم إلغاء الحجز بواسطة المستأجر</value>
+    </data>
+    <data name="Booking_Cancelled_ByRenter_Body">
+      <value>تم إلغاء الحجز في {0} بواسطة المستأجر.</value>
+    </data>
+
+    <data name="Booking_Completed_Title">
+      <value>تم إتمام الحجز</value>
+    </data>
+    <data name="Booking_Completed_Body">
+      <value>تم إتمام إقامتك في {0} بنجاح.</value>
+    </data>
 </root>

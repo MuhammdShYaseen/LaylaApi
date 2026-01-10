@@ -123,35 +123,30 @@
   <data name="ApartmentCreated_Body" xml:space="preserve">
     <value>A new apartment has been added with the title</value>
   </data>
-
   <data name="BookingCreated_Owner_Title" xml:space="preserve">
     <value>New Booking on Your Apartment</value>
   </data>
   <data name="BookingCreated_Owner_Body" xml:space="preserve">
     <value>{0} has created a booking for the apartment "{1}" from {2} to {3}.</value>
   </data>
-
   <data name="BookingCreated_Renter_Title" xml:space="preserve">
     <value>Booking Created Successfully</value>
   </data>
   <data name="BookingCreated_Renter_Body" xml:space="preserve">
     <value>Your booking for the apartment "{0}" from {1} to {2} has been created successfully.</value>
   </data>
-
   <data name="ContractCreated_Owner_Title" xml:space="preserve">
     <value>New Contract Created</value>
   </data>
   <data name="ContractCreated_Owner_Body" xml:space="preserve">
     <value>A new rental contract has been created and requires your signature.</value>
   </data>
-
   <data name="ContractCreated_Renter_Title" xml:space="preserve">
     <value>Rental Contract Created</value>
   </data>
   <data name="ContractCreated_Renter_Body" xml:space="preserve">
     <value>The rental contract for the apartment "{0}" has been created. Please review and sign it.</value>
   </data>
-
   <data name="ContractSigned_Title" xml:space="preserve">
     <value>Contract Signed</value>
   </data>
@@ -161,11 +156,9 @@
   <data name="ContractSigned_ByRenter" xml:space="preserve">
     <value>The renter has signed the contract for booking #{0}.</value>
   </data>
-
   <data name="ContractSigned_Email_Subject" xml:space="preserve">
     <value>Rental Contract Status Update</value>
   </data>
-
   <data name="ContractCompleted_Title" xml:space="preserve">
     <value>Rental Contract Completed</value>
   </data>
@@ -175,32 +168,70 @@
   <data name="ContractCompleted_Renter_Body" xml:space="preserve">
     <value>The rental contract for the apartment "{0}" has been completed successfully.</value>
   </data>
-
   <data name="PasswordReset_Email_Subject" xml:space="preserve">
     <value>Password Reset Request</value>
   </data>
   <data name="PasswordReset_Email_Body" xml:space="preserve">
     <value>We received a request to reset your account password. To proceed, please use the following link:{0}</value>
   </data>
-
   <data name="Report_New" xml:space="preserve">
     <value>New Report Submitted</value>
   </data>
   <data name="Report_Body" xml:space="preserve">
     <value>A new report has been submitted regarding apartment ID {0}.</value>
   </data>
-
   <data name="New_Review" xml:space="preserve">
     <value>New Review Added</value>
   </data>
   <data name="Review_Body" xml:space="preserve">
     <value>A new review has been submitted with a rating of {0}.</value>
   </data>
-
   <data name="UserRegistered_Email_Subject" xml:space="preserve">
     <value>Account Registration Confirmation</value>
   </data>
   <data name="UserRegistered_Email_Body" xml:space="preserve">
     <value>Hello {0}, thank you for registering with Layla. Please confirm your email address using the following link:{1}</value>
+  </data>
+
+  <data name="Booking_Accepted_Title">
+    <value>Booking Accepted</value>
+  </data>
+  <data name="Booking_Accepted_Body">
+    <value>Your booking for {0} has been accepted.</value>
+  </data>
+
+  <data name="Booking_Rejected_Title">
+    <value>Booking Rejected</value>
+  </data>
+  <data name="Booking_Rejected_Body">
+    <value>Your booking for {0} has been rejected.</value>
+  </data>
+
+  <data name="Booking_Confirmed_Title">
+    <value>Booking Confirmed</value>
+  </data>
+  <data name="Booking_Confirmed_Body">
+    <value>Your booking for {0} is confirmed.</value>
+  </data>
+
+  <data name="Booking_Cancelled_By_Owner_Title">
+    <value>Booking Cancelled by Owner</value>
+  </data>
+  <data name="Booking_Cancelled_By_Owner_Body">
+    <value>Your booking for {0} has been cancelled by the owner.</value>
+  </data>
+
+  <data name="Booking_Cancelled_By_Renter_Title">
+    <value>Booking Cancelled by Renter</value>
+  </data>
+  <data name="Booking_Cancelled_ByRenter_Body">
+    <value>The booking for {0} has been cancelled by the renter.</value>
+  </data>
+
+  <data name="Booking_Completed_Title">
+    <value>Booking Completed</value>
+  </data>
+  <data name="Booking_Completed_Body">
+    <value>Your stay at {0} has been completed successfully.</value>
   </data>
 </root>
