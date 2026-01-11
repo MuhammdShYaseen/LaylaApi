@@ -1,4 +1,5 @@
 ﻿using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -26,8 +27,8 @@ namespace LaylaApi.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var result = await _apartmentService.AddAsync(dto, userId);
-
-            return Ok(result);
+            
+            return Ok(ApiResponse<CreateApartmentDto>.Ok(dto));
         }
 
         [HttpPut("{id}")]

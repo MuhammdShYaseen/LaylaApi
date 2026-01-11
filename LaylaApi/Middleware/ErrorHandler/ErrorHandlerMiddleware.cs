@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using LaylaApi.Models.ErrorModels;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -49,24 +50,23 @@ namespace LaylaApi.Middleware.ErrorHandler
             _logger.LogError(ex,"Unhandled exception | ErrorId: {ErrorId} | Path: {Path} | User: {User} | Summary: {@Summary}",
                                                      errorId,context.Request.Path, context.User?.Identity?.Name ?? "Anonymous", safeErrorDetails);
 
-               #if DEBUG
-                 var developerMessage = ex.ToString();
-               #else
-                  string? developerMessage = null;
-               #endif
+           #if DEBUG
+            var developerMessage = ex.ToString();
+           #else
+            string? developerMessage = null;
+           #endif
 
-            
-            var response = new
+            var response = new ApiErrorResponse
             {
-                success = false,
-                errorId,
-                errorCode = statusCode.ToString(), // Frontend يعتمد عليه
-                message = "An unexpected error occurred.",
-                developerMessage,
-                errorSummary = safeErrorDetails,
-                statusCode = (int)statusCode,
-                timestamp = DateTime.UtcNow
+                Success = false,
+                Message = "An unexpected error occurred.",
+                ErrorCode = statusCode.ToString(),
+                DeveloperMessage = developerMessage,
+                ErrorSummary = (string)safeErrorDetails
             };
+
+            context.Response.StatusCode = (int)statusCode;
+            context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }

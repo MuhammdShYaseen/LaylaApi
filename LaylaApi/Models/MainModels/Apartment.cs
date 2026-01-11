@@ -51,9 +51,6 @@ namespace LaylaApi.Models.MainModels
 
         public static Apartment Create(CreateApartmentDto dto, User owner)
         {
-            if (dto == null)
-                throw new KeyNotFoundException("Apartment in null");
-
             var apartment = new Apartment
             {
                 CreatedAt = DateTime.UtcNow,
