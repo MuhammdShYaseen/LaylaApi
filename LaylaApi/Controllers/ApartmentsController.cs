@@ -42,7 +42,7 @@ namespace LaylaApi.Controllers
             if (result == null)
                 throw new KeyNotFoundException("Apartment not found or you do not own it.");
 
-            return Ok(result);
+            return Ok(ApiResponse<ApartmentDto>.Ok(result));
         }
 
         // 🔍 البحث عن شقق
@@ -54,8 +54,10 @@ namespace LaylaApi.Controllers
                 throw new BadHttpRequestException("Keyword cannot be empty.");
 
             var result = await _apartmentService.SearchAsync(keyword);
+            if (result == null)
+                throw new KeyNotFoundException("Apartment not found");
 
-            return Ok(result);
+            return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
 
         // 📍 الشقق القريبة من موقع المستخدم
@@ -64,7 +66,7 @@ namespace LaylaApi.Controllers
         {
             var result = await _apartmentService.GetNearbyAsync(lat, lng, distanceKm);
 
-            return Ok(result);
+            return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
 
         [HttpDelete("{id}")]
@@ -78,14 +80,14 @@ namespace LaylaApi.Controllers
             if (!success)
                 throw new BadHttpRequestException("Unable to delete apartment or you do not own it.");
 
-            return Ok(new { message = "Apartment deleted successfully." });
+            return Ok(ApiResponse<object>.Ok( "Apartment deleted successfully."));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await _apartmentService.GetAllAsync();
-            return Ok(result);
+            return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
 
         [HttpGet("{id}")]
@@ -96,7 +98,7 @@ namespace LaylaApi.Controllers
             if (result == null)
                throw new KeyNotFoundException("Apartment not found.");
 
-            return Ok(result);
+            return Ok(ApiResponse<ApartmentDto>.Ok(result));
         }
 
         [HttpGet("my")]
@@ -107,7 +109,7 @@ namespace LaylaApi.Controllers
 
             var result = await _apartmentService.GetByOwnerIdAsync(userId);
 
-            return Ok(result);
+            return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
     }
 }
