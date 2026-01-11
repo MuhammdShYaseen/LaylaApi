@@ -78,9 +78,7 @@ namespace LaylaApi.Middleware.ErrorHandler
             {
                 ExceptionType = ex.GetType().Name,
                 Message = "An internal error occurred.",
-                Location = stackFrame is not null
-             ? $"{stackFrame.GetMethod()?.DeclaringType?.Name}.{stackFrame.GetMethod()?.Name}"
-             : "Unknown"
+                Location = stackFrame is not null ? $"{stackFrame.GetMethod()?.DeclaringType?.Name}.{stackFrame.GetMethod()?.Name}" : "Unknown"
             };
         }
     }
