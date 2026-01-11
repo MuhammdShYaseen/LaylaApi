@@ -30,7 +30,7 @@ namespace LaylaApi.Middleware.ErrorHandler
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            context.Response.ContentType = "application/json";
+            context.Response.ContentType ??= "application/json";
 
             var errorId = Guid.NewGuid().ToString();
 
@@ -47,7 +47,7 @@ namespace LaylaApi.Middleware.ErrorHandler
             context.Response.StatusCode = (int)statusCode;
 
             var safeErrorDetails = BuildSafeErrorDetails(ex);
-            _logger.LogError(ex,"Unhandled exception | ErrorId: {ErrorId} | Path: {Path} | User: {User} | Summary: {@Summary}",
+            _logger.LogError(ex, "Exception handled | ErrorId: {ErrorId} | Path: {Path} | User: {User} | Summary: {@Summary}",
                                                      errorId,context.Request.Path, context.User?.Identity?.Name ?? "Anonymous", safeErrorDetails);
 
            #if DEBUG
@@ -62,29 +62,25 @@ namespace LaylaApi.Middleware.ErrorHandler
                 Message = "An unexpected error occurred.",
                 ErrorCode = statusCode.ToString(),
                 DeveloperMessage = developerMessage,
-                ErrorSummary = (string)safeErrorDetails
+                ErrorSummary = safeErrorDetails,
             };
-
-            context.Response.StatusCode = (int)statusCode;
-            context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
 
-        private static object BuildSafeErrorDetails(Exception ex)
+        private static SafeErrorDetails BuildSafeErrorDetails(Exception ex)
         {
             var stackFrame = new StackTrace(ex, true)
                                 .GetFrames()?
                                 .FirstOrDefault(f => f.GetFileLineNumber() > 0);
 
-            return new
+            return new SafeErrorDetails
             {
-                exceptionType = ex.GetType().Name,
-                message = ex.Message,
-                source = ex.Source,
-                location = stackFrame is not null
-                    ? $"{stackFrame.GetMethod()?.DeclaringType?.Name}.{stackFrame.GetMethod()?.Name}"
-                    : "Unknown"
+                ExceptionType = ex.GetType().Name,
+                Message = "An internal error occurred.",
+                Location = stackFrame is not null
+             ? $"{stackFrame.GetMethod()?.DeclaringType?.Name}.{stackFrame.GetMethod()?.Name}"
+             : "Unknown"
             };
         }
     }

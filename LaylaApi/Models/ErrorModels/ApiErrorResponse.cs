@@ -6,7 +6,7 @@ namespace LaylaApi.Models.ErrorModels
     {
         public string ErrorCode { get; init; } = default!;
         public string? DeveloperMessage { get; init; }
-        public string? ErrorSummary { get; init; }
+        public SafeErrorDetails? ErrorSummary { get; init; }
         public DateTime Timestamp { get; init; } = DateTime.UtcNow;
     }
 }
