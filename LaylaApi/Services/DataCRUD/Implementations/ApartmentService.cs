@@ -85,8 +85,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         {
             // 1️⃣ تحميل الـ Owner
             var apartmentData = dto;
-            var owner = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == ownerId);
+            var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == ownerId);
 
             if (owner == null)
                 throw new KeyNotFoundException("Owner not found");
