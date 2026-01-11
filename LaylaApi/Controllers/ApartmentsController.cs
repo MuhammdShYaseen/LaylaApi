@@ -28,7 +28,7 @@ namespace LaylaApi.Controllers
 
             var result = await _apartmentService.AddAsync(dto, userId);
             
-            return Ok(ApiResponse<CreateApartmentDto>.Ok(dto));
+            return Ok(ApiResponse<ApartmentDto>.Ok(result));
         }
 
         [HttpPut("{id}")]
@@ -54,8 +54,8 @@ namespace LaylaApi.Controllers
                 throw new BadHttpRequestException("Keyword cannot be empty.");
 
             var result = await _apartmentService.SearchAsync(keyword);
-            if (result == null)
-                throw new KeyNotFoundException("Apartment not found");
+            if (!result.Any())
+                throw new KeyNotFoundException("No apartments found");
 
             return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
