@@ -175,7 +175,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (booking.UserId != userId)
                 throw new UnauthorizedAccessException("You cannot cancel this booking.");
 
-            booking.Status = BookingStatus.CancelledByRenter;
+            booking.ChangeStatus(BookingStatus.CancelledByRenter);
             await _context.SaveChangesAsync();
 
             return true;
@@ -192,9 +192,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (booking.Status == BookingStatus.Completed)
                 return false;
 
-            booking.Status = BookingStatus.CancelledByOwner;
-            booking.UpdatedAt = DateTime.UtcNow;
-
+            booking.ChangeStatus(BookingStatus.CancelledByOwner);
             await _context.SaveChangesAsync();
 
             return true;
