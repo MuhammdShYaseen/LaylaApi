@@ -100,11 +100,12 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var isAdmin = User.IsInRole("Admin");
 
             if (!Enum.TryParse<BookingStatus>(status, true, out var newStatus))
                 throw new BadHttpRequestException("Invalid booking status");
 
-            var result = await _bookingService.UpdateStatusAsync(id, newStatus, userId);
+            var result = await _bookingService.UpdateStatusAsync(id, newStatus, userId, isAdmin);
 
             if (result == null)
                 throw new KeyNotFoundException("Booking not found or access denied");
@@ -115,36 +116,11 @@ namespace LaylaApi.Controllers
         [HttpGet("calendar/{apartmentId}")]
         public async Task<IActionResult> GetCalendar(int apartmentId) //انقل كل المنطق الى السيرفس
         {
-            var bookingsDto = await _bookingService.GetByApartmentIdAsync(apartmentId);
-
-            var calendarEvents = bookingsDto
-                .Where(b => b.Status != BookingStatus.CancelledByRenter
-                         && b.Status != BookingStatus.CancelledByOwner)
-                .Select(b => new CalendarEventDto
-                {
-                    Id = b.Id,
-                    Title = "Booked",
-                    Start = b.StartDate,
-                    End = b.EndDate,
-                    Status = b.Status,
-                    Color = GetStatusColor(b.Status)
-                }).ToList();
+            var calendarEvents = await _bookingService.GetCalendarAsync(apartmentId);
 
             return Ok(ApiResponse<IEnumerable<CalendarEventDto>>.Ok(calendarEvents));
         }
 
-        private static string GetStatusColor(BookingStatus status)
-        {
-            return status switch
-            {
-                BookingStatus.Pending => "#FACC15",          // أصفر
-                BookingStatus.Accepted => "#3B82F6",         // أزرق
-                BookingStatus.Confirmed => "#16A34A",        // أخضر
-                BookingStatus.Completed => "#10B981",        // أخضر فاتح
-                BookingStatus.CancelledByRenter => "#EF4444",// أحمر
-                BookingStatus.CancelledByOwner => "#DC2626", // أحمر داكن
-                _ => "#6B7280"                               // رمادي
-            };
-        }
+       
     }
 }

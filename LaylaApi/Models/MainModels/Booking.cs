@@ -68,7 +68,7 @@ namespace LaylaApi.Models.MainModels
 
             var oldStatus = Status;
             Status = newStatus;
-
+            UpdatedAt = DateTime.UtcNow;
             AddDomainEvent(new BookingStatusChangedEvent(
                 bookingId: Id,
                 oldStatus: oldStatus,
