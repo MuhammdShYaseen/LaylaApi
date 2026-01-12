@@ -66,9 +66,16 @@ namespace LaylaApi.Models.MainModels
             if (Status == newStatus)
                 return;
 
+
+            if (!IsValidStatusTransition(Status, newStatus))
+                throw new InvalidOperationException("Invalid status transition");
+
             var oldStatus = Status;
+
             Status = newStatus;
+
             UpdatedAt = DateTime.UtcNow;
+
             AddDomainEvent(new BookingStatusChangedEvent(
                 bookingId: Id,
                 oldStatus: oldStatus,
@@ -84,6 +91,28 @@ namespace LaylaApi.Models.MainModels
                 startDate: StartDate,
                 endDate: EndDate
             ));
+        }
+
+        private static bool IsValidStatusTransition(BookingStatus current, BookingStatus next)
+        {
+            return current switch
+            {
+                BookingStatus.Pending =>
+                    next is BookingStatus.Accepted
+                        or BookingStatus.CancelledByOwner
+                        or BookingStatus.CancelledByRenter,
+
+                BookingStatus.Accepted =>
+                    next is BookingStatus.Confirmed
+                        or BookingStatus.CancelledByOwner
+                        or BookingStatus.CancelledByRenter,
+
+                BookingStatus.Confirmed =>
+                    next is BookingStatus.Completed
+                        or BookingStatus.CancelledByOwner,
+
+                _ => false
+            };
         }
     }
 }

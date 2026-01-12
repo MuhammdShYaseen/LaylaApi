@@ -162,10 +162,6 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (!isOwner && !isAdmin)
                 throw new UnauthorizedAccessException();
 
-            // Business Rule: valid status transition
-            if (!IsValidStatusTransition(booking.Status, newStatus))
-                throw new InvalidOperationException("Invalid status transition");
-
             booking.ChangeStatus(newStatus);
             await _context.SaveChangesAsync();
 
@@ -247,26 +243,6 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             };
         }
 
-        private static bool IsValidStatusTransition(BookingStatus current, BookingStatus next)
-        {
-            return current switch
-            {
-                BookingStatus.Pending =>
-                    next is BookingStatus.Accepted
-                        or BookingStatus.CancelledByOwner
-                        or BookingStatus.CancelledByRenter,
-
-                BookingStatus.Accepted =>
-                    next is BookingStatus.Confirmed
-                        or BookingStatus.CancelledByOwner
-                        or BookingStatus.CancelledByRenter,
-
-                BookingStatus.Confirmed =>
-                    next is BookingStatus.Completed
-                        or BookingStatus.CancelledByOwner,
-
-                _ => false
-            };
-        }
+        
     }
 }
