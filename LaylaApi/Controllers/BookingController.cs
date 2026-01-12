@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LaylaApi.DataAccess;
 using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,7 @@ namespace LaylaApi.Controllers
 
             var result = await _bookingService.AddAsync(model, userId);
 
-            return Ok(result);          
+            return Ok(ApiResponse<BookingDto>.Ok(result));
         }
 
         // 🔍 عرض الحجوزات الخاصة بالمستخدم
@@ -40,7 +41,7 @@ namespace LaylaApi.Controllers
 
             var result = await _bookingService.GetByUserIdAsync(renterId);
 
-            return Ok(result);
+            return Ok(ApiResponse<IEnumerable<BookingDto>>.Ok(result));
         }
 
         [HttpGet("owner")]
@@ -49,19 +50,19 @@ namespace LaylaApi.Controllers
         {
             var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var bookings = await _bookingService.GetBookingsForOwnerAsync(ownerId);
-            
-            return Ok(bookings.OrderByDescending(b => b.StartDate));
+            var result = await _bookingService.GetBookingsForOwnerAsync(ownerId);
+
+            return Ok(ApiResponse<IEnumerable<BookingDto>>.Ok(result.OrderByDescending(b => b.StartDate).ToList()));
         }
 
         // 📅 التحقق من توفر التاريخ
         [HttpGet("check")]
         [Authorize]
-        public async Task<IActionResult> CheckAvailability(int apartmentId, DateTime start, DateTime end)
+        public async Task<IActionResult> CheckAvailability([FromQuery] int apartmentId, [FromQuery] DateTime start, [FromQuery] DateTime end)
         {
             bool available = await _bookingService.IsDateAvailableAsync(apartmentId, start, end);
 
-            return Ok(new { available });
+            return Ok(ApiResponse<bool>.Ok(available));
         }
 
         // ❌ إلغاء حجز
@@ -76,8 +77,8 @@ namespace LaylaApi.Controllers
             if (!success)
                 throw new KeyNotFoundException();
 
-            return Ok(new { message = "Booking cancelled successfully" });
-           
+            return Ok(ApiResponse<object>.Ok("Booking cancelled successfully"));
+
         }
         [HttpDelete("{id}/owner-cancel")]
         [Authorize(Roles = "Owner,Admin")]
@@ -90,7 +91,7 @@ namespace LaylaApi.Controllers
             if (!success) 
                 throw new BadHttpRequestException("Cannot cancel this booking");
 
-            return Ok(new { message = "Booking cancelled by owner" });
+            return Ok(ApiResponse<object>.Ok("Booking cancelled by owner"));
         }
 
         // 🔄 تحديث حالة الحجز (يستخدمها صاحب الشقة أو Admin)
@@ -98,64 +99,51 @@ namespace LaylaApi.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
         {
-            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                throw new UnauthorizedAccessException();
-
-            var booking = await _bookingService.GetEntityByIdAsync(id);
-
-            if (booking == null)
-                throw new KeyNotFoundException("Booking not found");
-
-            if (booking.Apartment == null)
-                throw new KeyNotFoundException("Apartment not found");
-
-            // Only the owner of the apartment can update the status
-            if (booking.Apartment.OwnerId != userId && !User.IsInRole("Admin"))
-               throw new UnauthorizedAccessException();
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             if (!Enum.TryParse<BookingStatus>(status, true, out var newStatus))
                 throw new BadHttpRequestException("Invalid booking status");
 
-            var result = await _bookingService.UpdateStatusAsync(id, newStatus);
+            var result = await _bookingService.UpdateStatusAsync(id, newStatus, userId);
 
             if (result == null)
-               throw new KeyNotFoundException();
+                throw new KeyNotFoundException("Booking not found or access denied");
 
-            return Ok(result);
+            return Ok(ApiResponse<BookingDto>.Ok(result));
         }
 
         [HttpGet("calendar/{apartmentId}")]
-        public async Task<IActionResult> GetCalendar(int apartmentId)
+        public async Task<IActionResult> GetCalendar(int apartmentId) //انقل كل المنطق الى السيرفس
         {
             var bookingsDto = await _bookingService.GetByApartmentIdAsync(apartmentId);
 
             var calendarEvents = bookingsDto
                 .Where(b => b.Status != BookingStatus.CancelledByRenter
                          && b.Status != BookingStatus.CancelledByOwner)
-                .Select(b => new
+                .Select(b => new CalendarEventDto
                 {
-                    id = b.Id,
-                    title = b.Status,   // أو ثابت "Booked"
-                    start = b.StartDate.ToString("yyyy-MM-dd"),
-                    end = b.EndDate.ToString("yyyy-MM-dd"),
-                    status = b.Status,
-                    color = GetStatusColor(b.Status.ToString()) // اختياري
-                });
+                    Id = b.Id,
+                    Title = "Booked",
+                    Start = b.StartDate,
+                    End = b.EndDate,
+                    Status = b.Status,
+                    Color = GetStatusColor(b.Status)
+                }).ToList();
 
-            return Ok(calendarEvents);
+            return Ok(ApiResponse<IEnumerable<CalendarEventDto>>.Ok(calendarEvents));
         }
 
-        private string GetStatusColor(string status)
+        private static string GetStatusColor(BookingStatus status)
         {
             return status switch
             {
-                "Pending" => "#FACC15", // أصفر
-                "Accepted" => "#3B82F6", // أزرق
-                "Confirmed" => "#16A34A", // أخضر
-                "Completed" => "#10B981", // أخضر فاتح
-                "Cancelled" => "#EF4444", // أحمر
-                "CancelledByOwner" => "#DC2626",
-                _ => "#6B7280"              // رمادي
+                BookingStatus.Pending => "#FACC15",          // أصفر
+                BookingStatus.Accepted => "#3B82F6",         // أزرق
+                BookingStatus.Confirmed => "#16A34A",        // أخضر
+                BookingStatus.Completed => "#10B981",        // أخضر فاتح
+                BookingStatus.CancelledByRenter => "#EF4444",// أحمر
+                BookingStatus.CancelledByOwner => "#DC2626", // أحمر داكن
+                _ => "#6B7280"                               // رمادي
             };
         }
     }

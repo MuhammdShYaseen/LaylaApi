@@ -15,7 +15,7 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<BookingDto?> UpdateAsync(int id, CreateBookingDto dto);       
         Task<bool> IsDateAvailableAsync(int apartmentId, DateTime startDate, DateTime endDate);
         Task<BookingDto> AddAsync(CreateBookingDto booking,int UserID);
-        Task<BookingDto?> UpdateStatusAsync(int id, BookingStatus newStatus);
+        Task<BookingDto?> UpdateStatusAsync(int bookingId, BookingStatus newStatus, int actorUserId);
 
         Task<bool> CancelAsync(int id, int renterId);
         Task<bool> DeleteAsync(int id);

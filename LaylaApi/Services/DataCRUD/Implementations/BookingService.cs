@@ -146,13 +146,30 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         }
 
         // 🔄 تحديث حالة الحجز (Confirm / Cancel / Complete)
-        public async Task<BookingDto?> UpdateStatusAsync(int id, BookingStatus status)
+        public async Task<BookingDto?> UpdateStatusAsync(int bookingId, BookingStatus newStatus, int actorUserId)
         {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking == null) return null;
+            var booking = await _context.Bookings
+                .Include(b => b.Apartment)
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
 
-            booking.Status = status;
+            if (booking == null)
+                return null;
+
+            // Authorization (Business Rule)
+            var isOwner = booking.Apartment!.OwnerId == actorUserId;
+            var isAdmin = false;
+
+            if (!isOwner && !isAdmin)
+                throw new UnauthorizedAccessException();
+
+            // Business Rule: valid status transition
+            if (!IsValidStatusTransition(booking.Status, newStatus))
+                throw new InvalidOperationException("Invalid status transition");
+
+            booking.Status = newStatus;
+
             await _context.SaveChangesAsync();
+
             return _mapper.Map<BookingDto>(booking);
         }
         public async Task<bool> CancelAsync(int id, int userId)
@@ -196,6 +213,28 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                                  .FirstOrDefaultAsync(b => b.Id == id);
             if (booking == null) return null;
             return booking;
+        }
+
+        private static bool IsValidStatusTransition(BookingStatus current, BookingStatus next)
+        {
+            return current switch
+            {
+                BookingStatus.Pending =>
+                    next is BookingStatus.Accepted
+                        or BookingStatus.CancelledByOwner
+                        or BookingStatus.CancelledByRenter,
+
+                BookingStatus.Accepted =>
+                    next is BookingStatus.Confirmed
+                        or BookingStatus.CancelledByOwner
+                        or BookingStatus.CancelledByRenter,
+
+                BookingStatus.Confirmed =>
+                    next is BookingStatus.Completed
+                        or BookingStatus.CancelledByOwner,
+
+                _ => false
+            };
         }
     }
 }
