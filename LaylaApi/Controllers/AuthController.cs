@@ -1,4 +1,5 @@
 ﻿using LaylaApi.Models.DtosModels.AuthDtos;
+using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Services.AuthServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +23,7 @@ namespace LaylaApi.Controllers
 
             var result = await _auth.RegisterAsync(request, originIp);
 
-            return Ok(result);
+            return Ok(ApiResponse<AuthResponse>.Ok(result));
         }
 
         [HttpGet("verify-email")]
@@ -33,7 +34,7 @@ namespace LaylaApi.Controllers
             if (!success)
                 throw new BadHttpRequestException("Invalid or expired token.");
 
-            return Ok(new { message = "Email verified successfully." });
+            return Ok(ApiResponse<object>.Ok("Email verified successfully."));
         }
 
         [HttpPost("login")]
@@ -44,7 +45,7 @@ namespace LaylaApi.Controllers
 
             var result = await _auth.LoginAsync(request, originIp);
 
-            return Ok(result);
+            return Ok(ApiResponse<AuthResponse>.Ok(result));
         }
 
         [HttpPost("refresh-token")]
@@ -57,7 +58,7 @@ namespace LaylaApi.Controllers
             if (response == null)
                 throw new BadHttpRequestException("Invalid token");
 
-            return Ok(response);
+            return Ok(ApiResponse<AuthResponse>.Ok(response));
         }
 
         [HttpPost("revoke-token")]
@@ -70,7 +71,7 @@ namespace LaylaApi.Controllers
             if (!result) 
                 throw new KeyNotFoundException("Token not found or already revoked");
 
-            return Ok(new { message = "Token revoked" });
+            return Ok(ApiResponse<object>.Ok("Token revoked"));
         }
 
         [HttpPost("forgot-password")]
@@ -81,7 +82,7 @@ namespace LaylaApi.Controllers
             if (!sent)
                 throw new BadHttpRequestException("Account not found.");
 
-            return Ok(new { message = "Password reset email sent." });
+            return Ok(ApiResponse<object>.Ok("Password reset email sent."));
         }
 
         [HttpPost("reset-password")]
@@ -92,7 +93,7 @@ namespace LaylaApi.Controllers
             if (!success)
                 throw new BadHttpRequestException("Invalid or expired token.");
 
-            return Ok(new { message = "Password has been reset successfully." });
+            return Ok(ApiResponse<object>.Ok("Password has been reset successfully."));
         }
     }
 }
