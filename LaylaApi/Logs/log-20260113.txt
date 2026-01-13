@@ -111,3 +111,7 @@ ALTER TABLE [Contracts] ADD [UpdatedAt] datetime2 NOT NULL DEFAULT '0001-01-01T0
 ALTER TABLE [Apartments] ADD [UpdatedAt] datetime2 NOT NULL DEFAULT '0001-01-01T00:00:00.0000000';
 2026-01-13 11:07:49.998 +03:00 [ERR] Failed executing DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 ALTER TABLE [Apartments] ADD [UpdatedAt] datetime2 NOT NULL DEFAULT '0001-01-01T00:00:00.0000000';
+2026-01-13 11:18:19.588 +03:00 [INF] EventQueueHostedService started.
+2026-01-13 11:19:10.514 +03:00 [INF] HTTP POST /api/Auth/login responded 200 in 1897 ms | User: Anonymous
+2026-01-13 11:19:54.999 +03:00 [WRN] Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+2026-01-13 11:19:55.054 +03:00 [INF] HTTP GET /api/Apartments/1 responded 200 in 319 ms | User: m.yaseen
