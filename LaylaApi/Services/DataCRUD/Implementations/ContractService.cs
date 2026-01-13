@@ -6,8 +6,7 @@ using QuestPDF.Fluent;
 using LaylaApi.Templates;
 using LaylaApi.Models.DtosModels.MainDtos;
 using AutoMapper;
-using Serilog;
-using System.Net;
+using System.Diagnostics.Contracts;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
 {
@@ -33,17 +32,24 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<IEnumerable<ContractDto>>(contracts);
         }
 
-        public async Task<ContractDto> GetByIdAsync(int id)
+        public async Task<ContractDto> GetByIdAsync(int id, int userId, bool isAdmin)
         {
             var contract = await _context.Contracts
-                .AsNoTracking()
-                .Include(c => c.Booking)
-                .FirstOrDefaultAsync(c => c.Id == id);
+               .AsNoTracking()
+               .Include(c => c.Booking)
+               .ThenInclude(b => b!.Apartment!)
+               .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (contract == null)
+                throw new KeyNotFoundException("Contract not found");
+
+            if (!HasContractAccess(contract.Booking!, contract.Booking!.Apartment!, userId, isAdmin))
+                throw new UnauthorizedAccessException("AccessDenied");
 
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<Contract> GetEntityByIdAsync(int id)
+        public async Task<Models.MainModels.Contract> GetEntityByIdAsync(int id)
         {
             var contract = await _context.Contracts
                  .AsNoTracking()
@@ -54,18 +60,25 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return contract;
         }
 
-        public async Task<ContractDto> GetByBookingIdAsync(int bookingId)
+        public async Task<ContractDto> GetByBookingIdAsync(int bookingId, int userId, bool isAdmin)
         {
             var contract = await _context.Contracts
-                .Include(c => c.Booking)
+                .AsNoTracking()
+                .Include(c => c.Booking).ThenInclude(a => a!.Apartment)
                 .FirstOrDefaultAsync(c => c.BookingId == bookingId);
+
+            if (contract == null)
+                throw new KeyNotFoundException("Contract not found");
+
+            if (!HasContractAccess(contract.Booking!, contract.Booking!.Apartment!, userId, isAdmin))
+                throw new UnauthorizedAccessException("AccessDenied");
 
             return _mapper.Map<ContractDto>(contract);
         }
 
         public async Task<ContractDto> AddAsync(CreateContractDto dto)
         {
-            var contract = _mapper.Map<Contract>(dto);
+            var contract = _mapper.Map<Models.MainModels.Contract>(dto);
             contract.CreatedAt = DateTime.UtcNow;
 
             _context.Contracts.Add(contract);
@@ -74,17 +87,16 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<Contract> AddEntityAsync(Contract contract)
+        public async Task<Models.MainModels.Contract> AddEntityAsync(int bookingId, string specialTerms)
         {
-            var specialTerms = contract.SpecialTerms;
 
             var booking = await _context.Bookings
                 .Include(b => b.Apartment)
                 .ThenInclude(a => a!.Owner)
                 .Include(b => b.User)
-                .FirstAsync(b => b.Id == contract.BookingId);
+                .FirstAsync(b => b.Id == bookingId);
 
-            contract = Contract.Create(booking, specialTerms);
+            var contract = Models.MainModels.Contract.Create(booking, specialTerms);
             _context.Contracts.Add(contract);
             await _context.SaveChangesAsync();
 
@@ -105,14 +117,15 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(existing);
         }
 
-        public async Task<ContractDto> UpdateEntityAsync(Contract contract)
+        public async Task<ContractDto> UpdateEntityAsync(Models.MainModels.Contract contract)
         {
             _context.Contracts.Update(contract);
             await _context.SaveChangesAsync();
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<ContractDto> SignContractAsync(int contractId, int currentUserId)
+
+        public async Task<ContractDto> SignContractAsync(int id, int userId, bool isAdmin)
         {
             var contract = await _context.Contracts
                 .Include(c => c.Booking)
@@ -120,7 +133,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 .Include(c => c.Booking)
                 .ThenInclude(b => b!.Apartment)
                 .ThenInclude(a => a!.Owner) // المالك
-                .FirstOrDefaultAsync(c => c.Id == contractId);
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found.");
@@ -128,10 +141,12 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var ownerId = contract.Booking!.Apartment!.OwnerId;
             var renterId = contract.Booking.UserId;
 
-            if (currentUserId == ownerId)
+            if (userId == ownerId || isAdmin == true)
                 contract.SignByOwner(contract);
-            else if (currentUserId == renterId)
+
+            else if (userId == renterId || isAdmin == true)
                 contract.SignByRenter(contract);
+
             else
                 throw new UnauthorizedAccessException("You are not allowed to sign this contract");
                
@@ -148,7 +163,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
-        public string GenerateContractPdf(Contract contract, Booking booking, Apartment apartment, User renter, User owner, string specialTerms)
+        public string GenerateContractPdf(Models.MainModels.Contract contract, Booking booking, Apartment apartment, User renter, User owner, string specialTerms)
         {
             var document = new contract_template(contract, booking, apartment, owner, renter, specialTerms);
 
@@ -164,6 +179,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return $"/contracts/{fileName}";
         }
 
-       
+        private static bool HasContractAccess(Booking booking, Apartment apartment, int userId, bool isAdmin)
+        {
+            return booking.UserId == userId || apartment.OwnerId == userId || isAdmin;
+        }
+
+        
     }
 }

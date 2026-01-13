@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -34,61 +35,34 @@ namespace LaylaApi.Controllers
             var role = User.FindFirstValue(ClaimTypes.Role);
             return role != null && role.ToLower() == "admin";
         }
-        private bool HasContractAccess(Booking booking, Apartment apartment)
-        {
-            var userId = CurrentUserId();
-            return booking.UserId == userId || apartment.OwnerId == userId || IsAdmin();
-        }
+        
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
-            var contract = await _contractService.GetByIdAsync(id);
+            var userId = CurrentUserId();
+            var isAdmin = IsAdmin();
+
+            var contract = await _contractService.GetByIdAsync(id, userId, isAdmin);
 
             if (contract == null) 
-                throw new KeyNotFoundException();
+                throw new KeyNotFoundException("Contract not found or access denied.");
 
-            var userId = CurrentUserId();
-
-            // Only renter, owner, or admin can access it
-            var booking = await _bookingService.GetEntityByIdAsync(contract.BookingId);
-            if (booking == null) 
-                throw new KeyNotFoundException();
-
-            var apartment = await _apartmentService.GetEntityByIdAsync(booking.ApartmentId);
-            if (apartment == null) return NotFound();
-
-            var hasAccess = HasContractAccess(booking, apartment);
-            if (!hasAccess)
-            {
-               throw new UnauthorizedAccessException("You do not have access to this contract.");
-            }
-
-            return Ok(contract);
+            return Ok(ApiResponse<ContractDto>.Ok(contract));
         }
 
         [HttpGet("booking/{bookingId}")]
         [Authorize]
         public async Task<IActionResult> GetByBooking(int bookingId)
         {
-            var contract = await _contractService.GetByBookingIdAsync(bookingId);
-            if (contract == null) throw new KeyNotFoundException();
-
-            var booking = await _bookingService.GetEntityByIdAsync(bookingId);
-            if (booking == null) throw new KeyNotFoundException();
-
-            var apartment = await _apartmentService.GetEntityByIdAsync(booking.ApartmentId);
-            if (apartment == null) throw new KeyNotFoundException();
-
             var userId = CurrentUserId();
+            var isAdmin = IsAdmin();
 
-            var hasAccess = HasContractAccess(booking, apartment);
-            if (!hasAccess)
-            {
-                throw new UnauthorizedAccessException("You do not have access to this contract.");
-            }
+            var contract = await _contractService.GetByBookingIdAsync(bookingId, userId, isAdmin);
+            if (contract == null)
+                throw new KeyNotFoundException("Contract not found or access denied.");
 
-            return Ok(contract);
+            return Ok(ApiResponse<ContractDto>.Ok(contract));
         }
 
         [HttpPut("{id}/sign-owner")]
@@ -96,50 +70,30 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> SignByOwner(int id)
         {
             var userId = CurrentUserId();
+            var isAdmin = IsAdmin();
 
-            var contract = await _contractService.GetEntityByIdAsync(id);
-            if (contract == null) 
-                throw new KeyNotFoundException("contract");
+            var contract = await _contractService.SignContractAsync(id, userId, isAdmin);
+            if (contract == null)
+                throw new KeyNotFoundException("Contract not found or access denied.");
 
-            var booking = await _bookingService.GetEntityByIdAsync(contract.BookingId);
-            if (booking == null) 
-                throw new KeyNotFoundException("booking");
-               
-            var apartment = await _apartmentService.GetEntityByIdAsync(booking.ApartmentId);
-            if (apartment == null) 
-                throw new KeyNotFoundException("apartment");
-
-            if (apartment?.OwnerId != userId && !IsAdmin())
-               throw new UnauthorizedAccessException("Only the apartment owner can sign this contract.");
-
-            contract.IsSignedByOwner = true;
-            
-            var signed = await _contractService.SignContractAsync(id, userId);
-            return Ok(signed);
+            return Ok(ApiResponse<ContractDto>.Ok(contract, "Contract signed by owner."));
         }
+
         [HttpPut("{id}/sign-renter")]
         [Authorize]
         public async Task<IActionResult> SignByRenter(int id)
         {
-            var contract = await _contractService.GetEntityByIdAsync(id);
-            if (contract == null) throw new KeyNotFoundException();
-
-            var booking = await _bookingService.GetEntityByIdAsync(contract.BookingId);
-            if (booking == null) throw new KeyNotFoundException();
-
-            var apartment = await _apartmentService.GetEntityByIdAsync(booking.ApartmentId);
-            if (apartment == null) throw new KeyNotFoundException();
-
             var userId = CurrentUserId();
+            var isAdmin = IsAdmin();
 
-            if (booking.UserId != userId && !IsAdmin())
-               throw new UnauthorizedAccessException("Only the renter can sign this contract.");
+            var contract = await _contractService.SignContractAsync(id, userId, isAdmin);
+            if (contract == null)
+                throw new KeyNotFoundException("Contract not found or access denied.");
 
-            contract.IsSignedByRenter = true;
-
-            var signed = await _contractService.UpdateEntityAsync(contract);
-            return Ok(signed);
+            return Ok(ApiResponse<ContractDto>.Ok(contract, "Contract signed by renter."));
         }
+
+
         [HttpPost("generate")]
         [Authorize]
         public async Task<IActionResult> GenerateContract([FromBody] ContractCreateDto model)
@@ -165,13 +119,7 @@ namespace LaylaApi.Controllers
             if (owner == null) 
                 throw new KeyNotFoundException();
 
-            var contract = new Contract
-            {
-                BookingId = booking.Id,
-                SpecialTerms = model.SpecialTerms ?? ""
-            };
-
-            contract = await _contractService.AddEntityAsync(contract);
+            var contract = await _contractService.AddEntityAsync(booking.Id, model.SpecialTerms ?? "");
 
             // إنشاء PDF وحفظه في wwwroot
             
