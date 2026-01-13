@@ -47,7 +47,6 @@ namespace LaylaApi.Controllers
 
         // 🔍 البحث عن شقق
         [HttpGet("search")]
-        [Authorize]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
@@ -81,12 +80,12 @@ namespace LaylaApi.Controllers
             return Ok(ApiResponse<object>.Ok( "Apartment deleted successfully."));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var result = await _apartmentService.GetAllAsync();
-            return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    var result = await _apartmentService.GetAllAsync();
+        //    return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
+        //}
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

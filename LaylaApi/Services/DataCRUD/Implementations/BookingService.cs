@@ -86,7 +86,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 throw new BadHttpRequestException("renter does not exist.");
 
             if (apartment.OwnerId == booking.UserId)
-                throw new BadHttpRequestException("Cannot Book Own Apartment.");
+                throw new BadHttpRequestException("Cannot Book your Own Apartment.");
 
             if (booking.StartDate >= booking.EndDate)
                 throw new BadHttpRequestException("Start date must be earlier than end date.");
@@ -112,7 +112,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (booking == null) return null;
 
             if (!await IsDateAvailableAsync(booking.ApartmentId, dto.StartDate, dto.EndDate))
-                throw new BusinessException("BookingTimeOverlap", 400);
+                throw new BadHttpRequestException("Booking Time Over lap", 400);
 
             booking.StartDate = dto.StartDate;
             booking.EndDate = dto.EndDate;

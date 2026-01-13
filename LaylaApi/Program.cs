@@ -52,12 +52,12 @@ namespace LaylaApi
             app.UseErrorHandler();
             app.UseRequestResponseLogging();
             app.UseHttpsRedirection();
-            app.UseRateLimiter();
-            app.MapHub<ChatHub>("/hubs/chat").DisableRateLimiting();
             app.UseStaticFiles();
             app.UseRequestLocalization();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseRateLimiter();
+            app.MapHub<ChatHub>("/Hubs/chat").DisableRateLimiting();
             app.MapControllers();
             app.Run();
         }

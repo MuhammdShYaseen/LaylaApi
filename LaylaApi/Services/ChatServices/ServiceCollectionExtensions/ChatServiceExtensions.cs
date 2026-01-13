@@ -7,6 +7,7 @@ namespace LaylaApi.Services.ChatServices.ServiceCollectionExtensions
     {
         public static IServiceCollection AddChatServiceExtensions(this IServiceCollection services) 
         {
+            services.AddSignalR();
             services.AddScoped<IConversationService, ConversationService>();
             services.AddScoped<IMessageService, MessageService>();
             services.AddScoped<IVoiceStorageService, VoiceStorageService>();
