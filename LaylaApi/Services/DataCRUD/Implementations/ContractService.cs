@@ -6,7 +6,6 @@ using QuestPDF.Fluent;
 using LaylaApi.Templates;
 using LaylaApi.Models.DtosModels.MainDtos;
 using AutoMapper;
-using System.Diagnostics.Contracts;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
 {
@@ -49,7 +48,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<Models.MainModels.Contract> GetEntityByIdAsync(int id)
+        public async Task<Contract> GetEntityByIdAsync(int id)
         {
             var contract = await _context.Contracts
                  .AsNoTracking()
@@ -78,7 +77,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<ContractDto> AddAsync(CreateContractDto dto)
         {
-            var contract = _mapper.Map<Models.MainModels.Contract>(dto);
+            var contract = _mapper.Map<Contract>(dto);
             contract.CreatedAt = DateTime.UtcNow;
 
             _context.Contracts.Add(contract);
@@ -87,7 +86,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<Models.MainModels.Contract> AddEntityAsync(int bookingId, string specialTerms)
+        public async Task<Contract> AddEntityAsync(int bookingId, string specialTerms)
         {
 
             var booking = await _context.Bookings
@@ -96,7 +95,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 .Include(b => b.User)
                 .FirstAsync(b => b.Id == bookingId);
 
-            var contract = Models.MainModels.Contract.Create(booking, specialTerms);
+            var contract = Contract.Create(booking, specialTerms);
             _context.Contracts.Add(contract);
             await _context.SaveChangesAsync();
 
@@ -117,22 +116,26 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(existing);
         }
 
-        public async Task<ContractDto> UpdateEntityAsync(Models.MainModels.Contract contract)
+        public async Task<ContractDto> UpdateEntityAsync(Contract contract)
         {
             _context.Contracts.Update(contract);
             await _context.SaveChangesAsync();
             return _mapper.Map<ContractDto>(contract);
         }
 
-
-        public async Task<ContractDto> SignContractAsync(int id, int userId, bool isAdmin)
+        public enum ContractSigner
+        {
+            Owner,
+            Renter
+        }
+        public async Task<ContractDto> SignContractAsync(int id, int userId, bool isAdmin, ContractSigner contractSigner)
         {
             var contract = await _context.Contracts
                 .Include(c => c.Booking)
-                .ThenInclude(b => b!.User) // المستأجر
+                    .ThenInclude(b => b!.User) // المستأجر
                 .Include(c => c.Booking)
-                .ThenInclude(b => b!.Apartment)
-                .ThenInclude(a => a!.Owner) // المالك
+                    .ThenInclude(b => b!.Apartment)
+                    .ThenInclude(a => a!.Owner) // المالك
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (contract == null)
@@ -141,16 +144,26 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var ownerId = contract.Booking!.Apartment!.OwnerId;
             var renterId = contract.Booking.UserId;
 
-            if (userId == ownerId || isAdmin == true)
-                contract.SignByOwner(contract);
+            switch (contractSigner)
+            {
+                case ContractSigner.Owner:
+                    if (userId != ownerId && !isAdmin)
+                        throw new UnauthorizedAccessException();
 
-            else if (userId == renterId || isAdmin == true)
-                contract.SignByRenter(contract);
+                    contract.SignByOwner(contract);
+                    break;
 
-            else
-                throw new UnauthorizedAccessException("You are not allowed to sign this contract");
-               
-                await _context.SaveChangesAsync();
+                case ContractSigner.Renter:
+                    if (userId != renterId && !isAdmin)
+                        throw new UnauthorizedAccessException();
+
+                    contract.SignByRenter(contract);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Invalid signer");
+            }
+            await _context.SaveChangesAsync();
             return _mapper.Map<ContractDto>(contract);
         }
 
@@ -163,7 +176,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
-        public string GenerateContractPdf(Models.MainModels.Contract contract, Booking booking, Apartment apartment, User renter, User owner, string specialTerms)
+        public string GenerateContractPdf(Contract contract, Booking booking, Apartment apartment, User renter, User owner, string specialTerms)
         {
             var document = new contract_template(contract, booking, apartment, owner, renter, specialTerms);
 

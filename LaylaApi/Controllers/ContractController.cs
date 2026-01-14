@@ -6,6 +6,7 @@ using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static LaylaApi.Services.DataCRUD.Implementations.ContractService;
 
 namespace LaylaApi.Controllers
 {
@@ -72,7 +73,7 @@ namespace LaylaApi.Controllers
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.SignContractAsync(id, userId, isAdmin);
+            var contract = await _contractService.SignContractAsync(id, userId, isAdmin, ContractSigner.Owner);
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found or access denied.");
 
@@ -86,7 +87,7 @@ namespace LaylaApi.Controllers
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.SignContractAsync(id, userId, isAdmin);
+            var contract = await _contractService.SignContractAsync(id, userId, isAdmin, ContractSigner.Renter);
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found or access denied.");
 
