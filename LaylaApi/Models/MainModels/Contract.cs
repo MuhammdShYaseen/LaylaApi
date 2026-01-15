@@ -56,5 +56,11 @@ namespace LaylaApi.Models.MainModels
             IsSignedByRenter = true;
             AddDomainEvent(new ContractSignedEvent(contract, false, IsSignedByOwner));
         }
+
+        public void AddPdfUrl(string url)
+        {
+            ContractUrl = url;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

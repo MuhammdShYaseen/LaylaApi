@@ -190,11 +190,28 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (userId != ownerId && !isAdmin)
                 throw new UnauthorizedAccessException("Access denied.");
 
+            var pdfPath = contract.ContractUrl;
+
             _context.Contracts.Remove(contract);
             await _context.SaveChangesAsync();
 
+            DeleteContractFile(pdfPath);
+
             return true;
         }
+        private void DeleteContractFile(string? relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(relativePath))
+                return;
+
+            var fullPath = Path.Combine(_env.WebRootPath, relativePath.TrimStart('/'));
+
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+        }
+
         public string GenerateContractPdf(Contract contract, Booking booking, Apartment apartment, User renter, User owner, string specialTerms)
         {
             try
@@ -253,7 +270,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             string pdfUrl = GenerateContractPdf(contract, booking, booking.Apartment, booking.User, booking.Apartment.Owner, model.SpecialTerms ?? "");
 
-            contract.ContractUrl = pdfUrl;
+            contract.AddPdfUrl(pdfUrl);
 
             await UpdateEntityAsync(contract);
 
