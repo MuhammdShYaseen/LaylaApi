@@ -1,7 +1,5 @@
-﻿using AutoMapper;
-using LaylaApi.Models.DtosModels.MainDtos;
+﻿using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.GenericResponseModels;
-using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -100,37 +98,13 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GenerateContract([FromBody] ContractCreateDto model)
         {
             var userId = CurrentUserId();
+            var isAdmin = IsAdmin();
 
-            var booking = await _bookingService.GetEntityByIdAsync(model.BookingId);
-            if (booking == null) 
-                throw new KeyNotFoundException();
+            var contract = await _contractService.GenerateContractAsync(userId, model, isAdmin);
+            if (contract == null)
+                throw new BadHttpRequestException("Contract is not Generated");
 
-            var apartment = await _apartmentService.GetEntityByIdAsync(booking.ApartmentId);
-            var renter = await _userService.GetByIdAsync(booking.UserId);
-
-            if (apartment == null) 
-                throw new KeyNotFoundException();
-
-            if (renter == null) 
-                throw new KeyNotFoundException();
-
-            var owner = await _userService.GetByIdAsync(apartment.OwnerId);
-
-            // إنشاء عقد DB
-            if (owner == null) 
-                throw new KeyNotFoundException();
-
-            var contract = await _contractService.AddEntityAsync(booking.Id, model.SpecialTerms ?? "");
-
-            // إنشاء PDF وحفظه في wwwroot
-            
-            string pdfUrl = _contractService.GenerateContractPdf(contract, booking, apartment, renter, owner , 
-                                                                 model.SpecialTerms ?? "");
-            // حفظ الرابط DB
-            contract.ContractUrl = pdfUrl;
-            await _contractService.UpdateEntityAsync(contract);
-
-            return Ok(contract);
+            return Ok(ApiResponse<ContractDto>.Ok(contract, "Contract Generated"));
         }
 
 
@@ -138,27 +112,12 @@ namespace LaylaApi.Controllers
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
-            var contract = await _contractService.GetByIdAsync(id);
-            if (contract == null) 
-                throw new KeyNotFoundException();
+            var isDeleted = await _contractService.DeleteAsync(id, CurrentUserId(), IsAdmin());
 
-            var booking = await _bookingService.GetByIdAsync(contract.BookingId);
-            if (booking == null) 
-                throw new KeyNotFoundException();
+            if (!isDeleted)
+                throw new BadHttpRequestException("Could not delete contract.");
 
-            var apartment = await _apartmentService.GetByIdAsync(booking.ApartmentId);
-            if (apartment == null) 
-                throw new KeyNotFoundException();
-
-            var userId = CurrentUserId();
-
-            if (apartment.OwnerId != userId && !IsAdmin())
-                throw new UnauthorizedAccessException("Only the owner can delete this contract.");
-
-            var success = await _contractService.DeleteAsync(id);
-            if (!success) throw new BadHttpRequestException("Could not delete contract.");
-
-            return Ok(new { message = "Contract deleted." });
+            return Ok(ApiResponse<object>.Ok("Contract deleted successfully."));
         }
 
     }
