@@ -6,7 +6,7 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
     {
         Task<IEnumerable<MediaFile>> GetByApartmentIdAsync(int apartmentId);
         Task<MediaFile?> GetByIdAsync(int id);
-        Task<List<MediaFile>> UploadFilesAsync(int apartmentId, List<IFormFile> files, string rootPath);
+        Task<List<MediaFile>> UploadFilesAsync(int apartmentId, List<IFormFile> files, int UserId, bool isAdmin);
         Task<bool> DeleteAsync(int id, string rootPath);
         
     }

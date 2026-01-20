@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Implementations;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.CodeDom;
 using System.Security.Claims;
 
 namespace LaylaApi.Controllers
@@ -44,31 +46,19 @@ namespace LaylaApi.Controllers
         // 🟦 رفع الصور والفيديوهات لشقة
         [HttpPost("upload/{apartmentId}")]
         [Authorize]
+        [RequestSizeLimit(50_000_000)] // 50 MB
         public async Task<IActionResult> Upload(int apartmentId, List<IFormFile> files)
         {
-            var apartment = await _ApartmentService.GetEntityByIdAsync(apartmentId);
-            if (apartment == null)
-                throw new KeyNotFoundException();
 
-            if (HasApartmentFilesAccess(apartment) == false)
-                throw new UnauthorizedAccessException();
+            var result = await _mediaService.UploadFilesAsync(apartmentId, files, CurrentUserId(), IsAdmin());
 
-            if (files == null || files.Count == 0)
-                throw new  BadHttpRequestException("No files received.");
-
-            if (!files.All(f => f.ContentType.StartsWith("image/") || f.ContentType.StartsWith("video/")))
-                return BadRequest("Only image and video files are allowed.");
-
-            var rootPath = Directory.GetCurrentDirectory() + "/wwwroot";
-
-            var result = await _mediaService.UploadFilesAsync(apartmentId, files, rootPath);
-
-            return Ok(result);
+            return Ok(ApiResponse<IEnumerable<MediaFile>>.Ok(result, "Files uploaded successfully."));
         }
 
         // 🗑️ حذف ملف
         [HttpDelete("{id}")]
         [Authorize]
+
         public async Task<IActionResult> Delete(int id)
         {
            
