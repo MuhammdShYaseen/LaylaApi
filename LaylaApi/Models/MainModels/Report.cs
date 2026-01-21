@@ -7,6 +7,13 @@ namespace LaylaApi.Models.MainModels
 {
     public class Report : Entity
     {
+        public enum ReportStatus
+        {
+            Pending,
+            Reviewed,
+            Resolved,
+            Rejected
+        }
 
         [Required]
         public int ReporterId { get; set; } // المستخدم الذي قام بالتبليغ
@@ -24,7 +31,7 @@ namespace LaylaApi.Models.MainModels
         public string Reason { get; set; } = string.Empty; // سبب التبليغ
 
         [MaxLength(50)]
-        public string Status { get; set; } = "Pending"; // Pending, Reviewed, Rejected, Resolved
+        public ReportStatus Status { get; set; } = ReportStatus.Pending; // Pending, Reviewed, Rejected, Resolved
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -38,11 +45,22 @@ namespace LaylaApi.Models.MainModels
                 ApartmentId = apartment.Id,
                 CreatedAt = DateTime.UtcNow,
                 ReporterId = reporter.Id,
-                Status = "Pending"
+                Status = ReportStatus.Pending
             };
 
             report.AddDomainEvent(new ReportCreatedEvent(report));
             return report;
+        }
+
+        public void ChangeStatus(ReportStatus newStatus)
+        {
+            if (Status == newStatus)
+                return;
+
+            Status = newStatus;
+
+            // مستقبلاً:
+            // AddDomainEvent(new ReportStatusChangedEvent(...));
         }
     }
 }

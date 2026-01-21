@@ -1,4 +1,6 @@
-﻿using LaylaApi.DataAccess;
+﻿using AutoMapper;
+using LaylaApi.DataAccess;
+using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -11,18 +13,19 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         private readonly IApartmentService _ApartmentService;
         private static readonly HashSet<string> AllowedExtensions =[".jpg", ".jpeg", ".png", ".webp",".mp4", ".mov"];
         private readonly IWebHostEnvironment _env;
-        public MediaFileService(LaylaContext context, IApartmentService apartmentService, IWebHostEnvironment env)
+        private readonly IMapper _Mapper;
+        public MediaFileService(LaylaContext context, IApartmentService apartmentService, IWebHostEnvironment env, IMapper mapper)
         {
             _context = context;
             _ApartmentService = apartmentService;
             _env = env;
+            _Mapper = mapper;
         }
 
-        public async Task<IEnumerable<MediaFile>> GetByApartmentIdAsync(int apartmentId)
+        public async Task<IEnumerable<MediaFileDto>> GetByApartmentIdAsync(int apartmentId)
         {
-            return await _context.MediaFiles
-                .Where(f => f.ApartmentId == apartmentId)
-                .ToListAsync();
+            var result = await _context.MediaFiles.Where(f => f.ApartmentId == apartmentId).ToListAsync();
+            return _Mapper.Map<IEnumerable<MediaFileDto>>(result);
         }
 
         public async Task<MediaFile?> GetByIdAsync(int id)
@@ -98,20 +101,31 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         private static bool IsVideo(string ext) => ext is ".mp4" or ".mov";
 
-        public async Task<bool> DeleteAsync(int id, string rootPath)
+        public async Task<bool> DeleteAsync(int mediaId, int userId, bool isAdmin)
         {
-            var media = await _context.MediaFiles.FindAsync(id);
-            if (media == null) return false;
+            var media = await _context.MediaFiles.Include(m => m.Apartment).FirstOrDefaultAsync(m => m.Id == mediaId);
 
-            string fullPath = Path.Combine(rootPath, media.FileUrl.TrimStart('/'));
+            if (media == null)
+                throw new KeyNotFoundException("Media file not found.");
 
-            if (File.Exists(fullPath))
-                File.Delete(fullPath);
+            if (media.Apartment == null)
+                throw new InvalidOperationException("Media is not linked to an apartment.");
+
+            if (!HasApartmentFilesAccess(media.Apartment, userId, isAdmin))
+                throw new UnauthorizedAccessException("You are not allowed to delete this file.");
+
+            DeletePhysicalFile(media.FileUrl);
 
             _context.MediaFiles.Remove(media);
             await _context.SaveChangesAsync();
 
             return true;
+        }
+        private void DeletePhysicalFile(string fileUrl)
+        {
+            var fullPath = Path.Combine(_env.WebRootPath, fileUrl.TrimStart('/'));
+            if (File.Exists(fullPath))
+                File.Delete(fullPath);
         }
     }
 }

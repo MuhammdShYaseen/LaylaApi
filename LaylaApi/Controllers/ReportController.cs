@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using LaylaApi.Models.DtosModels.MainDtos;
-using LaylaApi.Models.MainModels;
+using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static LaylaApi.Models.MainModels.Report;
 
 namespace LaylaApi.Controllers
 {
@@ -13,13 +14,9 @@ namespace LaylaApi.Controllers
     public class ReportController : ControllerBase
     {
         private readonly IReportService _reportService;
-        private readonly IApartmentService _apartmentService;
-        private readonly IMapper _mapper;
-        public ReportController(IReportService reportService, IApartmentService apartmentService, IMapper mapper)
+        public ReportController(IReportService reportService)
         {
             _reportService = reportService;
-            _apartmentService = apartmentService;
-            _mapper = mapper;
         }
 
         private int CurrentUserId()
@@ -38,115 +35,64 @@ namespace LaylaApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
-            var reports = await _reportService.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<ReportDto>>(reports));
+            var result = await _reportService.GetAllAsync();
+            return Ok(ApiResponse<IEnumerable<ReportDto>>.Ok(result));
         }
 
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
-            var report = await _reportService.GetByIdAsync(id);
-            if (report == null) return NotFound();
+            var result = await _reportService.GetByIdAsync(id, CurrentUserId(), IsAdmin());
 
-            var userId = CurrentUserId();
-            if (report.ReporterId != userId && !IsAdmin())
-                return Forbid();
-
-            return Ok(_mapper.Map<ReportDto>(report));
+            return Ok(ApiResponse<ReportDto>.Ok(result));
         }
 
         [HttpGet("apartment/{apartmentId}")]
         [Authorize(Roles = "Admin")] // فقط المدير
         public async Task<IActionResult> GetByApartment(int apartmentId)
         {
-            var reports = await _reportService.GetByApartmentIdAsync(apartmentId);
-            return Ok(_mapper.Map<IEnumerable<ReportDto>>(reports));
+            var result = await _reportService.GetByApartmentIdAsync(apartmentId);
+            return Ok(ApiResponse<IEnumerable<ReportDto>>.Ok(result));
         }
 
         [HttpGet("my")]
         [Authorize]
         public async Task<IActionResult> GetMyReports()
         {
-            var userId = CurrentUserId();
-            var reports = await _reportService.GetByReporterIdAsync(userId);
-            return Ok(_mapper.Map<IEnumerable<ReportDto>>(reports));
+            var result = await _reportService.GetByReporterIdAsync(CurrentUserId());
+            return Ok(ApiResponse<IEnumerable<ReportDto>>.Ok(result));
         }
 
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> Create([FromBody] ReportCreateDto model)
         {
-            var userId = CurrentUserId();
-            if (userId == 0)
-                throw new UnauthorizedAccessException();
+            var result = await _reportService.CreateAsync(model, CurrentUserId(), IsAdmin());
 
-            if (!ModelState.IsValid)
-                throw new BadHttpRequestException("ModelState is not Valid");
-
-            if (model.ApartmentId <= 0)
-                throw new BadHttpRequestException( "ApartmentId is required.");
-
-            // تأكيد أن الشقة موجودة
-            var apartment = await _apartmentService.GetByIdAsync(model.ApartmentId);
-            if (apartment == null)
-                throw new KeyNotFoundException ("Apartment not found.");
-
-            // منع التبليغ عن شقته الخاصة
-            if (apartment.OwnerId == userId)
-                throw new BadHttpRequestException("You cannot report your own apartment.");
-
-            // منع التبليغ المكرر
-            bool exists = await _reportService.ExistsAsync(userId, model.ApartmentId);
-            if (exists)
-                throw new BadHttpRequestException("You have already reported this apartment.");
-
-            // تجهيز الكيان
-            var report = _mapper.Map<Report>(model);
-            report.ReporterId = userId;
-            report.Status = "Pending";
-            report.CreatedAt = DateTime.UtcNow;
-
-            // الإضافة
-            var created = await _reportService.AddAsync(report);
-
-            // إعادة النتيجة بشكل آمن
-            return Ok(_mapper.Map<ReportDto>(created));
+            return Ok(ApiResponse<ReportDto>.Ok(result, "Report submitted successfully."));
         }
 
         [HttpPut("{id}/status")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
         {
-            var allowed = new[] { "Pending", "Reviewed", "Resolved", "Rejected" };
-            if (!allowed.Contains(status))
-                throw new BadHttpRequestException("Invalid status value.");
+            if (!Enum.TryParse<ReportStatus>(status, true, out var newStatus))
+                throw new BadHttpRequestException("Invalid report status.");
 
-            var updated = await _reportService.UpdateStatusAsync(id, status);
-            if (updated == null) 
-                throw new KeyNotFoundException();
 
-            return Ok(_mapper.Map<ReportDto>(updated));
+            var result = await _reportService.UpdateStatusAsync(id, newStatus);
+
+            return Ok(ApiResponse<ReportDto>.Ok(result, "Report status updated successfully."));
         }
 
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
-            var report = await _reportService.GetByIdAsync(id);
-            if (report == null) 
-                throw new KeyNotFoundException();
+            await _reportService.DeleteAsync(id, CurrentUserId(), IsAdmin());
 
-            var userId = CurrentUserId();
-
-            if (report.ReporterId != userId && !IsAdmin())
-               throw new UnauthorizedAccessException();
-
-            var success = await _reportService.DeleteAsync(id);
-            if (!success) 
-                throw new BadHttpRequestException("Could not delete report.");
-
-            return Ok(new { message = "Report deleted." });
+            return Ok(ApiResponse<object>.Ok("Report deleted."));
         }
     }
 }
