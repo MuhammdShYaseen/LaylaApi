@@ -1,6 +1,5 @@
 ﻿using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
-using Microsoft.VisualBasic;
 
 namespace LaylaApi.Models.MainModels
 {

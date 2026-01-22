@@ -57,6 +57,7 @@ namespace LaylaApi.Models.MainModels
                 return;
 
             Status = newStatus;
+            UpdatedAt = DateTime.UtcNow;
 
             // مستقبلاً:
             // AddDomainEvent(new ReportStatusChangedEvent(...));

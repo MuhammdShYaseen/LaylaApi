@@ -8,6 +8,7 @@ namespace LaylaApi.DomainEvents.Domain.Common
         public Guid Guid { get; set; } = Guid.NewGuid();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         private readonly List<IEvent> _domainEvents = new();
         public IReadOnlyCollection<IEvent> DomainEvents => _domainEvents;
