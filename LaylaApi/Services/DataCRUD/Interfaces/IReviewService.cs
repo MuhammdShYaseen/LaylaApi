@@ -1,4 +1,5 @@
-﻿using LaylaApi.Models.MainModels;
+﻿using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.Models.MainModels;
 
 namespace LaylaApi.Services.DataCRUD.Interfaces
 {
@@ -9,8 +10,8 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<IEnumerable<Review?>> GetByUserIdAsync(int id);
         Task<IEnumerable<Review>> GetByApartmentIdAsync(int apartmentId);
         Task<bool> ExistsAsync(int userId,int ApartmentId);
-        Task<Review> AddAsync(Review review);
-        Task<Review?> UpdateAsync(int id, Review review);
+        Task<ReviewDto> AddAsync(ReviewCreateDto dto, int userId, bool isAdmin);
+        Task<ReviewDto> UpdateAsync(int id, ReviewCreateDto dto, int userId, bool isAdmin);
         Task<bool> DeleteAsync(int id);
     }
 }

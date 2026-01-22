@@ -28,13 +28,25 @@ namespace LaylaApi.Models.MainModels
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public static Review Create(Review review, Apartment apartment, User user)
+        public static Review Create(int userId, int apartmentId,  int rating, string comment)
         {
-            review.Apartment = apartment;
-            review.User = user;
+            var review = new Review
+            {
+                UserId = userId,
+                Comment = comment,
+                Rating = rating,
+                CreatedAt = DateTime.UtcNow,
+            };
+
             review.AddDomainEvent(new ReviewCreatedEvent(review));
-            review.CreatedAt = DateTime.UtcNow;
+            
             return review;
+        }
+
+        public void Update(int rating, string comment)
+        {
+            Rating = rating;
+            Comment = comment;
         }
     }
 }
