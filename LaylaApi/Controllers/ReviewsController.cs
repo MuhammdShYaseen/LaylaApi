@@ -68,12 +68,8 @@ namespace LaylaApi.Controllers
         [HttpGet("apartment/{apartmentId}/average")]
         public async Task<IActionResult> GetAverageRating(int apartmentId)
         {
-            var reviews = await _reviewService.GetByApartmentIdAsync(apartmentId);
-            if (reviews == null || !reviews.Any())
-                return Ok(new { average = 0.0, count = 0 });
-
-            var avg = reviews.Average(r => r.Rating);
-            return Ok(new { average = Math.Round(avg, 2), count = reviews.Count() });
+            var result = await _reviewService.GetAverageRatingAsync(apartmentId);
+            return Ok(ApiResponse<object>.Ok(result));
         }
 
         [HttpPost]

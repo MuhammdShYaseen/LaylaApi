@@ -78,14 +78,33 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ReviewDto>(review);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id, int userId, bool isAdmin)
         {
-            var existing = await _context.Reviews.FindAsync(id);
-            if (existing == null) return false;
+            var review = await _context.Reviews.FindAsync(id)
+        ?? throw new KeyNotFoundException();
 
-            _context.Reviews.Remove(existing);
+            if (review.UserId != userId && !isAdmin)
+                throw new UnauthorizedAccessException();
+
+            _context.Remove(review); // أو Remove حسب قرارك
             await _context.SaveChangesAsync();
-            return true;
+        }
+
+        public async Task<object> GetAverageRatingAsync(int apartmentId)
+        {
+            var query = _context.Reviews.Where(r => r.ApartmentId == apartmentId);
+
+            var count = await query.CountAsync();
+            if (count == 0)
+                return new { average = 0.0, count = 0 };
+
+            var avg = await query.AverageAsync(r => r.Rating);
+
+            return new
+            {
+                average = Math.Round(avg, 2),
+                count
+            };
         }
     }
 }

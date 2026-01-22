@@ -9,9 +9,11 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<Review?> GetByIdAsync(int id);
         Task<IEnumerable<Review?>> GetByUserIdAsync(int id);
         Task<IEnumerable<Review>> GetByApartmentIdAsync(int apartmentId);
+        Task<object> GetAverageRatingAsync(int apartmentId);
         Task<bool> ExistsAsync(int userId,int ApartmentId);
         Task<ReviewDto> AddAsync(ReviewCreateDto dto, int userId, bool isAdmin);
         Task<ReviewDto> UpdateAsync(int id, ReviewCreateDto dto, int userId, bool isAdmin);
-        Task<bool> DeleteAsync(int id);
+
+        Task DeleteAsync(int id, int userId, bool isAdmin);
     }
 }
