@@ -26,8 +26,6 @@ namespace LaylaApi.Models.MainModels
         [MaxLength(1000)]
         public string? Comment { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
         public static Review Create(int userId, int apartmentId,  int rating, string comment)
         {
             var review = new Review
@@ -47,6 +45,7 @@ namespace LaylaApi.Models.MainModels
         {
             Rating = rating;
             Comment = comment;
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }

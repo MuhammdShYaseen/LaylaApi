@@ -23,6 +23,5 @@ namespace LaylaApi.Models.MainModels
 
         public string Status { get; set; } = "Pending"; // Pending, Completed, Failed
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -36,8 +36,7 @@ namespace LaylaApi.Models.MainModels
         public decimal PricePerDay { get; set; }
 
         public bool IsAvailable { get; set; } = true;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set;} = DateTime.UtcNow;
+        
 
         [Required]
         public int OwnerId { get; set; }

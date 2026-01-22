@@ -19,8 +19,6 @@ namespace LaylaApi.Models.MainModels
         [Required]
         public string ContractUrl { get; set; } = string.Empty; // رابط ملف PDF مثلاً
         public string SpecialTerms { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
         public bool IsSignedByOwner { get; set; } = false;
         public bool IsSignedByRenter { get; set; } = false;
 

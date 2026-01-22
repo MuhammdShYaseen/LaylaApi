@@ -20,8 +20,6 @@ namespace LaylaApi.Models.MainModels
         [Required]
         public string FileType { get; set; } = "image"; // "image" أو "video"
 
-        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
-
         public static MediaFile Create(int apartmentId, string fileUrl, string fileType = "image")
         {
             
@@ -34,7 +32,9 @@ namespace LaylaApi.Models.MainModels
                 ApartmentId = apartmentId,
                 FileUrl = fileUrl,
                 FileType = normalizedType,
-                UploadedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                
             };
             //media.AddDomainEvent(new MediaUploadedEvent(media));
             return media;

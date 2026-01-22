@@ -5,6 +5,9 @@ namespace LaylaApi.DomainEvents.Domain.Common
     public abstract class Entity
     {
         public int Id { get; protected set; }
+        public Guid Guid { get; set; } = Guid.NewGuid();
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
         private readonly List<IEvent> _domainEvents = new();
         public IReadOnlyCollection<IEvent> DomainEvents => _domainEvents;

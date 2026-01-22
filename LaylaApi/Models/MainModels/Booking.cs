@@ -38,8 +38,7 @@ namespace LaylaApi.Models.MainModels
 
         [Required]
         public BookingStatus Status { get; set; } = BookingStatus.Pending; // Pending, Confirmed, Cancelled
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
+        
         public Contract? Contract { get; set; }
         public Payment? Payment { get; set; }
         public static Booking Create(Apartment apartment, User renter, DateTime startDate, DateTime endDate)

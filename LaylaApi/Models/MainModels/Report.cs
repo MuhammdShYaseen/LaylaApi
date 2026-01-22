@@ -33,8 +33,6 @@ namespace LaylaApi.Models.MainModels
         [MaxLength(50)]
         public ReportStatus Status { get; set; } = ReportStatus.Pending; // Pending, Reviewed, Rejected, Resolved
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
         public static Report Create(Apartment apartment, User reporter ,string reason)
         {
             var report = new Report
@@ -44,6 +42,7 @@ namespace LaylaApi.Models.MainModels
                 Reason = reason,
                 ApartmentId = apartment.Id,
                 CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
                 ReporterId = reporter.Id,
                 Status = ReportStatus.Pending
             };

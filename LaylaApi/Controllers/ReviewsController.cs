@@ -45,6 +45,7 @@ namespace LaylaApi.Controllers
 
             if (review == null) 
                 throw new KeyNotFoundException();
+
             return Ok(ApiResponse<ReviewDto>.Ok(review));
         }
 
@@ -52,6 +53,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GetByApartment(int apartmentId)
         {
             var reviews = await _reviewService.GetByApartmentIdAsync(apartmentId);
+
             return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(reviews));
         }
 
@@ -59,6 +61,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GetByUser(int userId)
         {
             var reviews = await _reviewService.GetByUserIdAsync(userId);
+
             return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(reviews));
         }
 
@@ -66,6 +69,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GetAverageRating(int apartmentId)
         {
             var result = await _reviewService.GetAverageRatingAsync(apartmentId);
+
             return Ok(ApiResponse<object>.Ok(result));
         }
 

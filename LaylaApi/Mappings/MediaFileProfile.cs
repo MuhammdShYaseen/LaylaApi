@@ -11,7 +11,7 @@ namespace LaylaApi.Mappings
             CreateMap<MediaFile, MediaFileDto>();
 
             CreateMap<MediaFileCreateDto, MediaFile>()
-                .ForMember(dest => dest.UploadedAt, opt => opt.Ignore());
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
         }
     }
 }

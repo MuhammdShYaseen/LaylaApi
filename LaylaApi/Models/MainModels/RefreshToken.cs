@@ -13,7 +13,6 @@ namespace LaylaApi.Models.MainModels
         [Required]
         public DateTime Expires { get; set; }
 
-        public DateTime Created { get; set; } = DateTime.UtcNow;
         public string? CreatedByIp { get; set; }
 
         public DateTime? Revoked { get; set; }

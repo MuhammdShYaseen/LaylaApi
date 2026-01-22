@@ -24,8 +24,6 @@ namespace LaylaApi.Models.MainModels
 
         [Required]
         public string Role { get; set; } = "User"; // "Renter" or "Owner"
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool EmailConfirmed { get; set; } = false;
         public string Lang { get; set; } = "en";
         public string? EmailVerificationToken { get; set; }
