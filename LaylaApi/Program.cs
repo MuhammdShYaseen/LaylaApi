@@ -13,6 +13,7 @@ using LaylaApi.Helper.AuthHelper;
 using LaylaApi.Options;
 using LaylaApi.Services.ChatServices.ServiceCollectionExtensions;
 using LaylaApi.SignalR_Hubs;
+using LaylaApi.DataRepository;
 namespace LaylaApi
 {
     public class Program
@@ -31,6 +32,7 @@ namespace LaylaApi
             builder.Services.AddModelStateValidationHandler();
             builder.Services.AddCustomRateLimiter();
             builder.Services.AddLaylaContextExtension(builder.Configuration);
+            builder.Services.AddDataRepository();
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddDomainEvents();
             builder.Services.AddAuthServices();
