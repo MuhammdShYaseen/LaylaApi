@@ -5,10 +5,10 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
 {
     public interface IReviewService
     {
-        Task<IEnumerable<Review>> GetAllAsync();
-        Task<Review?> GetByIdAsync(int id);
-        Task<IEnumerable<Review?>> GetByUserIdAsync(int id);
-        Task<IEnumerable<Review>> GetByApartmentIdAsync(int apartmentId);
+        Task<IEnumerable<ReviewDto>> GetAllAsync();
+        Task<ReviewDto> GetByIdAsync(int id);
+        Task<IEnumerable<ReviewDto>> GetByUserIdAsync(int id);
+        Task<IEnumerable<ReviewDto>> GetByApartmentIdAsync(int apartmentId);
         Task<object> GetAverageRatingAsync(int apartmentId);
         Task<bool> ExistsAsync(int userId,int ApartmentId);
         Task<ReviewDto> AddAsync(ReviewCreateDto dto, int userId, bool isAdmin);

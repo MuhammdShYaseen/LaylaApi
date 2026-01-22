@@ -18,15 +18,31 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Review>> GetAllAsync() =>
-            await _context.Reviews.Include(r => r.User).Include(r => r.Apartment).ToListAsync();
+        public async Task<IEnumerable<ReviewDto>> GetAllAsync()
+        {
+            var reviews = await _context.Reviews.Include(r => r.User).Include(r => r.Apartment).ToListAsync();
+            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+        }
+           
 
-        public async Task<Review?> GetByIdAsync(int id) =>
-            await _context.Reviews.Include(r => r.User).Include(r => r.Apartment).FirstOrDefaultAsync(r => r.Id == id);
-        public async Task<IEnumerable<Review?>> GetByUserIdAsync(int id) =>
-            await _context.Reviews.Include(r => r.User).Include(r => r.Apartment).Where(r => r.UserId == id).ToListAsync();
-        public async Task<IEnumerable<Review>> GetByApartmentIdAsync(int apartmentId) =>
-            await _context.Reviews.Where(r => r.ApartmentId == apartmentId).Include(r => r.User).ToListAsync();
+        public async Task<ReviewDto> GetByIdAsync(int id)
+        {
+            var review = await _context.Reviews.Include(r => r.User).Include(r => r.Apartment).FirstOrDefaultAsync(r => r.Id == id);
+            return _mapper.Map<ReviewDto>(review);
+        }
+           
+        public async Task<IEnumerable<ReviewDto>> GetByUserIdAsync(int id)
+        {
+            var reviews = await _context.Reviews.Include(r => r.User).Include(r => r.Apartment).Where(r => r.UserId == id).ToListAsync();
+            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+        }
+            
+        public async Task<IEnumerable<ReviewDto>> GetByApartmentIdAsync(int apartmentId)
+        {
+            var reviews = await _context.Reviews.Where(r => r.ApartmentId == apartmentId).Include(r => r.User).ToListAsync();
+            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+        }
+            
 
         public async Task<bool> ExistsAsync(int userId, int apartmentId)
         {
