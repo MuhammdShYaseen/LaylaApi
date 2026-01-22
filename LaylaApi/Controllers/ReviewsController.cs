@@ -1,7 +1,5 @@
-﻿using AutoMapper;
-using LaylaApi.Models.DtosModels.MainDtos;
+﻿using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.GenericResponseModels;
-using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +12,9 @@ namespace LaylaApi.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;
-        private readonly IBookingService _bookingService;
-        private readonly IMapper _mapper;
-        public ReviewsController( IReviewService reviewService, IBookingService bookingService, IMapper mapper)
+        public ReviewsController(IReviewService reviewService)
         {
             _reviewService = reviewService;
-            _bookingService = bookingService;
-            _mapper = mapper;
         }
         private int CurrentUserId()
         {
@@ -31,6 +25,7 @@ namespace LaylaApi.Controllers
         private bool IsAdmin()
         {
             var role = User.FindFirstValue(ClaimTypes.Role);
+
             return !string.IsNullOrEmpty(role) && role.Equals("Admin", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -39,30 +34,32 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             var all = await _reviewService.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<ReviewDto>>(all));
+
+            return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(all));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var review = await _reviewService.GetByIdAsync(id);
+
             if (review == null) 
                 throw new KeyNotFoundException();
-            return Ok(_mapper.Map<ReviewDto>(review));
+            return Ok(ApiResponse<ReviewDto>.Ok(review));
         }
 
         [HttpGet("apartment/{apartmentId}")]
         public async Task<IActionResult> GetByApartment(int apartmentId)
         {
             var reviews = await _reviewService.GetByApartmentIdAsync(apartmentId);
-            return Ok(_mapper.Map<IEnumerable<ReviewDto>>(reviews));
+            return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(reviews));
         }
 
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUser(int userId)
         {
             var reviews = await _reviewService.GetByUserIdAsync(userId);
-            return Ok(_mapper.Map<IEnumerable<ReviewDto>>(reviews));
+            return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(reviews));
         }
 
         [HttpGet("apartment/{apartmentId}/average")]
@@ -95,6 +92,7 @@ namespace LaylaApi.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _reviewService.DeleteAsync(id, CurrentUserId(), IsAdmin());
+
             return Ok(ApiResponse<object>.Ok("Review deleted."));
         }
     }
