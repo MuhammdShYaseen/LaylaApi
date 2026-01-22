@@ -18,7 +18,6 @@ namespace LaylaApi.Models.MainModels
         public string? Content { get; set; }
         public string? VoiceFilePath { get; set; }
         public int? VoiceDurationSeconds { get; set; }
-        public DateTime SentAt { get; set; } = DateTime.UtcNow;
    
     public static Message Create(int conversationId, int senderId, MessageType messageType, string content, string voiceFilePath, int voiceDurationSeconds, Conversation conversation)
         {

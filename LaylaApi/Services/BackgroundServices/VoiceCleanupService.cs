@@ -32,7 +32,7 @@ namespace LaylaApi.Services.BackgroundServices
 
                 var threshold = DateTime.UtcNow.AddHours(-_options.VoiceMessageRetentionHours.Value);
 
-                var oldMessages = await db.Messages.Where(x => x.Type == MessageType.Voice && x.SentAt < threshold && x.VoiceFilePath != null).ToListAsync();
+                var oldMessages = await db.Messages.Where(x => x.Type == MessageType.Voice && x.CreatedAt < threshold && x.VoiceFilePath != null).ToListAsync();
 
                 foreach (var msg in oldMessages)
                 {
