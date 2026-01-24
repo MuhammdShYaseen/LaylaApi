@@ -13,7 +13,15 @@ namespace LaylaApi.Controllers
     public class ApartmentsController : ControllerBase
     {
         private readonly IApartmentService _apartmentService;
-
+        private bool IsAdmin()
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            return role != null && role.ToLower() == "admin";
+        }
+        private int CurrentUserId()
+        {
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        }
         public ApartmentsController(IApartmentService apartmentService)
         {
             _apartmentService = apartmentService;
@@ -35,9 +43,8 @@ namespace LaylaApi.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateApartment(int id, [FromBody] CreateApartmentDto dto)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var result = await _apartmentService.UpdateAsync(id, dto, userId);
+            var result = await _apartmentService.UpdateAsync(id, dto, CurrentUserId(), IsAdmin());
 
             if (result == null)
                 throw new KeyNotFoundException("Apartment not found or you do not own it.");

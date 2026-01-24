@@ -11,25 +11,25 @@ namespace LaylaApi.Models.MainModels
     {
 
         [Required, MaxLength(100)]
-        public string FullName { get; set; } = string.Empty;
+        public string FullName { get; private set; } = string.Empty;
 
         [Required, MaxLength(100)]
-        public string Email { get; set; } = string.Empty;
+        public string Email { get; private set; } = string.Empty;
 
         [Required, MaxLength(20)]
-        public string PhoneNumber { get; set; } = string.Empty;
+        public string PhoneNumber { get; private set; } = string.Empty;
 
         [Required]
-        public string PasswordHash { get; set; } = string.Empty;
+        public string PasswordHash { get; private set; } = string.Empty;
 
         [Required]
-        public string Role { get; set; } = "User"; // "Renter" or "Owner"
-        public bool EmailConfirmed { get; set; } = false;
-        public string Lang { get; set; } = "en";
-        public string? EmailVerificationToken { get; set; }
-        public string? ResetPasswordToken { get; set; }
-        public DateTime? ResetPasswordTokenExpires { get; set; }
-        public DateTime? EmailVerificationTokenExpires { get; set; }
+        public string Role { get; private set; } = "User"; // "Renter" or "Owner"
+        public bool EmailConfirmed { get; private set; } = false;
+        public string Lang { get; private set; } = "en";
+        public string? EmailVerificationToken { get; private set; }
+        public string? ResetPasswordToken { get; private set; }
+        public DateTime? ResetPasswordTokenExpires { get; private set; }
+        public DateTime? EmailVerificationTokenExpires { get; private set; }
         public ICollection<Apartment>? Apartments { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<RefreshToken>? RefreshToken { get; set; }
@@ -52,9 +52,33 @@ namespace LaylaApi.Models.MainModels
             return user;
         }
 
-        public void PasswordReset(User user, string token)
+        public void Update(string fullName, string email, string phoneNumber, string lang)
         {
-            user.AddDomainEvent(new PasswordResetRequestedEvent(user, token));
+            FullName = fullName;
+            Email = email;
+            PhoneNumber = phoneNumber;
+            Lang = Lang;
+        }
+
+        public void ForgotPassword(User user, string resetPasswordToken, DateTime resetPasswordTokenExpires)
+        {
+            ResetPasswordToken = resetPasswordToken;
+            ResetPasswordTokenExpires = resetPasswordTokenExpires;
+            user.AddDomainEvent(new PasswordResetRequestedEvent(user, resetPasswordToken));
+        }
+
+        public void ResetPassword(string newPasswordHash)
+        {
+            PasswordHash = newPasswordHash;
+            ResetPasswordToken = null;
+            ResetPasswordTokenExpires = null;
+        }
+
+        public void ConfirmEmail()
+        {
+            EmailConfirmed = true;
+            EmailVerificationToken = null;
+            EmailVerificationTokenExpires = null;
         }
     }
 }

@@ -37,7 +37,9 @@ namespace LaylaApi.Services.ChatServices.Implementations
 
             await _context.SaveChangesAsync();
 
-            message.VoiceFilePath = await _voiceStorage.SaveAsync(file, message.Id);
+            var voiceFilePath = await _voiceStorage.SaveAsync(file, message.Id);
+
+            message.SetVoiceFilePath(voiceFilePath);
 
             await _context.SaveChangesAsync();
 

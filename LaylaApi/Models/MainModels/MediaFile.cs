@@ -9,16 +9,16 @@ namespace LaylaApi.Models.MainModels
     {
 
         [Required]
-        public int ApartmentId { get; set; }
+        public int ApartmentId { get; private set; }
 
         [ForeignKey("ApartmentId")]
         public Apartment? Apartment { get; set; }
 
         [Required, MaxLength(300)]
-        public string FileUrl { get; set; } = string.Empty; // رابط الصورة أو الفيديو على السيرفر
+        public string FileUrl { get; private set; } = string.Empty; // رابط الصورة أو الفيديو على السيرفر
 
         [Required]
-        public string FileType { get; set; } = "image"; // "image" أو "video"
+        public string FileType { get; private set; } = "image"; // "image" أو "video"
 
         public static MediaFile Create(int apartmentId, string fileUrl, string fileType = "image")
         {

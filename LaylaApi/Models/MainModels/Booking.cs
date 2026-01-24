@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
+using LaylaApi.Models.DtosModels.MainDtos;
 
 namespace LaylaApi.Models.MainModels
 {
@@ -19,25 +20,25 @@ namespace LaylaApi.Models.MainModels
         }
 
         [Required]
-        public int ApartmentId { get; set; }
+        public int ApartmentId { get; private set; }
 
         [ForeignKey("ApartmentId")]
         public Apartment? Apartment { get; set; }
 
         [Required]
-        public int UserId { get; set; }
+        public int UserId { get; private set; }
 
         [ForeignKey("UserId")]
         public User? User { get; set; }
 
         [Required]
-        public DateTime StartDate { get; set; }
+        public DateTime StartDate { get; private set; }
 
         [Required]
-        public DateTime EndDate { get; set; }
+        public DateTime EndDate { get; private set; }
 
         [Required]
-        public BookingStatus Status { get; set; } = BookingStatus.Pending; // Pending, Confirmed, Cancelled
+        public BookingStatus Status { get; private set; } = BookingStatus.Pending; // Pending, Confirmed, Cancelled
         
         public Contract? Contract { get; set; }
         public Payment? Payment { get; set; }
@@ -112,6 +113,14 @@ namespace LaylaApi.Models.MainModels
 
                 _ => false
             };
+        }
+
+        public void Updated(CreateBookingDto dto)
+        {
+            UpdatedAt = DateTime.UtcNow;
+            StartDate = dto.StartDate;
+            EndDate = dto.EndDate;
+            ApartmentId = dto.ApartmentId;
         }
     }
 }

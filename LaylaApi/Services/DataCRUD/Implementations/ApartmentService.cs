@@ -100,19 +100,15 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ApartmentDto>(apartment);
         }
 
-        public async Task<ApartmentDto?> UpdateAsync(int id, CreateApartmentDto dto, int ownerId)
+        public async Task<ApartmentDto?> UpdateAsync(int id, CreateApartmentDto dto, int ownerId, bool isAdmin)
         {
-            var apartment = await _context.Apartments.FindAsync(id);
+            var apartment = await _context.Apartments.FindAsync(id)
+        ?? throw new KeyNotFoundException("Apartment not found.");
 
-            if (apartment == null)
-                return null;
+            if (apartment.OwnerId != ownerId && !isAdmin)
+                throw new UnauthorizedAccessException("Access denied.");
 
-            if (apartment.OwnerId != ownerId)
-                throw new UnauthorizedAccessException("You do not own this apartment.");
-
-            // تطبيق التعديلات من DTO → Entity
-            _mapper.Map(dto, apartment);
-            apartment.UpdatedAt = DateTime.UtcNow;
+            apartment.Update(dto);
 
             await _context.SaveChangesAsync();
 

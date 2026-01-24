@@ -20,7 +20,20 @@ namespace LaylaApi.Services.ChatServices.Implementations
             if (conversation.OwnerId != ownerId)
                 throw new UnauthorizedAccessException("you cannot close this chat");
 
-            conversation.IsClosedByOwner = true;
+            conversation.CloseConversation();
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task OpenAsync(int conversationId, int ownerId)
+        {
+            var conversation = await _context.Conversations.FindAsync(conversationId) ??
+                throw new KeyNotFoundException("conversation not found");
+
+            if (conversation.OwnerId != ownerId)
+                throw new UnauthorizedAccessException("you cannot Open this chat");
+
+            conversation.OpenConversation();
+
             await _context.SaveChangesAsync();
         }
 

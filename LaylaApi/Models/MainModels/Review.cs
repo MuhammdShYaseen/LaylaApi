@@ -9,22 +9,22 @@ namespace LaylaApi.Models.MainModels
     {
 
         [Required]
-        public int ApartmentId { get; set; }
+        public int ApartmentId { get; private set; }
 
         [ForeignKey("ApartmentId")]
         public Apartment? Apartment { get; set; }
 
         [Required]
-        public int UserId { get; set; }
+        public int UserId { get; private set; }
 
         [ForeignKey("UserId")]
         public User? User { get; set; }
 
         [Range(1, 5)]
-        public int Rating { get; set; }
+        public int Rating { get; private set; }
 
         [MaxLength(1000)]
-        public string? Comment { get; set; }
+        public string? Comment { get; private set; }
 
         public static Review Create(int userId, int apartmentId,  int rating, string comment)
         {

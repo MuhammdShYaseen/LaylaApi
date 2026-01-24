@@ -61,12 +61,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 await using var stream = new FileStream(fullPath, FileMode.Create);
                 await file.CopyToAsync(stream);
 
-                var media = new MediaFile
-                {
-                    ApartmentId = apartmentId,
-                    FileUrl = $"/uploads/apartments/{apartmentId}/{fileName}",
-                    FileType = IsVideo(ext) ? "video" : "image"
-                };
+                string mediaUrl = $"/uploads/apartments/{apartmentId}/{fileName}";
+
+                string fileType = IsVideo(ext) ? "video" : "image";
+
+                var media = MediaFile.Create(apartmentId, mediaUrl, fileType);
 
                 results.Add(media);
             }

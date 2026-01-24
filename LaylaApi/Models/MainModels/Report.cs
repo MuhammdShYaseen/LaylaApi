@@ -16,22 +16,22 @@ namespace LaylaApi.Models.MainModels
         }
 
         [Required]
-        public int ReporterId { get; set; } // المستخدم الذي قام بالتبليغ
+        public int ReporterId { get; private set; } // المستخدم الذي قام بالتبليغ
 
         [ForeignKey("ReporterId")]
         public User? Reporter { get; set; }
 
         [Required]
-        public int ApartmentId { get; set; } // الشقة المبلغ عنها
+        public int ApartmentId { get; private set; } // الشقة المبلغ عنها
 
         [ForeignKey("ApartmentId")]
         public Apartment? Apartment { get; set; }
 
         [Required, MaxLength(1000)]
-        public string Reason { get; set; } = string.Empty; // سبب التبليغ
+        public string Reason { get; private set; } = string.Empty; // سبب التبليغ
 
         [MaxLength(50)]
-        public ReportStatus Status { get; set; } = ReportStatus.Pending; // Pending, Reviewed, Rejected, Resolved
+        public ReportStatus Status { get; private set; } = ReportStatus.Pending; // Pending, Reviewed, Rejected, Resolved
 
         public static Report Create(Apartment apartment, User reporter ,string reason)
         {

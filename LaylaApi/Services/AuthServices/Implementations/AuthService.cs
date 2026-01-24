@@ -48,9 +48,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
             if (user == null) return false;
             if (user.EmailVerificationTokenExpires == null || user.EmailVerificationTokenExpires < DateTime.UtcNow) return false;
 
-            user.EmailConfirmed = true;
-            user.EmailVerificationToken = null;
-            user.EmailVerificationTokenExpires = null;
+            user.ConfirmEmail();
             await _context.SaveChangesAsync();
             return true;
         }
@@ -115,12 +113,13 @@ namespace LaylaApi.Services.AuthServices.Implementations
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null) return false;
 
-            user.ResetPasswordToken = GenerateRandomToken();
-            user.ResetPasswordTokenExpires = DateTime.UtcNow.AddHours(1);
+           var resetPasswordToken = GenerateRandomToken();
+           var resetPasswordTokenExpires = DateTime.UtcNow.AddHours(1);
+
+            
+            user.ForgotPassword(user, resetPasswordToken, resetPasswordTokenExpires);
 
             await _context.SaveChangesAsync();
-
-            user.PasswordReset(user, user.ResetPasswordToken);
             return true;
         }
 
@@ -132,12 +131,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
 
             if (user == null) return false;
 
-            // تعيين كلمة المرور الجديدة
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-
-            // مسح التوكن
-            user.ResetPasswordToken = null;
-            user.ResetPasswordTokenExpires = null;
+            user.ResetPassword(BCrypt.Net.BCrypt.HashPassword(newPassword));
 
             await _context.SaveChangesAsync();
             return true;

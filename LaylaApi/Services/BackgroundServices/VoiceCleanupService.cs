@@ -37,7 +37,7 @@ namespace LaylaApi.Services.BackgroundServices
                 foreach (var msg in oldMessages)
                 {
                     await storage.DeleteAsync(msg.VoiceFilePath!);
-                    msg.VoiceFilePath = null;
+                    msg.DeleteVoiceFilePath();
                 }
                 await db.SaveChangesAsync();
                 await Task.Delay(TimeSpan.FromHours(1), stoppingToken);

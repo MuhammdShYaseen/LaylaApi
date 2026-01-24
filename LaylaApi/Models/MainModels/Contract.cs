@@ -11,16 +11,16 @@ namespace LaylaApi.Models.MainModels
     {
 
         [Required]
-        public int BookingId { get; set; }
+        public int BookingId { get; private set; }
 
         [ForeignKey("BookingId")]
         public Booking? Booking { get; set; }
 
         [Required]
-        public string ContractUrl { get; set; } = string.Empty; // رابط ملف PDF مثلاً
-        public string SpecialTerms { get; set; } = string.Empty;
-        public bool IsSignedByOwner { get; set; } = false;
-        public bool IsSignedByRenter { get; set; } = false;
+        public string ContractUrl { get; private set; } = string.Empty; // رابط ملف PDF مثلاً
+        public string SpecialTerms { get; private set; } = string.Empty;
+        public bool IsSignedByOwner { get; private set; } = false;
+        public bool IsSignedByRenter { get; private set; } = false;
 
         public static Contract Create(Booking booking, string specialTerms)
         {

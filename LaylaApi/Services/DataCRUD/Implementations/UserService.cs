@@ -38,10 +38,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var existing = await _context.Users.FindAsync(id);
             if (existing == null) return null;
 
-            existing.FullName = user.FullName;
-            existing.Email = user.Email;
-            existing.PhoneNumber = user.PhoneNumber;
-            existing.Role = user.Role;
+            existing.Update(user.FullName, user.Email, user.PhoneNumber, user.Lang);
 
             await _context.SaveChangesAsync();
             return existing;

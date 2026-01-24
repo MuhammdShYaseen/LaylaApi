@@ -26,13 +26,16 @@ namespace LaylaApi.Controllers
             var role = User.FindFirstValue(ClaimTypes.Role);
             return role != null && role.ToLower() == "admin";
         }
+
+        private int CurrentUserId()
+        {
+           return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        }
         // 🟦 إنشاء حجز جديد
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto model)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            var result = await _bookingService.AddAsync(model, userId);
+            var result = await _bookingService.AddAsync(model, CurrentUserId());
 
             return Ok(ApiResponse<BookingDto>.Ok(result));
         }
@@ -41,9 +44,8 @@ namespace LaylaApi.Controllers
         [HttpGet("my")]
         public async Task<IActionResult> MyBookings()
         {
-            var renterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var result = await _bookingService.GetByUserIdAsync(renterId);
+            var result = await _bookingService.GetByUserIdAsync(CurrentUserId());
 
             return Ok(ApiResponse<IEnumerable<BookingDto>>.Ok(result));
         }
@@ -51,9 +53,7 @@ namespace LaylaApi.Controllers
         [HttpGet("owner")]
         public async Task<IActionResult> OwnerBookings()
         {
-            var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            var result = await _bookingService.GetBookingsForOwnerAsync(ownerId);
+            var result = await _bookingService.GetBookingsForOwnerAsync(CurrentUserId());
 
             return Ok(ApiResponse<IEnumerable<BookingDto>>.Ok(result.OrderByDescending(b => b.StartDate).ToList()));
         }
@@ -71,9 +71,8 @@ namespace LaylaApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> CancelByUser(int id)
         {
-            var UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            bool success = await _bookingService.CancelAsync(id, UserId);
+            bool success = await _bookingService.CancelAsync(id, CurrentUserId());
 
             if (!success)
                 throw new KeyNotFoundException();
@@ -84,9 +83,8 @@ namespace LaylaApi.Controllers
         [HttpDelete("{id}/owner-cancel")]
         public async Task<IActionResult> CancelByOwner(int id, [FromQuery] string? reason = null)
         {
-            var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var success = await _bookingService.CancelByOwnerAsync(id, ownerId, reason);
+            var success = await _bookingService.CancelByOwnerAsync(id, CurrentUserId(), reason);
 
             if (!success) 
                 throw new BadHttpRequestException("Cannot cancel this booking");
@@ -98,17 +96,23 @@ namespace LaylaApi.Controllers
         [HttpPut("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             if (!Enum.TryParse<BookingStatus>(status, true, out var newStatus))
                 throw new BadHttpRequestException("Invalid booking status");
 
-            var result = await _bookingService.UpdateStatusAsync(id, newStatus, userId, IsAdmin());
+            var result = await _bookingService.UpdateStatusAsync(id, newStatus, CurrentUserId(), IsAdmin());
 
             if (result == null)
                 throw new KeyNotFoundException("Booking not found or access denied");
 
             return Ok(ApiResponse<BookingDto>.Ok(result));
+        }
+
+        [HttpPut("{id}/UpdateBooking")]
+        public async Task<IActionResult> UpdateBooking (int id, [FromBody] CreateBookingDto dto)
+        {
+            var result = await _bookingService.UpdateAsync(id,dto, CurrentUserId(), IsAdmin());
+            return Ok(ApiResponse<BookingDto>.Ok(result!));
         }
 
         [HttpGet("calendar/{apartmentId}")]

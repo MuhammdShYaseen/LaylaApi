@@ -68,37 +68,30 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<IEnumerable<BookingDto>>(booking);
         }
 
-        public async Task<BookingDto> AddAsync(CreateBookingDto dto, int UserID)
+        public async Task<BookingDto> AddAsync(CreateBookingDto dto, int userId)
         {
-            var booking = _mapper.Map<Booking>(dto);
-            booking.UserId = UserID;
-
             var apartment = await _context.Apartments
-                .Include(u => u.Owner)
-                .FirstOrDefaultAsync(a => a.Id == booking.ApartmentId);
+              .Include(a => a.Owner)
+              .FirstOrDefaultAsync(a => a.Id == dto.ApartmentId)
+         ?? throw new BadHttpRequestException("Apartment does not exist.");
 
-            var renter = await _context.Users.FirstOrDefaultAsync(u => u.Id == UserID);
+            var renter = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new BadHttpRequestException("Renter does not exist.");
 
-            if (apartment == null)
-                throw new BadHttpRequestException("Apartment does not exist.");
+            if (apartment.OwnerId == userId)
+                throw new BadHttpRequestException("Cannot book your own apartment.");
 
-            if (renter == null)
-                throw new BadHttpRequestException("renter does not exist.");
-
-            if (apartment.OwnerId == booking.UserId)
-                throw new BadHttpRequestException("Cannot Book your Own Apartment.");
-
-            if (booking.StartDate >= booking.EndDate)
+            if (dto.StartDate >= dto.EndDate)
                 throw new BadHttpRequestException("Start date must be earlier than end date.");
 
-            
-
-            bool available = await IsDateAvailableAsync(booking.ApartmentId, booking.StartDate, booking.EndDate);
+            var available = await IsDateAvailableAsync(dto.ApartmentId, dto.StartDate, dto.EndDate);
 
             if (!available)
-                throw new BadHttpRequestException("The selected dates overlap with another booking.");
+                throw new BadHttpRequestException("Selected dates overlap with another booking.");
 
-            booking = Booking.Create(apartment, renter, dto.StartDate, dto.EndDate);
+            // ✅ الكيان يُنشأ من الـ Domain
+            var booking = Booking.Create(apartment, renter, dto.StartDate, dto.EndDate);
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
@@ -106,17 +99,29 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<BookingDto>(booking);
         }
 
-        public async Task<BookingDto?> UpdateAsync(int id, CreateBookingDto dto)
+        public async Task<BookingDto?> UpdateAsync(int bookingId, CreateBookingDto dto, int renterId, bool isAdmin)
         {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking == null) return null;
+            var booking = await _context.Bookings
+        .Include(b => b.Apartment)
+        .FirstOrDefaultAsync(b => b.Id == bookingId);
 
-            if (!await IsDateAvailableAsync(booking.ApartmentId, dto.StartDate, dto.EndDate))
-                throw new BadHttpRequestException("Booking Time Over lap", 400);
+            if (booking == null)
+                return null;
 
-            booking.StartDate = dto.StartDate;
-            booking.EndDate = dto.EndDate;
-            booking.UpdatedAt = DateTime.UtcNow;
+            // Authorization rule
+            if (booking.UserId != renterId && isAdmin == false)
+                throw new UnauthorizedAccessException();
+
+            if (dto.StartDate >= dto.EndDate)
+                throw new BadHttpRequestException("Invalid date range.");
+
+            if (!await IsDateAvailableAsync( booking.ApartmentId, dto.StartDate, dto.EndDate))
+                throw new BadHttpRequestException("Booking time overlap.");
+
+            // ✅ التحديث يتم عبر الكيان
+            booking.Updated(dto);
+
+            _context.Bookings.Update(booking);
 
             await _context.SaveChangesAsync();
 
@@ -163,6 +168,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 throw new UnauthorizedAccessException();
 
             booking.ChangeStatus(newStatus);
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<BookingDto>(booking);
@@ -176,6 +182,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 throw new UnauthorizedAccessException("You cannot cancel this booking.");
 
             booking.ChangeStatus(BookingStatus.CancelledByRenter);
+
             await _context.SaveChangesAsync();
 
             return true;
@@ -193,6 +200,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 return false;
 
             booking.ChangeStatus(BookingStatus.CancelledByOwner);
+
             await _context.SaveChangesAsync();
 
             return true;
