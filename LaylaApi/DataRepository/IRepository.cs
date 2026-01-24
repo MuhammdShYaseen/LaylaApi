@@ -5,6 +5,7 @@ namespace LaylaApi.DataRepository
     {
         Task<TEntity?> GetByIdAsync(long id);
         Task<TEntity?> GetByGuidAsync(Guid guid);
+
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
         void Delete(TEntity entity);

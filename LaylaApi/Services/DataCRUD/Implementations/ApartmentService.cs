@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LaylaApi.DataAccess;
+using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
@@ -10,11 +11,13 @@ namespace LaylaApi.Services.DataCRUD.Implementations
     public class ApartmentService : IApartmentService
     {
         private readonly LaylaContext _context;
+        private readonly IRepository<Apartment> _reportService;
         private readonly IMapper _mapper;
-        public ApartmentService(LaylaContext context, IMapper mapper)
+        public ApartmentService(LaylaContext context, IMapper mapper, IRepository<Apartment> repository)
         {
             _context = context;
             _mapper = mapper;
+            _reportService = repository;
         }
         public async Task<IEnumerable<ApartmentDto>> GetAllAsync()
         {

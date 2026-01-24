@@ -32,6 +32,16 @@ namespace LaylaApi.DataAccess
         {
             base.OnModelCreating(modelBuilder);
 
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
+                {
+                    modelBuilder.Entity(entityType.ClrType)
+                        .HasIndex(nameof(Entity.Guid))
+                        .IsUnique();
+                }
+            }
+
             // ✅ User - Email فريد
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
