@@ -76,16 +76,6 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<ContractDto> AddAsync(CreateContractDto dto)
-        {
-            var contract = _mapper.Map<Contract>(dto);
-            contract.CreatedAt = DateTime.UtcNow;
-
-            _context.Contracts.Add(contract);
-            await _context.SaveChangesAsync();
-
-            return _mapper.Map<ContractDto>(contract);
-        }
 
         public async Task<Contract> AddEntityAsync(int bookingId, string specialTerms)
         {
@@ -112,16 +102,16 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<ContractDto> UpdateAsync(int id, CreateContractDto dto)
         {
-            var existing = await _context.Contracts.FindAsync(id);
-            if (existing == null) 
+            var contract = await _context.Contracts.FindAsync(id);
+            if (contract == null) 
                 throw new KeyNotFoundException();
 
-            _mapper.Map(dto, existing);
 
-            existing.UpdatedAt = DateTime.UtcNow;
+
+            contract.Update(dto.SpecialTerms ?? "", dto.ContractUrl);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ContractDto>(existing);
+            return _mapper.Map<ContractDto>(contract);
         }
 
         public async Task<ContractDto> UpdateEntityAsync(Contract contract)

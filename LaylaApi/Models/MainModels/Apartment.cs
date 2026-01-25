@@ -52,8 +52,6 @@ namespace LaylaApi.Models.MainModels
         {
             var apartment = new Apartment
             {
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
                 Address = dto.Address,
                 PricePerHour = dto.PricePerHour,
                 PricePerDay = dto.PricePerDay,
@@ -73,9 +71,7 @@ namespace LaylaApi.Models.MainModels
         }
         public void Update(CreateApartmentDto dto)
         {
-
-            CreatedAt = CreatedAt;
-            UpdatedAt = DateTime.UtcNow;
+            Touch();
             Address = dto.Address;
             PricePerHour = dto.PricePerHour;
             PricePerDay = dto.PricePerDay;

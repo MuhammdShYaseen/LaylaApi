@@ -7,11 +7,15 @@ namespace LaylaApi.DomainEvents.Domain.Common
         //common properties
         public int Id { get; protected set; }
         public Guid Guid { get; private set; } = Guid.NewGuid();
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; private set; }
         public bool IsDeleted { get; private set; } = false;
 
-
+        protected Entity()
+        {
+            CreatedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+        }
         //events
         private readonly List<IEvent> _domainEvents = new();
         public IReadOnlyCollection<IEvent> DomainEvents => _domainEvents;
@@ -30,6 +34,11 @@ namespace LaylaApi.DomainEvents.Domain.Common
         public void Restore()
         {
             IsDeleted = false;
+        }
+
+        protected void Touch()
+        {
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }

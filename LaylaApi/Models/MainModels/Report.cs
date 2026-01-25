@@ -41,8 +41,6 @@ namespace LaylaApi.Models.MainModels
                 Reporter = reporter,
                 Reason = reason,
                 ApartmentId = apartment.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
                 ReporterId = reporter.Id,
                 Status = ReportStatus.Pending
             };
@@ -57,7 +55,7 @@ namespace LaylaApi.Models.MainModels
                 return;
 
             Status = newStatus;
-            UpdatedAt = DateTime.UtcNow;
+            Touch();
 
             // مستقبلاً:
             // AddDomainEvent(new ReportStatusChangedEvent(...));

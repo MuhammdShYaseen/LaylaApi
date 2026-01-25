@@ -9,7 +9,6 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<IEnumerable<ContractDto>> GetAllAsync();
         Task<ContractDto> GetByIdAsync(int id, int userId, bool isAdmin);
         Task<Contract> GetEntityByIdAsync(int id);
-        Task<ContractDto> AddAsync(CreateContractDto dto);
         Task<Contract> AddEntityAsync(int bookingId, string specialTerms);
         Task<ContractDto> UpdateAsync(int id, CreateContractDto dto);
         Task<ContractDto> UpdateEntityAsync(Contract contract);

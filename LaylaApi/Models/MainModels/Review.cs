@@ -33,7 +33,6 @@ namespace LaylaApi.Models.MainModels
                 UserId = userId,
                 Comment = comment,
                 Rating = rating,
-                CreatedAt = DateTime.UtcNow,
             };
 
             review.AddDomainEvent(new ReviewCreatedEvent(review));
@@ -45,7 +44,7 @@ namespace LaylaApi.Models.MainModels
         {
             Rating = rating;
             Comment = comment;
-            UpdatedAt = DateTime.UtcNow;
+            Touch();
         }
     }
 }

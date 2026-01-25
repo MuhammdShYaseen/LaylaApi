@@ -53,9 +53,7 @@ namespace LaylaApi.Models.MainModels
                 UserId = renter.Id,
                 StartDate = startDate,
                 EndDate = endDate,
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                Status = BookingStatus.Pending
             };
             booking.AddDomainEvent(new BookingCreatedEvent(booking));
             return booking;
@@ -74,7 +72,7 @@ namespace LaylaApi.Models.MainModels
 
             Status = newStatus;
 
-            UpdatedAt = DateTime.UtcNow;
+            Touch();
 
             AddDomainEvent(new BookingStatusChangedEvent(
                 bookingId: Id,
@@ -117,7 +115,7 @@ namespace LaylaApi.Models.MainModels
 
         public void Updated(CreateBookingDto dto)
         {
-            UpdatedAt = DateTime.UtcNow;
+            Touch();
             StartDate = dto.StartDate;
             EndDate = dto.EndDate;
             ApartmentId = dto.ApartmentId;

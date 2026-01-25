@@ -30,10 +30,7 @@ namespace LaylaApi.Models.MainModels
                 BookingId = booking.Id,
                 SpecialTerms = !string.IsNullOrEmpty(specialTerms.Trim()) ? specialTerms : "",
                 IsSignedByOwner = false,
-                IsSignedByRenter = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-
+                IsSignedByRenter = false
             };
 
             contract.AddDomainEvent(new ContractCreatedEvent(contract));
@@ -44,6 +41,7 @@ namespace LaylaApi.Models.MainModels
             if (IsSignedByOwner)
                 throw new InvalidOperationException("Contract already signed by owner.");
             IsSignedByOwner = true;
+            Touch();
             AddDomainEvent(new ContractSignedEvent(contract,  true,  IsSignedByRenter));
         }
 
@@ -52,13 +50,21 @@ namespace LaylaApi.Models.MainModels
             if (IsSignedByRenter)
                 throw new InvalidOperationException("Contract already signed by renter.");
             IsSignedByRenter = true;
+            Touch();
             AddDomainEvent(new ContractSignedEvent(contract, false, IsSignedByOwner));
         }
 
         public void AddPdfUrl(string url)
         {
             ContractUrl = url;
-            UpdatedAt = DateTime.UtcNow;
+            Touch();
+        }
+
+        public void Update(string specialTerms, string contractUrl)
+        {
+            SpecialTerms = specialTerms;
+            ContractUrl = contractUrl;
+            Touch();
         }
     }
 }

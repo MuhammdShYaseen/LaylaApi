@@ -37,11 +37,13 @@ namespace LaylaApi.Models.MainModels
         public void DeleteVoiceFilePath()
         {
             VoiceFilePath = null;
+            Touch();
         }
 
         public void SetVoiceFilePath(string voiceFilePath)
         {
             VoiceFilePath = VoiceFilePath ?? string.Empty;
+            Touch();
         }
     }
 }

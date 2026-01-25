@@ -19,8 +19,6 @@ namespace LaylaApi.Models.MainModels
                 ApartmentId = apartmentId,
                 OwnerId = ownerId,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
                 IsClosedByOwner = false
             };
         }
@@ -28,11 +26,13 @@ namespace LaylaApi.Models.MainModels
         public void CloseConversation()
         {
             IsClosedByOwner = true;
+            Touch();
         }
 
         public void OpenConversation()
         {
             IsClosedByOwner = false;
+            Touch();
         }
     }
 }

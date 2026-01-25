@@ -31,10 +31,7 @@ namespace LaylaApi.Models.MainModels
             {
                 ApartmentId = apartmentId,
                 FileUrl = fileUrl,
-                FileType = normalizedType,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                
+                FileType = normalizedType                
             };
             //media.AddDomainEvent(new MediaUploadedEvent(media));
             return media;

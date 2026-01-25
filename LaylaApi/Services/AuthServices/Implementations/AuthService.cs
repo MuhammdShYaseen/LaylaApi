@@ -175,7 +175,6 @@ namespace LaylaApi.Services.AuthServices.Implementations
             {
                 Token = GenerateRandomToken(),
                 Expires = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
-                CreatedAt = DateTime.UtcNow,
                 CreatedByIp = ipAddress,
                 UserId = userId
             };
