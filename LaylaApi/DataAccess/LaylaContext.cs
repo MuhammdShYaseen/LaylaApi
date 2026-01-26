@@ -154,6 +154,7 @@ namespace LaylaApi.DataAccess
                 .SelectMany(e => e.DomainEvents)
                 .ToList();
 
+            // Domain events are dispatched only after successful persistence
             var result = await base.SaveChangesAsync(ct);
 
             entitiesWithEvents.ForEach(e => e.ClearDomainEvents());

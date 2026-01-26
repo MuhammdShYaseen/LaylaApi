@@ -14,6 +14,8 @@ using LaylaApi.Options;
 using LaylaApi.Services.ChatServices.ServiceCollectionExtensions;
 using LaylaApi.SignalR_Hubs;
 using LaylaApi.DataRepository;
+using LaylaApi.DomainEvents.Domain.Events;
+using LaylaApi.Services.EventsDataProviderServices.ServiceCollectionExtensions;
 namespace LaylaApi
 {
     public class Program
@@ -33,6 +35,7 @@ namespace LaylaApi
             builder.Services.AddCustomRateLimiter();
             builder.Services.AddLaylaContextExtension(builder.Configuration);
             builder.Services.AddDataRepository();
+            builder.Services.AddEventDataProviders(typeof(IEvent).Assembly);
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddDomainEvents();
             builder.Services.AddAuthServices();
