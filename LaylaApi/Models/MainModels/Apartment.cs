@@ -48,7 +48,7 @@ namespace LaylaApi.Models.MainModels
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<MediaFile>? MediaFiles { get; set; }
 
-        public static Apartment Create(CreateApartmentDto dto, User owner)
+        public static Apartment Create(CreateApartmentDto dto, int ownerId)
         {
             var apartment = new Apartment
             {
@@ -61,12 +61,12 @@ namespace LaylaApi.Models.MainModels
                 Longitude = dto.Longitude,
                 Title = dto.Title,
                 IsAvailable = dto.IsAvailable,
-                Owner = owner,
-                OwnerId = owner.Id,
+                OwnerId = ownerId,
                 IsChatEnabled = true
             };
 
-            apartment.AddDomainEvent(new ApartmentCreatedEvent(apartment));
+            apartment.AddDomainEvent(new ApartmentCreatedEvent(apartment.Guid));
+
             return apartment;
         }
         public void Update(CreateApartmentDto dto)

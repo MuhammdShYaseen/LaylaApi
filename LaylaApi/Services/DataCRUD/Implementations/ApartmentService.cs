@@ -84,18 +84,16 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
         }
 
-        public async Task<ApartmentDto> AddAsync(CreateApartmentDto dto, int ownerId)
+        public async Task<ApartmentDto> AddAsync(CreateApartmentDto dto, int userId)
         {
-            var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == ownerId);
-            if ( dto == null)
-            {
-                throw new KeyNotFoundException("Apartment in null");
-            }
-            
-            if (owner == null)
-                throw new KeyNotFoundException("Owner not found");
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
 
-            var apartment = Apartment.Create(dto, owner);
+            var ownerExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!ownerExists)
+                throw new KeyNotFoundException("User not found");
+
+            var apartment = Apartment.Create(dto, userId);
 
             _context.Apartments.Add(apartment);
             await _context.SaveChangesAsync();

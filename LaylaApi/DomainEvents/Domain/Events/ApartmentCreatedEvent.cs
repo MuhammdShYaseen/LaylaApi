@@ -1,15 +1,13 @@
-﻿using LaylaApi.Models.MainModels;
-using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class ApartmentCreatedEvent : IEvent
     {
-        public Apartment Apartment { get; }
+        public Guid ApartmentGuid { get; }
 
-        public ApartmentCreatedEvent(Apartment apartment)
+        public ApartmentCreatedEvent(Guid apartmentGuid)
         {
-            Apartment = apartment;
+            ApartmentGuid = apartmentGuid;
         }
     }
 }

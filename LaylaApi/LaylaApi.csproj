@@ -31,9 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\EventsDataProvider\Interfaces\" />
-    <Folder Include="Services\EventsDataProvider\Implementation\" />
-    <Folder Include="Services\EventsDataProvider\ServiceCollectionExtensions\" />
+    <Folder Include="Services\EventsDataProviderServices\ServiceCollectionExtensions\" />
     <Folder Include="wwwroot\firebase\" />
   </ItemGroup>
 
