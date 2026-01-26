@@ -72,21 +72,7 @@ namespace LaylaApi.Models.MainModels
 
             Touch();
 
-            AddDomainEvent(new BookingStatusChangedEvent(
-                bookingId: Id,
-                oldStatus: oldStatus,
-                newStatus: newStatus,
-                apartmentId: Apartment!.Id,
-                apartmentTitle: Apartment.Title,
-                ownerId: Apartment.Owner!.Id,
-                ownerEmail: Apartment.Owner.Email,
-                ownerLang: Apartment.Owner.Lang,
-                renterId: User!.Id,
-                renterEmail: User.Email,
-                renterLang: User.Lang,
-                startDate: StartDate,
-                endDate: EndDate
-            ));
+            AddDomainEvent(new BookingStatusChangedEvent(this.Guid, newStatus));
         }
 
         private static bool IsValidStatusTransition(BookingStatus current, BookingStatus next)
