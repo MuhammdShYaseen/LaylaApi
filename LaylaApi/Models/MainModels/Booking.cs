@@ -42,20 +42,18 @@ namespace LaylaApi.Models.MainModels
         
         public Contract? Contract { get; set; }
         public Payment? Payment { get; set; }
-        public static Booking Create(Apartment apartment, User renter, DateTime startDate, DateTime endDate)
+        public static Booking Create(int apartmentId, int renterId, DateTime startDate, DateTime endDate)
 
         {
             var booking = new Booking
             {
-                Apartment = apartment,
-                ApartmentId = apartment.Id,
-                User = renter,
-                UserId = renter.Id,
+                ApartmentId = apartmentId,
+                UserId = renterId,
                 StartDate = startDate,
                 EndDate = endDate,
                 Status = BookingStatus.Pending
             };
-            booking.AddDomainEvent(new BookingCreatedEvent(booking));
+            booking.AddDomainEvent(new BookingCreatedEvent(booking.Guid));
             return booking;
         }
 

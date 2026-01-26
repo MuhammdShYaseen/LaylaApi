@@ -70,28 +70,32 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<BookingDto> AddAsync(CreateBookingDto dto, int userId)
         {
-            var apartment = await _context.Apartments
-              .Include(a => a.Owner)
-              .FirstOrDefaultAsync(a => a.Id == dto.ApartmentId)
-         ?? throw new BadHttpRequestException("Apartment does not exist.");
+            if (dto.StartDate >= dto.EndDate)
+                throw new BadHttpRequestException("Start date must be earlier than end date.");
 
-            var renter = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new BadHttpRequestException("Renter does not exist.");
+            var apartment = await _context.Apartments
+                .AsNoTracking()
+                .Where(a => a.Id == dto.ApartmentId)
+                .Select(a => new { a.Id, a.OwnerId })
+                .SingleOrDefaultAsync()
+                ?? throw new BadHttpRequestException("Apartment does not exist.");
 
             if (apartment.OwnerId == userId)
                 throw new BadHttpRequestException("Cannot book your own apartment.");
 
-            if (dto.StartDate >= dto.EndDate)
-                throw new BadHttpRequestException("Start date must be earlier than end date.");
+            var renterExists = await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == userId);
 
-            var available = await IsDateAvailableAsync(dto.ApartmentId, dto.StartDate, dto.EndDate);
+            if (!renterExists)
+                throw new BadHttpRequestException("Renter does not exist.");
 
-            if (!available)
+            var isAvailable = await IsDateAvailableAsync(dto.ApartmentId, dto.StartDate, dto.EndDate);
+
+            if (!isAvailable)
                 throw new BadHttpRequestException("Selected dates overlap with another booking.");
 
-            // ✅ الكيان يُنشأ من الـ Domain
-            var booking = Booking.Create(apartment, renter, dto.StartDate, dto.EndDate);
+            var booking = Booking.Create(dto.ApartmentId, userId, dto.StartDate, dto.EndDate);
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
@@ -102,8 +106,8 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         public async Task<BookingDto?> UpdateAsync(int bookingId, CreateBookingDto dto, int renterId, bool isAdmin)
         {
             var booking = await _context.Bookings
-        .Include(b => b.Apartment)
-        .FirstOrDefaultAsync(b => b.Id == bookingId);
+                 .Include(b => b.Apartment)
+                 .FirstOrDefaultAsync(b => b.Id == bookingId);
 
             if (booking == null)
                 return null;

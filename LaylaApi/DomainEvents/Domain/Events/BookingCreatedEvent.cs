@@ -1,14 +1,13 @@
-﻿using LaylaApi.Models.MainModels;
-
+﻿
 namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class BookingCreatedEvent : IEvent
     {
-        public Booking Booking { get; }
+        public Guid BookingGuid { get; }
 
-        public BookingCreatedEvent(Booking booking)
+        public BookingCreatedEvent(Guid bookingGuid)
         {
-            Booking = booking;
+            BookingGuid = bookingGuid;
         }
     }
 }
