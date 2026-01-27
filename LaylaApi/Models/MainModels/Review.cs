@@ -35,7 +35,7 @@ namespace LaylaApi.Models.MainModels
                 Rating = rating,
             };
 
-            review.AddDomainEvent(new ReviewCreatedEvent(review));
+            review.AddDomainEvent(new ReviewCreatedEvent(review.Guid));
             
             return review;
         }
