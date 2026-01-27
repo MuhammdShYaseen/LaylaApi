@@ -1,14 +1,14 @@
-﻿using LaylaApi.Models.MainModels;
+﻿
 
 namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class UserRegisteredEvent : IEvent
-    {
-        public User User { get; }
+    {        
+        public Guid UserGuid { get; }
         public string Token { get; }
-        public UserRegisteredEvent(User user, string token)
+        public UserRegisteredEvent(Guid userGuid, string token)
         {
-            User = user;
+            UserGuid = userGuid;
             Token = token;
         }
     }

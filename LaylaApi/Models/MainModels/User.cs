@@ -48,7 +48,7 @@ namespace LaylaApi.Models.MainModels
                 Lang = request.Lang,
             };
 
-            user.AddDomainEvent(new UserRegisteredEvent(user, user.EmailVerificationToken));
+            user.AddDomainEvent(new UserRegisteredEvent(user.Guid, user.EmailVerificationToken));
             return user;
         }
 
