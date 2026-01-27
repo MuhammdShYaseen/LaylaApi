@@ -4,10 +4,10 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class ReportCreatedEvent : IEvent
     {
-        public Report _report { get; }
-        public ReportCreatedEvent(Report report)
+        public Guid ReportGuid { get; }
+        public ReportCreatedEvent(Guid reportGuid)
         {
-           _report = report;
+            ReportGuid = reportGuid;
         }
     }
 }

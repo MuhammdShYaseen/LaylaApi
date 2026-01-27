@@ -33,19 +33,17 @@ namespace LaylaApi.Models.MainModels
         [MaxLength(50)]
         public ReportStatus Status { get; private set; } = ReportStatus.Pending; // Pending, Reviewed, Rejected, Resolved
 
-        public static Report Create(Apartment apartment, User reporter ,string reason)
+        public static Report Create(int apartmentId, int reporterId ,string reason)
         {
             var report = new Report
             {
-                Apartment = apartment,
-                Reporter = reporter,
                 Reason = reason,
-                ApartmentId = apartment.Id,
-                ReporterId = reporter.Id,
+                ApartmentId = apartmentId,
+                ReporterId = reporterId,
                 Status = ReportStatus.Pending
             };
 
-            report.AddDomainEvent(new ReportCreatedEvent(report));
+            report.AddDomainEvent(new ReportCreatedEvent(report.Guid));
             return report;
         }
 

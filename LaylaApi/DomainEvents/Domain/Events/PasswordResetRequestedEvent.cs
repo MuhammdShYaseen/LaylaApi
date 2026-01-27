@@ -4,13 +4,13 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class PasswordResetRequestedEvent : IEvent
     {
-        public User User { get; }
+        public Guid UserGuid { get; }
         public string Token { get; }
 
-        public PasswordResetRequestedEvent(User user, string token)
+        public PasswordResetRequestedEvent(Guid userGuid, string token)
         {
-             User = user;
-             Token = token;
+            UserGuid = userGuid;
+            Token = token;
         }
     }
 }

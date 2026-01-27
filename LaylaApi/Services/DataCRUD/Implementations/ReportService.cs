@@ -78,28 +78,29 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (model.ApartmentId <= 0)
                 throw new BadHttpRequestException("ApartmentId is required.");
 
-            var apartment = await _context.Apartments
+            // تحقق سريع: وجود الشقة + OwnerId فقط
+            var apartmentOwnerId = await _context.Apartments
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.Id == model.ApartmentId)
-                ?? throw new KeyNotFoundException("Apartment not found.");
+                .Where(a => a.Id == model.ApartmentId)
+                .Select(a => a.OwnerId)
+                .SingleOrDefaultAsync();
+
+            if (apartmentOwnerId == default)
+                throw new KeyNotFoundException("Apartment not found.");
 
             // منع التبليغ عن شقته
-            if (apartment.OwnerId == userId)
+            if (apartmentOwnerId == userId)
                 throw new BadHttpRequestException("You cannot report your own apartment.");
 
             // منع التبليغ المكرر
-            var exists = await _context.Reports
-                .AnyAsync(r => r.ApartmentId == model.ApartmentId && r.ReporterId == userId);
+            var alreadyReported = await _context.Reports
+                .AnyAsync(r =>  r.ApartmentId == model.ApartmentId && r.ReporterId == userId);
 
-            if (exists)
+            if (alreadyReported)
                 throw new BadHttpRequestException("You have already reported this apartment.");
 
-            var reporter = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new KeyNotFoundException("Reporter not found.");
-
-            var report = Report.Create(apartment: apartment, reporter: reporter, reason: model.Reason);
+            // إنشاء الكيان من الـ Domain
+            var report = Report.Create(model.ApartmentId, userId, model.Reason);
 
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();

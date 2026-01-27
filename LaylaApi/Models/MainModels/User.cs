@@ -64,7 +64,7 @@ namespace LaylaApi.Models.MainModels
         {
             ResetPasswordToken = resetPasswordToken;
             ResetPasswordTokenExpires = resetPasswordTokenExpires;
-            user.AddDomainEvent(new PasswordResetRequestedEvent(user, resetPasswordToken));
+            user.AddDomainEvent(new PasswordResetRequestedEvent(this.Guid, resetPasswordToken));
         }
 
         public void ResetPassword(string newPasswordHash)
