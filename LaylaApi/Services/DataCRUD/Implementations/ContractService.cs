@@ -79,21 +79,18 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<Contract> AddEntityAsync(int bookingId, string specialTerms)
         {
-            var existingContract = await _context.Contracts.AnyAsync(c => c.BookingId == bookingId);
-
-            if (existingContract)
+            if (await _context.Contracts.AnyAsync(c => c.BookingId == bookingId))
                 throw new InvalidOperationException("Contract already exists for this booking.");
 
             var booking = await _context.Bookings
-                .Include(b => b.Apartment)
-                .ThenInclude(a => a!.Owner)
-                .Include(b => b.User)
-                .FirstAsync(b => b.Id == bookingId);
+                .AsNoTracking()
+                .SingleAsync(b => b.Id == bookingId);
 
             if (booking.Status != BookingStatus.Confirmed)
                 throw new InvalidOperationException("Contract can only be generated for confirmed bookings.");
 
-            var contract = Contract.Create(booking, specialTerms);
+            var contract = Contract.Create(bookingId, specialTerms);
+
             _context.Contracts.Add(contract);
             await _context.SaveChangesAsync();
 

@@ -4,11 +4,11 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class ContractCreatedEvent : IEvent
     {
-        public LaylaApi.Models.MainModels.Contract Contract { get; }
+        public Guid ContractGuid { get; }
 
-        public ContractCreatedEvent(LaylaApi.Models.MainModels.Contract contract)
+        public ContractCreatedEvent(Guid contractGuid)
         {
-            Contract = contract;
+           ContractGuid = contractGuid;
         }
     }
 }

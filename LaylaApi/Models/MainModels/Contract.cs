@@ -4,6 +4,7 @@ using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
 using System.Globalization;
 using System.Diagnostics.Contracts;
+using LaylaApi.Models.DtosModels.MainDtos;
 
 namespace LaylaApi.Models.MainModels
 {
@@ -22,18 +23,17 @@ namespace LaylaApi.Models.MainModels
         public bool IsSignedByOwner { get; private set; } = false;
         public bool IsSignedByRenter { get; private set; } = false;
 
-        public static Contract Create(Booking booking, string specialTerms)
+        public static Contract Create(int bookingId, string specialTerms)
         {
             var contract = new Contract
             {
-                Booking = booking,
-                BookingId = booking.Id,
+                BookingId = bookingId,
                 SpecialTerms = !string.IsNullOrEmpty(specialTerms.Trim()) ? specialTerms : "",
                 IsSignedByOwner = false,
                 IsSignedByRenter = false
             };
 
-            contract.AddDomainEvent(new ContractCreatedEvent(contract));
+            contract.AddDomainEvent(new ContractCreatedEvent(contract.Guid));
             return contract;
         }
         public void SignByOwner(Contract contract)

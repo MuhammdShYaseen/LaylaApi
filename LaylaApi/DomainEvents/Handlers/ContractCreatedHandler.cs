@@ -1,8 +1,10 @@
 ﻿using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Helper.Localization;
+using LaylaApi.Models.DtosModels.EventDtos;
 using LaylaApi.Resources.Localization;
 using LaylaApi.Services.AuthServices.Interfaces;
+using LaylaApi.Services.EventsDataProviderServices.Interfaces;
 using LaylaApi.Services.FirebaseServices.Interfaces;
 using Microsoft.Extensions.Localization;
 
@@ -13,56 +15,45 @@ namespace LaylaApi.DomainEvents.Handlers
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
         private readonly IStringLocalizer<Notifications> _localizer;
-
-        public ContractCreatedHandler(INotificationService notificationService, IEmailService emailService,IStringLocalizer<Notifications> notificationLocalizer)
+        private readonly IEventDataProvider<ContractCreatedEvent, ContractCreatedEventDto> _dataProvider;
+        public ContractCreatedHandler(INotificationService notificationService, IEmailService emailService,IStringLocalizer<Notifications> notificationLocalizer, IEventDataProvider<ContractCreatedEvent, ContractCreatedEventDto> dataProvider)
         {
             _notificationService = notificationService;
             _emailService = emailService;
             _localizer = notificationLocalizer;
+            _dataProvider = dataProvider;
         }
 
         public async Task HandleAsync(ContractCreatedEvent @event, CancellationToken ct = default)
         {
-           
-            var booking = @event.Contract.Booking;
-            var apartment = booking!.Apartment!;
-            var renter = booking.User!;
-            var renterId = renter.Id;
-            var renterEmail = renter.Email;
-            var ownerId = apartment.OwnerId;
-            var ownerLanguage = apartment.Owner!.Lang;
-            var renterLanguage = booking.User!.Lang;
-            var apartmentTitle = apartment.Title;
-            var bookingId = booking.Id;
-            var ownerEmail = apartment.Owner.Email;
-
+            var data =await _dataProvider.GetDataAsync(@event, ct);
 
             // 🔔 إشعار + إيميل المالك
-            using (LocalizationHelper.UseCulture(ownerLanguage))
+            using (LocalizationHelper.UseCulture(data.OwnerLang))
             {
                 var title = _localizer["ContractCreated_Owner_Title"];
-                var body = _localizer[ "ContractCreated_Owner_Body", bookingId, apartmentTitle];
+                var body = _localizer[ "ContractCreated_Owner_Body", data.BookingId, data.ApartmentTitle];
 
-                await _notificationService.SendToUserAsync(ownerId, title, body);
+                await _notificationService.SendToUserAsync(data.OwnerId, title, body);
 
                 var emailSubject = _localizer["ContractCreated_Owner_Title"];
-                var emailBody = _localizer["ContractCreated_Owner_Body", bookingId, apartmentTitle];
+                var emailBody = _localizer["ContractCreated_Owner_Body", data.BookingId, data.ApartmentTitle];
 
-                await _emailService.SendEmailAsync(ownerEmail, emailSubject, emailBody);
+                await _emailService.SendEmailAsync(data.OwnerEmail, emailSubject, emailBody);
             }
 
             // 🔔 إشعار + إيميل المستأجر
-            using (LocalizationHelper.UseCulture(renterLanguage))
+            using (LocalizationHelper.UseCulture(data.RenterLang))
             {
                 var title = _localizer["ContractCreated_Renter_Title"];
-                var body = _localizer["ContractCreated_Renter_Body", apartmentTitle];
+                var body = _localizer["ContractCreated_Renter_Body", data.ApartmentTitle];
 
-                await _notificationService.SendToUserAsync(renterId, title, body);
+                await _notificationService.SendToUserAsync(data.RenterId, title, body);
 
                 var emailSubject = _localizer["ContractCreated_Renter_Title"];
-                var emailBody = _localizer["ContractCreated_Renter_Body", apartmentTitle];
+                var emailBody = _localizer["ContractCreated_Renter_Body", data.ApartmentTitle];
 
-                await _emailService.SendEmailAsync(renterEmail, emailSubject, emailBody);
+                await _emailService.SendEmailAsync(data.RenterEmail, emailSubject, emailBody);
             }
         }
     }
