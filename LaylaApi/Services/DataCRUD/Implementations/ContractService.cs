@@ -84,12 +84,13 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             var booking = await _context.Bookings
                 .AsNoTracking()
+                .Include(a => a.Apartment)
                 .SingleAsync(b => b.Id == bookingId);
 
             if (booking.Status != BookingStatus.Confirmed)
                 throw new InvalidOperationException("Contract can only be generated for confirmed bookings.");
 
-            var contract = Contract.Create(bookingId, specialTerms);
+            var contract = Contract.Create(bookingId, specialTerms, booking.UserId, booking.Apartment!.OwnerId);
 
             _context.Contracts.Add(contract);
             await _context.SaveChangesAsync();
@@ -125,19 +126,10 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         }
         public async Task<ContractDto> SignContractAsync(int id, int userId, bool isAdmin, ContractSigner contractSigner)
         {
-            var contract = await _context.Contracts
-                .Include(c => c.Booking)
-                    .ThenInclude(b => b!.User) // المستأجر
-                .Include(c => c.Booking)
-                    .ThenInclude(b => b!.Apartment)
-                    .ThenInclude(a => a!.Owner) // المالك
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var contract = await _context.Contracts.SingleOrDefaultAsync(c => c.Id == id) ?? throw new KeyNotFoundException("Contract not found.");
 
-            if (contract == null)
-                throw new KeyNotFoundException("Contract not found.");
-
-            var ownerId = contract.Booking!.Apartment!.OwnerId;
-            var renterId = contract.Booking.UserId;
+            var ownerId = contract.OwnerId;
+            var renterId = contract.RenterId;
 
             switch (contractSigner)
             {
@@ -145,20 +137,22 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                     if (userId != ownerId && !isAdmin)
                         throw new UnauthorizedAccessException();
 
-                    contract.SignByOwner(contract);
+                    contract.SignByOwner();
                     break;
 
                 case ContractSigner.Renter:
                     if (userId != renterId && !isAdmin)
                         throw new UnauthorizedAccessException();
 
-                    contract.SignByRenter(contract);
+                    contract.SignByRenter();
                     break;
 
                 default:
                     throw new InvalidOperationException("Invalid signer");
             }
+
             await _context.SaveChangesAsync();
+
             return _mapper.Map<ContractDto>(contract);
         }
 

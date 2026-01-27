@@ -23,35 +23,46 @@ namespace LaylaApi.Models.MainModels
         public bool IsSignedByOwner { get; private set; } = false;
         public bool IsSignedByRenter { get; private set; } = false;
 
-        public static Contract Create(int bookingId, string specialTerms)
+        public int OwnerId { get; private set; }
+        public int RenterId { get; private set; }
+
+        public static Contract Create(int bookingId, string specialTerms, int renterId, int ownerId)
         {
             var contract = new Contract
             {
                 BookingId = bookingId,
                 SpecialTerms = !string.IsNullOrEmpty(specialTerms.Trim()) ? specialTerms : "",
                 IsSignedByOwner = false,
-                IsSignedByRenter = false
+                IsSignedByRenter = false,
+                OwnerId = ownerId,
+                RenterId = renterId
             };
 
             contract.AddDomainEvent(new ContractCreatedEvent(contract.Guid));
             return contract;
         }
-        public void SignByOwner(Contract contract)
+        public void SignByOwner()
         {
             if (IsSignedByOwner)
                 throw new InvalidOperationException("Contract already signed by owner.");
+
             IsSignedByOwner = true;
+
             Touch();
-            AddDomainEvent(new ContractSignedEvent(contract,  true,  IsSignedByRenter));
+
+            AddDomainEvent(new ContractSignedEvent(this.Guid,  true,  IsSignedByRenter));
         }
 
-        public void SignByRenter(Contract contract)
+        public void SignByRenter()
         {
             if (IsSignedByRenter)
                 throw new InvalidOperationException("Contract already signed by renter.");
+
             IsSignedByRenter = true;
+
             Touch();
-            AddDomainEvent(new ContractSignedEvent(contract, false, IsSignedByOwner));
+
+            AddDomainEvent(new ContractSignedEvent(this.Guid, false, IsSignedByOwner));
         }
 
         public void AddPdfUrl(string url)

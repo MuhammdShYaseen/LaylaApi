@@ -5,15 +5,15 @@ namespace LaylaApi.DomainEvents.Domain.Events
 {
     public class ContractSignedEvent : IEvent
     {
-        public Contract Contract { get; }
+        public Guid ContractGuid { get; }
         public bool IsOwner { get; }
         public bool IsFullySigned { get; }
 
 
 
-        public ContractSignedEvent(Contract contract, bool isOwner, bool isFullySigned )
+        public ContractSignedEvent(Guid contractGuid, bool isOwner, bool isFullySigned )
         {
-            Contract = contract;
+            ContractGuid = contractGuid;
             IsOwner = isOwner;
             IsFullySigned = isFullySigned;
         }
