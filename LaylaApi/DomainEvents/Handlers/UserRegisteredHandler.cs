@@ -2,14 +2,11 @@
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Helper.Localization;
 using LaylaApi.Models.DtosModels.EventDtos;
-using LaylaApi.Models.MainModels;
-using LaylaApi.Options;
 using LaylaApi.Resources.Localization;
 using LaylaApi.Services.AuthServices.Interfaces;
 using LaylaApi.Services.EventsDataProviderServices.Interfaces;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Options;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace LaylaApi.DomainEvents.Handlers
 {
@@ -32,6 +29,7 @@ namespace LaylaApi.DomainEvents.Handlers
             using (LocalizationHelper.UseCulture(data.Lang))
             {
                 var subject = _localizer["UserRegistered_Email_Subject"];
+
                 var body = _localizer["UserRegistered_Email_Body", data.FullName, data.VerificationUrl];
 
                 await _emailService.SendEmailAsync(data.Email, subject, body);

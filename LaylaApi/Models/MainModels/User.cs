@@ -57,7 +57,7 @@ namespace LaylaApi.Models.MainModels
             FullName = fullName;
             Email = email;
             PhoneNumber = phoneNumber;
-            Lang = Lang;
+            Lang = lang;
         }
 
         public void ForgotPassword(User user, string resetPasswordToken, DateTime resetPasswordTokenExpires)
