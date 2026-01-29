@@ -11,13 +11,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
     public class ApartmentService : IApartmentService
     {
         private readonly LaylaContext _context;
-        private readonly IRepository<Apartment> _reportService;
         private readonly IMapper _mapper;
-        public ApartmentService(LaylaContext context, IMapper mapper, IRepository<Apartment> repository)
+        public ApartmentService(LaylaContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-            _reportService = repository;
         }
         public async Task<IEnumerable<ApartmentDto>> GetAllAsync()
         {

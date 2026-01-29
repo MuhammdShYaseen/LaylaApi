@@ -5,6 +5,7 @@ using LaylaApi.DomainEvents.Domain.Common;
 using System.Net;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.ValueObjects;
 
 namespace LaylaApi.Models.MainModels
 {
@@ -30,10 +31,10 @@ namespace LaylaApi.Models.MainModels
         public double Longitude { get; private set; }
 
         [Required]
-        public decimal PricePerHour { get; private set; }
+        public Money? PricePerHour { get; private set; }
 
         [Required]
-        public decimal PricePerDay { get; private set; }
+        public Money? PricePerDay { get; private set; }
 
         public bool IsAvailable { get; private set; } = true;
         
@@ -53,8 +54,8 @@ namespace LaylaApi.Models.MainModels
             var apartment = new Apartment
             {
                 Address = dto.Address,
-                PricePerHour = dto.PricePerHour,
-                PricePerDay = dto.PricePerDay,
+                PricePerHour = Money.Create(dto.PricePerHour),
+                PricePerDay = Money.Create(dto.PricePerDay),
                 Description = dto.Description,
                 Location = dto!.Location,
                 Latitude = dto.Latitude,
@@ -73,8 +74,8 @@ namespace LaylaApi.Models.MainModels
         {
             Touch();
             Address = dto.Address;
-            PricePerHour = dto.PricePerHour;
-            PricePerDay = dto.PricePerDay;
+            PricePerHour = Money.Create(dto.PricePerHour);
+            PricePerDay = Money.Create(dto.PricePerDay);
             Description = dto.Description;
             Location = dto!.Location;
             Latitude = dto.Latitude;

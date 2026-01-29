@@ -4,7 +4,9 @@ using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Models.NotificationsModels;
+using LaylaApi.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LaylaApi.DataAccess
 {
@@ -32,6 +34,8 @@ namespace LaylaApi.DataAccess
         {
             base.OnModelCreating(modelBuilder);
 
+            var moneyConverter = new ValueConverter<Money, decimal>(v => v.Value, v => Money.Create(v));
+
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
@@ -51,8 +55,8 @@ namespace LaylaApi.DataAccess
             modelBuilder.Entity<Apartment>(entity =>
             {
                 // Decimal precision
-                entity.Property(x => x.PricePerDay).HasPrecision(18, 2);
-                entity.Property(x => x.PricePerHour).HasPrecision(18, 2);
+                entity.Property(x => x.PricePerDay).HasPrecision(18, 2).HasConversion(moneyConverter!);
+                entity.Property(x => x.PricePerHour).HasPrecision(18, 2).HasConversion(moneyConverter!);
 
                 // Relationship: Apartment → Owner (User)
                 entity.HasOne(a => a.Owner)
