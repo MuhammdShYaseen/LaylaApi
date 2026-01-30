@@ -16,6 +16,7 @@
         public decimal PricePerDay { get; set; }
 
         public bool IsAvailable { get; set; }
+        public bool IsChatEnabled { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Owner

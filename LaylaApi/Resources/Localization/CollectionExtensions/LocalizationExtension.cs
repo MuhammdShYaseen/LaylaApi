@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
+using System.Diagnostics;
 using System.Globalization;
+using System.Resources;
 
 namespace LaylaApi.Resources.Localization.CollectionExtensions
 {
@@ -9,8 +12,18 @@ namespace LaylaApi.Resources.Localization.CollectionExtensions
         {
             services.AddLocalization(options =>
             {
-                options.ResourcesPath = "Resources";
+                options.ResourcesPath = "Resources/Localization";
             });
+
+            services.AddSingleton<IStringLocalizer>(sp =>
+            {
+                var assembly = typeof(Notifications).Assembly;
+                var resourceManager = new ResourceManager("LaylaApi.Resources.Localization.Notifications", assembly);
+                var logger = sp.GetRequiredService<ILogger<ResourceManagerStringLocalizer>>();
+                var cache = new ResourceNamesCache();
+                return new ResourceManagerStringLocalizer(resourceManager, assembly, "LaylaApi.Resources.Localization.Notifications", cache, logger);
+            });
+
             services.Configure<RequestLocalizationOptions>(options =>
             {
                 var supportedCultures = new[]
@@ -21,6 +34,8 @@ namespace LaylaApi.Resources.Localization.CollectionExtensions
                 options.DefaultRequestCulture = new RequestCulture("en"); // اللغة الافتراضية
                 options.SupportedCultures = supportedCultures;
                 options.SupportedUICultures = supportedCultures;
+                options.FallBackToParentCultures = true;
+                options.FallBackToParentUICultures = true;
 
                 // تحديد مصدر اللغة (Header → Query → Cookie → Default)
                 options.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider());

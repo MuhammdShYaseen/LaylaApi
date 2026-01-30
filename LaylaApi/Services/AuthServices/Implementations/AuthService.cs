@@ -29,8 +29,11 @@ namespace LaylaApi.Services.AuthServices.Implementations
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string originIp)
         {
             // تحقق وجود المستخدم
-            var existing = await _context.Users.AnyAsync(u => u.Email == request.Email);
-            if (existing) throw new Exception("Email is already registered.");
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+                throw new  BadHttpRequestException("Email is already registered.");
+
+            if (await _context.Users.AnyAsync(u => u.PhoneNumber == request.PhoneNumber))
+                throw new BadHttpRequestException("Phone number is already registered.");
 
             // تجزئة كلمة المرور (BCrypt)
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -57,14 +60,17 @@ namespace LaylaApi.Services.AuthServices.Implementations
         {
             //var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == request.Email);
             var user = await _userService.GetByEmailAsync(request.Email);
-            if (user == null) throw new Exception("Invalid credentials.");
+            if (user == null) throw new 
+                    BadHttpRequestException("Invalid credentials.");
 
             // تحقق من كلمة المرور
             bool validPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
-            if (!validPassword) throw new Exception("Invalid credentials.");
+            if (!validPassword) throw new 
+                    BadHttpRequestException("Invalid credentials.");
 
             // (اختياري) تحقق من EmailConfirmed
-            if (!user.EmailConfirmed) throw new Exception("Email not confirmed.");
+            if (!user.EmailConfirmed) throw new 
+                    BadHttpRequestException("Email not confirmed.");
 
             var authResponse = await GenerateAuthResponseAsync(user, originIp);
             return authResponse;

@@ -35,4 +35,22 @@
     <Folder Include="wwwroot\firebase\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Localization\Notifications.ar.resx">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Localization\Notifications.en.resx">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CustomToolNamespace></CustomToolNamespace>
+      <Generator></Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Localization\Notifications.resx">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

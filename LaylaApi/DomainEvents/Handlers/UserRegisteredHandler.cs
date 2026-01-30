@@ -2,10 +2,10 @@
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Helper.Localization;
 using LaylaApi.Models.DtosModels.EventDtos;
-using LaylaApi.Resources.Localization;
 using LaylaApi.Services.AuthServices.Interfaces;
 using LaylaApi.Services.EventsDataProviderServices.Interfaces;
 using Microsoft.Extensions.Localization;
+
 
 
 namespace LaylaApi.DomainEvents.Handlers
@@ -13,10 +13,10 @@ namespace LaylaApi.DomainEvents.Handlers
     public class UserRegisteredHandler : IEventHandler<UserRegisteredEvent>
     {
         private readonly IEmailService _emailService;
-        private readonly IStringLocalizer<Notifications> _localizer;
+        private readonly IStringLocalizer _localizer;
         private readonly IEventDataProvider<UserRegisteredEvent, UserRegisteredEventDto> _dataProvider;
 
-        public UserRegisteredHandler(IEmailService emailService, IStringLocalizer<Notifications> stringLocalizer, IEventDataProvider<UserRegisteredEvent, UserRegisteredEventDto> dataProvider)
+        public UserRegisteredHandler(IEmailService emailService, IStringLocalizer stringLocalizer, IEventDataProvider<UserRegisteredEvent, UserRegisteredEventDto> dataProvider)
         {
             _emailService = emailService;
             _localizer = stringLocalizer;

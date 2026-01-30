@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using FluentAssertions;
-using Google;
 using LaylaApi.DataAccess;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.Models.DtosModels.AuthDtos;
@@ -9,15 +8,12 @@ using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
-namespace LaylaApi.Test.Services
+
+namespace LaylaApi.Test.Services.ApartmentServiceTests
 {
-    public class ApartmentServiceTests
+    public class AddAsyncTest
     {
         private static LaylaContext CreateDbContext()
         {

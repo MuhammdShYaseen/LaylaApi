@@ -30,5 +30,7 @@ namespace LaylaApi.Models.DtosModels.MainDtos
 
         public bool IsAvailable { get; set; } = true;
 
+        public bool IsChatEnabled { get; set; } = true;
+
     }
 }

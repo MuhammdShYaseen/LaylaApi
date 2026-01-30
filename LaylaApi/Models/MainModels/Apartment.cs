@@ -82,9 +82,17 @@ namespace LaylaApi.Models.MainModels
             Longitude = dto.Longitude;
             Title = dto.Title;
             IsAvailable = dto.IsAvailable;
-            OwnerId = OwnerId;
-            IsChatEnabled = true;
+            IsChatEnabled = dto.IsChatEnabled;
            
+        }
+
+        public void EnableDisableChat(bool isChatEnabled)
+        {
+            IsChatEnabled = isChatEnabled;
+        }
+        public void Availability (bool isAvailable)
+        {
+            IsAvailable = isAvailable;
         }
     }
 }

@@ -4,15 +4,13 @@ using System.Net;
 
 namespace LaylaApi.Services.AuthServices.Implementations
 {
-    public class SmtpEmailService:IEmailService
+    public class SmtpEmailService : IEmailService
     {
         private readonly IConfiguration _config;
-        private readonly ILogger<SmtpEmailService> _logger;
 
         public SmtpEmailService(IConfiguration config, ILogger<SmtpEmailService> logger)
         {
             _config = config;
-            _logger = logger;
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)
@@ -38,8 +36,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send email to {To}", to);
-                throw;
+                throw new Exception("cannot send email " + ex);
             }
         }
     }
