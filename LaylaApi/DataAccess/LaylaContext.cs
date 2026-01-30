@@ -4,7 +4,7 @@ using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Models.NotificationsModels;
-using LaylaApi.ValueObjects;
+using LaylaApi.ValueObjects.ApartmentValueObject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

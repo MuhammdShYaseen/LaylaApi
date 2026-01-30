@@ -1,6 +1,8 @@
-﻿namespace LaylaApi.ValueObjects
+﻿using LaylaApi.DomainEvents.Domain.Common;
+
+namespace LaylaApi.ValueObjects.ApartmentValueObject
 {
-    public sealed class Money
+    public sealed class Money : ValueObject
     {
         public decimal Value { get; }
 
@@ -10,6 +12,10 @@
                 throw new BadHttpRequestException("Price must be greater than zero.");
 
             Value = value;
+        }
+        protected override IEnumerable<object> GetEqualityComponents()
+        {
+            yield return Value;
         }
 
         public static Money Create(decimal value)

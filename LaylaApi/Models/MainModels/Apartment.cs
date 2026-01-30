@@ -5,7 +5,7 @@ using LaylaApi.DomainEvents.Domain.Common;
 using System.Net;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.DtosModels.MainDtos;
-using LaylaApi.ValueObjects;
+using LaylaApi.ValueObjects.ApartmentValueObject;
 
 namespace LaylaApi.Models.MainModels
 {
