@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using LaylaApi.DataAccess;
-using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
@@ -74,7 +73,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 .Include(a => a.MediaFiles)
                 .Where(a =>
                     a.Title.ToLower().Contains(keyword) ||
-                    a.Location.ToLower().Contains(keyword) ||
+                    a.Location!.ToString().ToLower().Contains(keyword) ||
                     (a.Description != null && a.Description.ToLower().Contains(keyword))
                 )
                 .ToListAsync();
@@ -137,7 +136,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 .ToListAsync();
 
             var result = apartments
-                .Where(a => CalculateDistanceKm(userLat, userLng, a.Latitude, a.Longitude) <= maxDistanceKm)
+                .Where(a => CalculateDistanceKm(userLat, userLng, a.Location!.Location.Latitude, a.Location.Location.Longitude) <= maxDistanceKm)
                 .ToList();
 
             return _mapper.Map<IEnumerable<ApartmentDto>>(result);

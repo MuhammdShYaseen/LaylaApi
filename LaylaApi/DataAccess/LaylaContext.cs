@@ -1,4 +1,5 @@
 ﻿using System;
+using LaylaApi.DataAccess.Configurations;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.DomainEvents.Domain.Events;
@@ -33,6 +34,8 @@ namespace LaylaApi.DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
 
             var moneyConverter = new ValueConverter<Money, decimal>(v => v.Value, v => Money.Create(v));
 

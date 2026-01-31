@@ -4,8 +4,8 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 {
     public class Pricing : ValueObject
     {
-        public Money PricePerHour { get; }
-        public Money PricePerDay { get; }
+        public Money PricePerHour { get; private set; }
+        public Money PricePerDay { get; private set; }
 
         private Pricing(Money pricePerHour, Money pricePerDay)
         {

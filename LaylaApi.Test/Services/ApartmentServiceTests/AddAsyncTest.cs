@@ -31,7 +31,11 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             return new CreateApartmentDto
             {
                 Title = "Test Apartment",
-                Location = "Damascus",
+                Country = "Damascus",
+                City = "latakia",
+                BuildingNumber = "rt6878",
+                Street = "uyy77",
+                District = "k890",
                 Latitude = 33.5,
                 Longitude = 36.3,
                 PricePerDay = 50,

@@ -4,7 +4,7 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 {
     public sealed class Money : ValueObject
     {
-        public decimal Value { get; }
+        public decimal Value { get; private set; }
 
         private Money(decimal value)
         {

@@ -60,7 +60,7 @@ namespace LaylaApi.Templates
 
                     col.Item().Column(a =>
                     {
-                        a.Item().Text($"Address: {_apartment.Address}");
+                        a.Item().Text($"Address: {_apartment.Location!.ToString().ToString()}");
                         a.Item().Text($"Apartment ID: {_apartment.Id}");
                     });
 

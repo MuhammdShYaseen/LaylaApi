@@ -12,7 +12,7 @@ namespace LaylaApi.Mappings
                 .ForMember(d => d.ApartmentTitle,
                            opt => opt.MapFrom(src => src.Apartment!.Title))
                 .ForMember(d => d.ApartmentAddress,
-                           opt => opt.MapFrom(src => src.Apartment!.Address))
+                           opt => opt.MapFrom(src => src.Apartment!.Location!.ToString()))
                 .ForMember(d => d.UserFullName,
                            opt => opt.MapFrom(src => src.User!.FullName));
 

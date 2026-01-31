@@ -4,7 +4,7 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 {
     public class Description : ValueObject
     {
-        public string Value { get; }
+        public string Value { get; private set; }
 
         private Description(string value)
         {
