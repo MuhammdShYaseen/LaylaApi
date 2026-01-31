@@ -11,6 +11,11 @@ using System.Security.Cryptography;
 using LaylaApi.Services.AuthServices.Interfaces;
 using LaylaApi.Helper.AuthHelper;
 using LaylaApi.Services.DataCRUD.Interfaces;
+using LaylaApi.Options;
+using Google.Protobuf.WellKnownTypes;
+using LaylaApi.Services.LanguageServices;
+using LaylaApi.ValueObjects.UserValueObject;
+
 namespace LaylaApi.Services.AuthServices.Implementations
 {
     public class AuthService : IAuthService
@@ -18,27 +23,30 @@ namespace LaylaApi.Services.AuthServices.Implementations
         private readonly LaylaContext _context;
         private readonly JwtSettings _jwtSettings;
         private readonly IUserService _userService;
-
-        public AuthService(LaylaContext context, IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService)
+        private readonly ISupportedLanguagePolicy _languagePolicy;
+        public AuthService(LaylaContext context, IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService, ISupportedLanguagePolicy languagePolicy)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
             _userService = userService;
+            _languagePolicy = languagePolicy;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string originIp)
         {
+           
             // تحقق وجود المستخدم
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if (await _context.Users.AnyAsync(u => u.Email!.Value == request.Email))
                 throw new  BadHttpRequestException("Email is already registered.");
 
-            if (await _context.Users.AnyAsync(u => u.PhoneNumber == request.PhoneNumber))
+            if (await _context.Users.AnyAsync(u => u.PhoneNumber!.Value == request.PhoneNumber))
                 throw new BadHttpRequestException("Phone number is already registered.");
+
 
             // تجزئة كلمة المرور (BCrypt)
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var user = User.Create(request, passwordHash, GenerateRandomToken());
+            var user = User.Create(request, passwordHash, GenerateRandomToken(), _languagePolicy);
             await _userService.AddAsync(user);
 
             var authResponse = await GenerateAuthResponseAsync(user, originIp);
@@ -99,7 +107,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
                 RefreshToken = newRefreshToken.Token,
                 ExpiresInSeconds = _jwtSettings.TokenExpirationMinutes * 60,
                 UserId = refreshToken.User!.Id,
-                Email = refreshToken.User.Email
+                Email = refreshToken.User.Email!.Value
             };
         }
 
@@ -116,14 +124,14 @@ namespace LaylaApi.Services.AuthServices.Implementations
 
         public async Task<bool> SendPasswordResetAsync(string email)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value == email);
             if (user == null) return false;
 
            var resetPasswordToken = GenerateRandomToken();
            var resetPasswordTokenExpires = DateTime.UtcNow.AddHours(1);
 
             
-            user.ForgotPassword(user, resetPasswordToken, resetPasswordTokenExpires);
+            user.ForgotPassword(resetPasswordToken, resetPasswordTokenExpires);
 
             await _context.SaveChangesAsync();
             return true;
@@ -156,7 +164,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email !.Value),
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Role, user.Role)
             };
@@ -203,10 +211,9 @@ namespace LaylaApi.Services.AuthServices.Implementations
                 RefreshToken = refreshToken.Token,
                 ExpiresInSeconds = _jwtSettings.TokenExpirationMinutes * 60,
                 UserId = user.Id,
-                Email = user.Email
+                Email = user.Email!.Value
             };
         }
-
         #endregion
     }
 }

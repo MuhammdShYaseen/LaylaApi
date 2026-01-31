@@ -32,8 +32,8 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
                 .Select(u => new UserRegisteredEventDto
                 {
                     FullName = u.FullName,
-                    Email = u.Email,
-                    Lang = u.Lang,
+                    Email = u.Email!.Value,
+                    Lang = u.Lang!.ToString(),
                     VerificationUrl =
                         $"{_frontendOptions.Verify}{@event.Token}"
                 })

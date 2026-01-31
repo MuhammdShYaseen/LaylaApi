@@ -16,6 +16,8 @@ using LaylaApi.SignalR_Hubs;
 using LaylaApi.DataRepository;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Services.EventsDataProviderServices.ServiceCollectionExtensions;
+using Microsoft.Extensions.Configuration;
+using LaylaApi.Services.LanguageServices;
 namespace LaylaApi
 {
     public class Program
@@ -26,6 +28,8 @@ namespace LaylaApi
             Logging.SerilogConfiguration.Configure(builder);
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
             builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("FrontEnd"));
+            builder.Services.Configure<LanguageOptions>(builder.Configuration.GetSection("AppSetting"));
+            builder.Services.AddSupportedLanguageService();
             builder.Services.Configure<ChatOptions>(builder.Configuration.GetSection("Chat"));
             builder.AddFirebaseApp();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

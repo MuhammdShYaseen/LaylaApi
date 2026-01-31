@@ -6,6 +6,7 @@ using LaylaApi.Models.DtosModels.AuthDtos;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Implementations;
+using LaylaApi.Services.LanguageServices;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Diagnostics;
@@ -26,6 +27,17 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             return new LaylaContext(options, dispatcherMock.Object);
         }
 
+        private static ISupportedLanguagePolicy SupportedLanguagePolicy()
+        {
+            var mock = new Mock<ISupportedLanguagePolicy>();
+
+            mock.Setup(x => x.IsSupported("en")).Returns(true);
+            mock.Setup(x => x.IsSupported("ar")).Returns(true);
+            mock.Setup(x => x.IsSupported(It.IsNotIn("en", "ar"))).Returns(false);
+
+            return mock.Object;
+        }
+
         private static CreateApartmentDto ValidCreateApartmentDto()
         {
             return new CreateApartmentDto
@@ -39,7 +51,8 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
                 Latitude = 33.5,
                 Longitude = 36.3,
                 PricePerDay = 50,
-                PricePerHour = 5
+                PricePerHour = 5,
+                ApartmentNumber ="iop"
             };
         }
 
@@ -83,9 +96,9 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
                 FullName = "Test",
                 Lang = "en",
                 Password = "Password",
-                PhoneNumber = "1234567890",
+                PhoneNumber = "+963988905898",
             };
-            context.Users.Add(User.Create(registerRequest, "", ""));
+            context.Users.Add(User.Create(registerRequest, "", "", SupportedLanguagePolicy()));
             await context.SaveChangesAsync();
 
             var mapper = new Mock<IMapper>();

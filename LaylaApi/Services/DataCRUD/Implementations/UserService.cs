@@ -1,6 +1,7 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
+using LaylaApi.Services.LanguageServices;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,10 +10,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
     public class UserService : IUserService
     {
         private readonly LaylaContext _context;
-
-        public UserService(LaylaContext context)
+        private readonly ISupportedLanguagePolicy _languagePolicy;
+        public UserService(LaylaContext context, ISupportedLanguagePolicy languagePolicy)
         {
             _context = context;
+            _languagePolicy = languagePolicy;
         }
 
         public async Task<int>GetCountAsync()=>
@@ -24,7 +26,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             await _context.Users.FindAsync(id);
 
         public async Task<User?> GetByEmailAsync(string email) =>
-            await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value == email);
 
         public async Task<User> AddAsync(User user)
         {
@@ -38,7 +40,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var existing = await _context.Users.FindAsync(id);
             if (existing == null) return null;
 
-            existing.Update(user.FullName, user.Email, user.PhoneNumber, user.Lang);
+            existing.Update(user.FullName, user.Email!.Value, user.PhoneNumber!.Value, user.Lang!.ToString(), _languagePolicy);
 
             await _context.SaveChangesAsync();
             return existing;
@@ -58,7 +60,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         {
             var existing = await _context.Users.FindAsync(userId);
             if (existing == null) throw new DirectoryNotFoundException("UserNotFound");
-            return existing.Lang;
+            return existing.Lang!.ToString();
 
         }
     }

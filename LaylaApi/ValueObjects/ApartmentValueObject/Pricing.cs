@@ -4,16 +4,25 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 {
     public class Pricing : ValueObject
     {
-        public Money PricePerHour { get; private set; }
-        public Money PricePerDay { get; private set; }
+        public Money PricePerHour { get; private set; } = null!;
+        public Money PricePerDay { get; private set; } = null!;
 
-        private Pricing(Money pricePerHour, Money pricePerDay)
+        private Pricing()
         {
-            PricePerHour = pricePerHour;
-            PricePerDay = pricePerDay;
+            
         }
 
         public static Pricing Create(Money pricePerHour, Money pricePerDay)
+        {
+            Validate(pricePerHour, pricePerDay);
+            return new Pricing
+            {
+                PricePerHour = pricePerHour,
+                PricePerDay = pricePerDay
+            };
+        }
+
+        private static void Validate(Money pricePerHour, Money pricePerDay)
         {
             if (pricePerHour is null)
                 throw new ArgumentNullException(nameof(pricePerHour));
@@ -29,8 +38,6 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 
             if (pricePerDay.Value < pricePerHour.Value)
                 throw new ArgumentException("Daily price cannot be less than hourly price.");
-
-            return new Pricing(pricePerHour, pricePerDay);
         }
 
         protected override IEnumerable<object> GetEqualityComponents()

@@ -23,8 +23,8 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
             .Select(u => new PasswordResetRequestedEventDto
             {
                 UserId = u.Id,
-                Email = u.Email,
-                Lang = u.Lang,
+                Email = u.Email!.Value,
+                Lang = u.Lang!.ToString(),
                 Token = @event.Token
             })
             .SingleAsync(ct);

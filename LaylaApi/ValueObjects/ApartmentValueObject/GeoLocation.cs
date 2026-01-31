@@ -14,39 +14,46 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
         public string Country { get; private set; } = null!;
         public Coordinates Location { get; private set; } = null!;
 
-        public GeoLocation(string street, string buildingNumber, string apartmentNumber,
-            string city, string district, Coordinates location, string country)
+        public static GeoLocation Create(string street, string buildingNumber, string apartmentNumber,
+                                         string city, string district, Coordinates location, string country)
         {
-            Street = street;
-            BuildingNumber = buildingNumber;
-            ApartmentNumber = apartmentNumber;
-            City = city;
-            District = district;
-            Country = country;
-            Location = location ?? throw new ArgumentNullException(nameof(location));
-            Validate();
+            Validate(street, buildingNumber, apartmentNumber,
+                     city, district, location, country);
+
+            return new GeoLocation
+            {
+                Street = street,
+                BuildingNumber = buildingNumber,
+                ApartmentNumber = apartmentNumber,
+                City = city,
+                District = district,
+                Country = country,
+                Location = location ?? throw new ArgumentNullException(nameof(location))
+            };
+            
         }
 
        
 
-        private void Validate()
+        private static void Validate(string street, string buildingNumber, string apartmentNumber,
+                                     string city, string district, Coordinates location, string country)
         {
-            if (string.IsNullOrWhiteSpace(Street))
+            if (string.IsNullOrWhiteSpace(street))
                 throw new BadHttpRequestException("the name of street is required");
 
-            if (string.IsNullOrWhiteSpace(BuildingNumber))
+            if (string.IsNullOrWhiteSpace(buildingNumber))
                 throw new BadHttpRequestException("the number of building is required");
 
-            if (string.IsNullOrWhiteSpace(ApartmentNumber))
+            if (string.IsNullOrWhiteSpace(apartmentNumber))
                 throw new BadHttpRequestException("Apartment number required");
 
-            if (string.IsNullOrWhiteSpace(City))
+            if (string.IsNullOrWhiteSpace(city))
                 throw new BadHttpRequestException("City name is required");
 
-            if (string.IsNullOrWhiteSpace(District))
+            if (string.IsNullOrWhiteSpace(district))
                 throw new BadHttpRequestException("District is required");
 
-            if (string.IsNullOrWhiteSpace(Country))
+            if (string.IsNullOrWhiteSpace(country))
                 throw new BadHttpRequestException("Country is required");
         }
 

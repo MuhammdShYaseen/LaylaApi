@@ -28,13 +28,13 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
                 EndDate = b.EndDate,
 
                 OwnerId = b.Apartment.OwnerId,
-                OwnerEmail = b.Apartment.Owner!.Email,
-                OwnerLanguage = b.Apartment.Owner.Lang,
+                OwnerEmail = b.Apartment.Owner!.Email!.Value,
+                OwnerLanguage = b.Apartment.Owner.Lang!.ToString(),
 
                 RenterId = b.UserId,
-                RenterEmail = b.User!.Email,
+                RenterEmail = b.User!.Email!.Value,
                 RenterName = b.User.FullName,
-                RenterLanguage = b.User.Lang
+                RenterLanguage = b.User.Lang!.ToString()
             })
             .SingleAsync(ct);
         }

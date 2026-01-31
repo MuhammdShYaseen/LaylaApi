@@ -26,7 +26,7 @@ namespace LaylaApi.DomainEvents.Handlers
             var receiver = await _userService.GetByIdAsync(@event.ReceiverId);
             var apartment = await _apartmentService.GetByIdAsync(@event.ApartmentId);
 
-            using (LocalizationHelper.UseCulture(receiver!.Lang ?? "en"))
+            using (LocalizationHelper.UseCulture(receiver!.Lang!.ToString() ?? "en"))
             {
                 var title = _localizer["Chat_Message_Title", apartment.Title];
                 var body = BuildNotificationBody(@event.Content).Replace("\r", " ").Replace("\n", " ");

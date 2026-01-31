@@ -25,7 +25,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
                 {
                     Rating = r.Rating,
                     OwnerId = r.Apartment!.OwnerId,
-                    OwnerLang = r.Apartment!.Owner!.Lang
+                    OwnerLang = r.Apartment!.Owner!.Lang!.ToString()
                 })
                 .SingleAsync(ct);
         }

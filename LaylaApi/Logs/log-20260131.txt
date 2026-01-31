@@ -18,3 +18,6 @@ Microsoft.AspNetCore.Http.BadHttpRequestException: Email is already registered.
    at Microsoft.AspNetCore.Localization.RequestLocalizationMiddleware.Invoke(HttpContext context)
    at LaylaApi.Middleware.ErrorHandler.RequestResponseLoggingMiddleware.Invoke(HttpContext context) in C:\Users\pc\source\repos\LaylaApi\LaylaApi\Middleware\ErrorHandler\RequestResponseLoggingMiddleware.cs:line 20
    at LaylaApi.Middleware.ErrorHandler.ErrorHandlerMiddleware.Invoke(HttpContext context) in C:\Users\pc\source\repos\LaylaApi\LaylaApi\Middleware\ErrorHandler\ErrorHandlerMiddleware.cs:line 24
+2026-01-31 13:37:26.428 +03:00 [INF] EventQueueHostedService started.
+2026-01-31 13:45:57.007 +03:00 [INF] EventQueueHostedService started.
+2026-01-31 13:47:35.159 +03:00 [INF] EventQueueHostedService started.

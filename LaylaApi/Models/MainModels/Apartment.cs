@@ -19,18 +19,6 @@ namespace LaylaApi.Models.MainModels
         [MaxLength(1000)]
         public string? Description { get; private set; }
 
-        //[MaxLength(1000)]
-        //public string? Address { get; private set; }
-
-        //[Required]
-        //public string Location { get; private set; } = string.Empty;
-
-        //[Required]
-        //public double Latitude { get; private set; }
-
-        //[Required]
-        //public double Longitude { get; private set; }
-
         [Required]
         public GeoLocation? Location { get; private set; }
 
@@ -55,17 +43,13 @@ namespace LaylaApi.Models.MainModels
 
         public static Apartment Create(CreateApartmentDto dto, int ownerId)
         {
+            var location = GeoLocation.Create(dto.Street, dto.BuildingNumber,
+                                              dto.ApartmentNumber, dto.City,
+                                              dto.District, Coordinates.Create(dto.Latitude, dto.Longitude),
+                                              dto.Country);
             var apartment = new Apartment
             {
-                //Location = dto!.Location,
-                //Latitude = dto.Latitude,
-                //Longitude = dto.Longitude,
-                //Address = dto.Address,
-
-                Location =new GeoLocation(dto.Street, dto.BuildingNumber,
-                                              dto.ApartmentNumber, dto.City,
-                                              dto.District, new Coordinates(dto.Latitude, dto.Longitude),
-                                              dto.Country),
+                Location = location,
 
                 PricePerHour = Money.Create(dto.PricePerHour),
                 PricePerDay = Money.Create(dto.PricePerDay),
@@ -83,16 +67,11 @@ namespace LaylaApi.Models.MainModels
         }
         public void Update(CreateApartmentDto dto)
         {
-            Touch();
-            //Address = dto.Address;
-            //Location = dto!.Location;
-            //Latitude = dto.Latitude;
-            //Longitude = dto.Longitude;
 
-            Location = new GeoLocation(dto.Street, dto.BuildingNumber,
-                                       dto.ApartmentNumber, dto.City,
-                                       dto.District,new Coordinates(dto.Latitude, dto.Longitude),
-                                       dto.Country);
+            Location = GeoLocation.Create(dto.Street, dto.BuildingNumber,
+                                          dto.ApartmentNumber, dto.City,
+                                          dto.District,Coordinates.Create(dto.Latitude, dto.Longitude),
+                                          dto.Country);
 
             PricePerHour = Money.Create(dto.PricePerHour);
             PricePerDay = Money.Create(dto.PricePerDay);
@@ -101,7 +80,8 @@ namespace LaylaApi.Models.MainModels
             Title = dto.Title;
             IsAvailable = dto.IsAvailable;
             IsChatEnabled = dto.IsChatEnabled;
-           
+            Touch();
+
         }
 
         public void EnableDisableChat(bool isChatEnabled)
