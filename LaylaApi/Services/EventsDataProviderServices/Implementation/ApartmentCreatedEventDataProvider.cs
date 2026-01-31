@@ -25,7 +25,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
                     ApartmentTitle = a.Title,
                     OwnerId = a.OwnerId,
                     OwnerEmail = a.Owner!.Email!.Value,
-                    OwnerLang = a.Owner.Lang!.ToString()
+                    OwnerLang = a.Owner.Lang!.Code
                 })
                 .SingleAsync(ct);
         }

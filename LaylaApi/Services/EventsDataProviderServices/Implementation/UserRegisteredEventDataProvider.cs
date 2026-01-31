@@ -33,7 +33,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
                 {
                     FullName = u.FullName,
                     Email = u.Email!.Value,
-                    Lang = u.Lang!.ToString(),
+                    Lang = u.Lang!.Code,
                     VerificationUrl =
                         $"{_frontendOptions.Verify}{@event.Token}"
                 })

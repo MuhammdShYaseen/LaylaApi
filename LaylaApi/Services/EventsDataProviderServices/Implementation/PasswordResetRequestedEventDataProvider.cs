@@ -24,7 +24,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
             {
                 UserId = u.Id,
                 Email = u.Email!.Value,
-                Lang = u.Lang!.ToString(),
+                Lang = u.Lang!.Code,
                 Token = @event.Token
             })
             .SingleAsync(ct);

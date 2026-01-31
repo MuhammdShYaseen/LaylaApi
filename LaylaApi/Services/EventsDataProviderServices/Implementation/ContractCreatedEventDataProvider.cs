@@ -30,11 +30,11 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
 
                 OwnerId = c.Booking.Apartment.OwnerId,
                 OwnerEmail = c.Booking.Apartment.Owner!.Email!.Value,
-                OwnerLang = c.Booking.Apartment.Owner.Lang!.ToString(),
+                OwnerLang = c.Booking.Apartment.Owner.Lang!.Code,
 
                 RenterId = c.Booking.UserId,
                 RenterEmail = c.Booking.User!.Email!.Value,
-                RenterLang = c.Booking.User.Lang!.ToString()
+                RenterLang = c.Booking.User.Lang!.Code
             })
             .SingleAsync(ct);
         }

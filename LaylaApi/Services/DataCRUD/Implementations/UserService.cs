@@ -40,7 +40,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var existing = await _context.Users.FindAsync(id);
             if (existing == null) return null;
 
-            existing.Update(user.FullName, user.Email!.Value, user.PhoneNumber!.Value, user.Lang!.ToString(), _languagePolicy);
+            existing.Update(user.FullName, user.Email!.Value, user.PhoneNumber!.Value, user.Lang!.Code, _languagePolicy);
 
             await _context.SaveChangesAsync();
             return existing;
@@ -60,7 +60,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         {
             var existing = await _context.Users.FindAsync(userId);
             if (existing == null) throw new DirectoryNotFoundException("UserNotFound");
-            return existing.Lang!.ToString();
+            return existing.Lang!.Code;
 
         }
     }
