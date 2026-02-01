@@ -14,6 +14,7 @@ namespace LaylaApi.Services.AuthServices.ServiceCollectionExtensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, SmtpEmailService>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
            
             return services;
         }

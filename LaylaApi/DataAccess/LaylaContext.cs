@@ -37,7 +37,7 @@ namespace LaylaApi.DataAccess
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
-
+            //modelBuilder.ApplyConfiguration(new UserConfiguration());
             var moneyConverter = new ValueConverter<Money, decimal>(v => v.Value, v => Money.Create(v));
             var languageConverter = new ValueConverter<Language, string>(v => v.Code, v => Language.FromPersistence(v));
             var emailConverter = new ValueConverter<Email, string>(v => v.Value, v => Email.Create(v));
@@ -53,30 +53,30 @@ namespace LaylaApi.DataAccess
                 }
             }
 
-            // ✅ User - Email فريد
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
-
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.PhoneNumber)
-                .IsUnique();
-
             modelBuilder.Entity<User>(entity =>
             {
-                entity.Property(u => u.Lang)
-                    .HasConversion(languageConverter!)
-                    .HasMaxLength(5)
-                    .IsRequired();
-
-                entity.Property(u => u.Email) 
+                // Email
+                entity.Property(u => u.Email)
                       .HasConversion(emailConverter!)
                       .HasMaxLength(200)
                       .IsRequired();
 
+                entity.HasIndex(u => u.Email)
+                      .IsUnique();
+
+                // Phone
                 entity.Property(u => u.PhoneNumber)
                       .HasConversion(phoneConverter!)
-                      .HasMaxLength(200)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.HasIndex(u => u.PhoneNumber)
+                      .IsUnique();
+
+                // Language
+                entity.Property(u => u.Lang)
+                      .HasConversion(languageConverter!)
+                      .HasMaxLength(5)
                       .IsRequired();
             });
 

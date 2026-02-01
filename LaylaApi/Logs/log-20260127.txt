@@ -1,4 +1,0 @@
-2026-01-27 19:16:03.608 +03:00 [ERR] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-CREATE UNIQUE INDEX [IX_RefreshTokens_Guid] ON [RefreshTokens] ([Guid]);
-2026-01-27 19:22:29.124 +03:00 [ERR] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-CREATE UNIQUE INDEX [IX_RefreshTokens_Guid] ON [RefreshTokens] ([Guid]);

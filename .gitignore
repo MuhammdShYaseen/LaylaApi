@@ -13,3 +13,4 @@ Release/
 # Secrets
 firebase-adminsdk*.json
 appsettings.Production.json
+/LaylaApi/Logs

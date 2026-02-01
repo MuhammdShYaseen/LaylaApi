@@ -10,10 +10,11 @@ namespace LaylaApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _auth;
-
-        public AuthController(IAuthService auth)
+        private readonly IRefreshTokenService _refreshToken;
+        public AuthController(IAuthService auth, IRefreshTokenService refreshToken)
         {
             _auth = auth;
+            _refreshToken = refreshToken;
         }
 
         [HttpPost("register")]
@@ -53,7 +54,7 @@ namespace LaylaApi.Controllers
         {
             var originIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var response = await _auth.RefreshTokenAsync(refreshToken, originIp);
+            var response = await _refreshToken.RefreshTokenAsync(refreshToken, originIp);
 
             if (response == null)
                 throw new BadHttpRequestException("Invalid token");
@@ -66,7 +67,7 @@ namespace LaylaApi.Controllers
         {
             var originIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var result = await _auth.RevokeRefreshTokenAsync(refreshToken, originIp);
+            var result = await _refreshToken.RevokeRefreshTokenAsync(refreshToken, originIp);
 
             if (!result) 
                 throw new KeyNotFoundException("Token not found or already revoked");

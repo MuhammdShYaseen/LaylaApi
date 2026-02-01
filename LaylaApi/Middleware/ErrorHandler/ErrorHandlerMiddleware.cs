@@ -1,4 +1,5 @@
-﻿using LaylaApi.Models.ErrorModels;
+﻿using LaylaApi.DomainEvents.Domain.Exceptions;
+using LaylaApi.Models.ErrorModels;
 using Microsoft.AspNetCore.SignalR;
 using System.Diagnostics;
 using System.Net;
@@ -42,7 +43,8 @@ namespace LaylaApi.Middleware.ErrorHandler
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 BadHttpRequestException => HttpStatusCode.BadRequest,
                 InvalidOperationException => HttpStatusCode.BadRequest,
-                HubException hubException => HttpStatusCode.Unauthorized,
+                HubException => HttpStatusCode.Unauthorized,
+                DomainValidationException => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };
 

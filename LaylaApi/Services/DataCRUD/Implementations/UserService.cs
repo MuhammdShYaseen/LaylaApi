@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using LaylaApi.DataAccess;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using LaylaApi.Services.LanguageServices;
+using LaylaApi.ValueObjects.UserValueObject;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
+
 
 namespace LaylaApi.Services.DataCRUD.Implementations
 {
@@ -31,8 +31,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         public async Task<User?> GetByIdAsync(int id) =>
             await _context.Users.FindAsync(id);
 
-        public async Task<User?> GetByEmailAsync(string email) =>
-            await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value.ToLower() == email.ToLower());
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            var normalized = email.Trim().ToLowerInvariant();
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value == normalized);
+        }
 
         public async Task<User> AddAsync(User user)
         {
@@ -120,12 +123,14 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 u.ResetPasswordTokenExpires > DateTime.UtcNow);
         }
 
-        public async Task<bool> ExistsByEmailAsync(string email)=>
-             await _context.Users.AnyAsync(u => u.Email!.Value.ToLower() == email.ToLower());
+        public async Task<bool> ExistsByEmailAsync(string email) =>
+             await _context.Users.AnyAsync(u => u.Email! == Email.Create(email.Trim().ToLowerInvariant()));
+
+            
         
 
         public async Task<bool> ExistsByPhoneAsync(string phone)=>
-             await _context.Users.AnyAsync(u => u.PhoneNumber!.Value == phone);
+             await _context.Users.AnyAsync(u => u.PhoneNumber == PhoneNumber.Create(phone.Trim().ToLowerInvariant()));
 
         public async Task<User?> GetByEmailTokenAsync(string emailToken)=>
             await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == emailToken);

@@ -1,4 +1,5 @@
 ﻿using LaylaApi.DomainEvents.Domain.Common;
+using LaylaApi.DomainEvents.Domain.Exceptions;
 using System.Text.RegularExpressions;
 
 namespace LaylaApi.ValueObjects.UserValueObject
@@ -17,12 +18,12 @@ namespace LaylaApi.ValueObjects.UserValueObject
         public static PhoneNumber Create(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Phone number is required.");
+                throw new DomainValidationException("Phone number is required.");
 
             value = value.Trim();
 
             if (!PhoneRegex.IsMatch(value))
-                throw new ArgumentException("Invalid phone number format.");
+                throw new DomainValidationException("Invalid phone number format.");
 
             return new PhoneNumber(value);
         }

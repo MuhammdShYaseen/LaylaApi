@@ -1,2 +1,0 @@
-2026-01-01 01:48:10.553 +03:00 [INF] EventQueueHostedService started.
-2026-01-01 01:49:00.587 +03:00 [INF] HTTP POST /api/Auth/login responded 200 in 1940 ms | User: Anonymous
