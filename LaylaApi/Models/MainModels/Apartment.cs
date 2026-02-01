@@ -55,7 +55,7 @@ namespace LaylaApi.Models.MainModels
                 PricePerDay = Money.Create(dto.PricePerDay),
                 Description = dto.Description,
 
-                Title = dto.Title,
+                Title = string.IsNullOrWhiteSpace(dto.Title) ? throw new BadHttpRequestException("Title must not be empty") : dto.Title,
                 IsAvailable = dto.IsAvailable,
                 OwnerId = ownerId,
                 IsChatEnabled = true
