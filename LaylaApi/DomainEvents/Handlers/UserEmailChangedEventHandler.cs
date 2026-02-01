@@ -7,24 +7,24 @@ using LaylaApi.Options;
 using LaylaApi.Services.AuthServices.Interfaces;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace LaylaApi.DomainEvents.Handlers
 {
     public class UserEmailChangedEventHandler : IEventHandler<UserEmailChangedEvent>
     {
         private readonly IEmailService _emailService;
-        private readonly IOptions<FrontendOptions> _frontendOptions;
+        private readonly FrontendOptions _frontendOptions;
         private readonly IStringLocalizer _localizer;
         public UserEmailChangedEventHandler(IEmailService emailService, IOptions<FrontendOptions> frontendOptions, IStringLocalizer stringLocalizer)
         {
             _emailService = emailService;
-            _frontendOptions = frontendOptions;
+            _frontendOptions = frontendOptions.Value;
             _localizer = stringLocalizer;
         }
         public async Task HandleAsync(UserEmailChangedEvent @event, CancellationToken ct = default)
         {
-            var verifyUrl = $"{_frontendOptions.Value.Verify}{@event.EmailVerificationToken}";
+            var verifyUrl = $"{_frontendOptions.Verify}{@event.EmailVerificationToken}";
             using (LocalizationHelper.UseCulture(@event.Language))
             {
                 var subject = _localizer["UserUpdateEmailAddress_Email_Subject"];

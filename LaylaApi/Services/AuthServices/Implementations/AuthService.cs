@@ -11,42 +11,39 @@ using System.Security.Cryptography;
 using LaylaApi.Services.AuthServices.Interfaces;
 using LaylaApi.Helper.AuthHelper;
 using LaylaApi.Services.DataCRUD.Interfaces;
-using LaylaApi.Options;
-using Google.Protobuf.WellKnownTypes;
 using LaylaApi.Services.LanguageServices;
-using LaylaApi.ValueObjects.UserValueObject;
 
 namespace LaylaApi.Services.AuthServices.Implementations
 {
     public class AuthService : IAuthService
     {
-        private readonly LaylaContext _context;
         private readonly JwtSettings _jwtSettings;
         private readonly IUserService _userService;
         private readonly ISupportedLanguagePolicy _languagePolicy;
-        public AuthService(LaylaContext context, IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService, ISupportedLanguagePolicy languagePolicy)
+        private readonly ITokenService _tokenService;
+        public AuthService( IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService, ISupportedLanguagePolicy languagePolicy, ITokenService tokenService)
         {
-            _context = context;
             _jwtSettings = jwtOptions.Value;
             _userService = userService;
             _languagePolicy = languagePolicy;
+            _tokenService = tokenService;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string originIp)
         {
-           
-            // تحقق وجود المستخدم
-            if (await _context.Users.AnyAsync(u => u.Email!.Value == request.Email))
-                throw new  BadHttpRequestException("Email is already registered.");
 
-            if (await _context.Users.AnyAsync(u => u.PhoneNumber!.Value == request.PhoneNumber))
-                throw new BadHttpRequestException("Phone number is already registered.");
+            // تحقق وجود المستخدم
+            if (await _userService.ExistsByEmailAsync(request.Email))
+                throw new BadHttpRequestException("Email already registered");
+
+            if (await _userService.ExistsByPhoneAsync(request.PhoneNumber))
+                throw new BadHttpRequestException("Phone already registered");
 
 
             // تجزئة كلمة المرور (BCrypt)
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var user = User.Create(request, passwordHash, GenerateRandomToken(), _languagePolicy);
+            var user = User.Create(request.FullName,request.Email,request.PhoneNumber,request.Password, passwordHash,request.Lang, GenerateRandomToken(), _languagePolicy);
             await _userService.AddAsync(user);
 
             var authResponse = await GenerateAuthResponseAsync(user, originIp);
@@ -55,12 +52,12 @@ namespace LaylaApi.Services.AuthServices.Implementations
 
         public async Task<bool> VerifyEmailAsync(string token)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+            var user = await _userService.GetByEmailTokenAsync(token);
             if (user == null) return false;
             if (user.EmailVerificationTokenExpires == null || user.EmailVerificationTokenExpires < DateTime.UtcNow) return false;
 
             user.ConfirmEmail();
-            await _context.SaveChangesAsync();
+            await _userService.SaveAsync();
             return true;
         }
 
@@ -124,7 +121,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
 
         public async Task<bool> SendPasswordResetAsync(string email)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value == email);
+            var user = await _userService.GetByEmailAsync(email.ToLower());
             if (user == null) return false;
 
            var resetPasswordToken = GenerateRandomToken();
@@ -133,21 +130,19 @@ namespace LaylaApi.Services.AuthServices.Implementations
             
             user.ForgotPassword(resetPasswordToken, resetPasswordTokenExpires);
 
-            await _context.SaveChangesAsync();
+            await _userService.SaveAsync();
             return true;
         }
 
         public async Task<bool> ResetPasswordAsync(string token, string newPassword)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u =>
-                u.ResetPasswordToken == token &&
-                u.ResetPasswordTokenExpires > DateTime.UtcNow);
+            var user = await _userService.GetByResetTokenAsync(token);
 
             if (user == null) return false;
 
             user.ResetPassword(BCrypt.Net.BCrypt.HashPassword(newPassword));
 
-            await _context.SaveChangesAsync();
+            await _userService.SaveAsync();
             return true;
         }
 

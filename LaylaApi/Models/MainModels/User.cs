@@ -1,10 +1,10 @@
-﻿using Azure.Core;
+﻿
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
-using LaylaApi.Models.DtosModels.AuthDtos;
+
 using LaylaApi.Services.LanguageServices;
 using LaylaApi.ValueObjects.UserValueObject;
-using Microsoft.AspNetCore.Identity;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace LaylaApi.Models.MainModels
@@ -40,32 +40,35 @@ namespace LaylaApi.Models.MainModels
         public ICollection<Apartment>? Apartments { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<RefreshToken>? RefreshToken { get; set; }
-        public static User Create(RegisterRequest request, string passwordHash, string emailVerificationToken, ISupportedLanguagePolicy languagePolicy)
+        public static User Create(string fullName,string email,string phoneNumber,string password, string passwordHash,string lang, string emailVerificationToken, ISupportedLanguagePolicy languagePolicy)
         {
-            ValidatePassword(request.Password);
-            ValidateRequest(request, languagePolicy);
+            ValidatePassword(password);
+            ValidateRequest(fullName, email, phoneNumber, lang, languagePolicy);
             var user = new User
             {
-                FullName = request.FullName,
-                Email = Email.Create(request.Email),
-                PhoneNumber = PhoneNumber.Create(request.PhoneNumber),
+                FullName = fullName,
+                Email = Email.Create(email),
+                PhoneNumber = PhoneNumber.Create(phoneNumber),
                 PasswordHash = passwordHash,
                 Role = "User",
                 EmailConfirmed = false,
                 EmailVerificationToken = emailVerificationToken,
                 EmailVerificationTokenExpires = DateTime.UtcNow.AddHours(24),
-                Lang = Language.Create (request.Lang, languagePolicy)
+                Lang = Language.Create (lang, languagePolicy)
             };
 
             user.AddDomainEvent(new UserRegisteredEvent(user.Guid, user.EmailVerificationToken));
             return user;
         }
 
-        public void Update(string fullName, string email, string phoneNumber, string lang, ISupportedLanguagePolicy languagePolicy)
+        public void Update(string fullName, string phoneNumber, string lang, ISupportedLanguagePolicy languagePolicy)
         {
+            ValidateRequest(fullName, Email!.Value, phoneNumber, lang, languagePolicy);
+
             FullName = fullName;
             PhoneNumber = PhoneNumber.Create(phoneNumber);
             Lang =Language.Create(lang, languagePolicy);
+
             Touch();
         }
 
@@ -140,28 +143,26 @@ namespace LaylaApi.Models.MainModels
                 throw new ArgumentException("Password must be at least 8 characters");
         }
 
-        private static void ValidateRequest(RegisterRequest request, ISupportedLanguagePolicy languagePolicy)
+        private static void ValidateRequest(string fullName,string email, string phoneNumber,string lang, ISupportedLanguagePolicy languagePolicy)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
 
             // Validate FullName
-            if (string.IsNullOrWhiteSpace(request.FullName))
+            if (string.IsNullOrWhiteSpace(fullName))
                 throw new ArgumentException("Full name is required");
 
-            if (request.FullName.Length < 2 || request.FullName.Length > 100)
+            if (fullName.Length < 2 || fullName.Length > 100)
                 throw new ArgumentException("Full name must be between 2 and 100 characters");
 
             // Validate Email
-            if (string.IsNullOrWhiteSpace(request.Email))
+            if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required");
 
             // Validate PhoneNumber
-            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            if (string.IsNullOrWhiteSpace(phoneNumber))
                 throw new ArgumentException("Phone number is required");
 
             // Validate Language
-            if (string.IsNullOrWhiteSpace(request.Lang))
+            if (string.IsNullOrWhiteSpace(lang))
                 throw new ArgumentException("Language is required");
         }
     }

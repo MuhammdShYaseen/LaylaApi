@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using LaylaApi.DataAccess;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using LaylaApi.Services.LanguageServices;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
 {
@@ -31,7 +32,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             await _context.Users.FindAsync(id);
 
         public async Task<User?> GetByEmailAsync(string email) =>
-            await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value == email);
+            await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value.ToLower() == email.ToLower());
 
         public async Task<User> AddAsync(User user)
         {
@@ -87,13 +88,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 throw new UnauthorizedAccessException("Access denied.");
 
             // Delegate logic to Aggregate
-            user.Update(
-                dto.FullName,
-                dto.Email,
-                dto.PhoneNumber,
-                dto.Lang,
-                _languagePolicy
-            );
+            user.Update(dto.FullName, dto.PhoneNumber, dto.Lang, _languagePolicy);
 
             await _context.SaveChangesAsync();
 
@@ -116,6 +111,28 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (existing == null) throw new DirectoryNotFoundException("UserNotFound");
             return existing.Lang!.Code;
 
+        }
+
+        public async Task<User?> GetByResetTokenAsync(string token)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u =>
+                u.ResetPasswordToken == token &&
+                u.ResetPasswordTokenExpires > DateTime.UtcNow);
+        }
+
+        public async Task<bool> ExistsByEmailAsync(string email)=>
+             await _context.Users.AnyAsync(u => u.Email!.Value.ToLower() == email.ToLower());
+        
+
+        public async Task<bool> ExistsByPhoneAsync(string phone)=>
+             await _context.Users.AnyAsync(u => u.PhoneNumber!.Value == phone);
+
+        public async Task<User?> GetByEmailTokenAsync(string emailToken)=>
+            await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == emailToken);
+
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

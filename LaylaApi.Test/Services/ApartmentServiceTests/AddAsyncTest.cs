@@ -98,7 +98,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
                 Password = "Password",
                 PhoneNumber = "+963988905898",
             };
-            context.Users.Add(User.Create(registerRequest, "", "", SupportedLanguagePolicy()));
+            context.Users.Add(User.Create(registerRequest.FullName,registerRequest.Email,registerRequest.PhoneNumber,registerRequest.Password, registerRequest.Password,registerRequest.Lang,"", SupportedLanguagePolicy()));
             await context.SaveChangesAsync();
 
             var mapper = new Mock<IMapper>();
