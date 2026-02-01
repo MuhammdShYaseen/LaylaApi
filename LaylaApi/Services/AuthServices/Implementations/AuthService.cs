@@ -21,7 +21,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
         private readonly IUserService _userService;
         private readonly ISupportedLanguagePolicy _languagePolicy;
         private readonly ITokenService _tokenService;
-        public AuthService( IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService, ISupportedLanguagePolicy languagePolicy, ITokenService tokenService)
+        public AuthService(IOptions<JwtSettings> jwtOptions, IEmailService emailService, IUserService userService, ISupportedLanguagePolicy languagePolicy, ITokenService tokenService)
         {
             _jwtSettings = jwtOptions.Value;
             _userService = userService;
@@ -81,43 +81,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
             return authResponse;
         }
 
-        public async Task<AuthResponse?> RefreshTokenAsync(string token, string originIp)
-        {
-            var refreshToken = await _context.RefreshTokens.Include(r => r.User).FirstOrDefaultAsync(rt => rt.Token == token);
-            if (refreshToken == null || !refreshToken.IsActive) return null;
-
-            // استبدال التوكن القديم بآخر جديد (rotate)
-            refreshToken.Revoked = DateTime.UtcNow;
-            refreshToken.RevokedByIp = originIp;
-
-            var newRefreshToken = CreateRefreshToken(originIp, refreshToken.UserId);
-            refreshToken.ReplacedByToken = newRefreshToken.Token;
-
-            await _context.RefreshTokens.AddAsync(newRefreshToken);
-            await _context.SaveChangesAsync();
-
-            // اصدار JWT جديد
-            var jwt = GenerateJwtToken(refreshToken.User!);
-            return new AuthResponse
-            {
-                JwtToken = jwt.Token,
-                RefreshToken = newRefreshToken.Token,
-                ExpiresInSeconds = _jwtSettings.TokenExpirationMinutes * 60,
-                UserId = refreshToken.User!.Id,
-                Email = refreshToken.User.Email!.Value
-            };
-        }
-
-        public async Task<bool> RevokeRefreshTokenAsync(string token, string originIp)
-        {
-            var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token);
-            if (refreshToken == null || !refreshToken.IsActive) return false;
-
-            refreshToken.Revoked = DateTime.UtcNow;
-            refreshToken.RevokedByIp = originIp;
-            await _context.SaveChangesAsync();
-            return true;
-        }
+       
 
         public async Task<bool> SendPasswordResetAsync(string email)
         {
@@ -209,6 +173,8 @@ namespace LaylaApi.Services.AuthServices.Implementations
                 Email = user.Email!.Value
             };
         }
+
+
         #endregion
     }
 }
