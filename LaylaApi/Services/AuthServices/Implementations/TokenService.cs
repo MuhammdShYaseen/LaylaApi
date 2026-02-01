@@ -58,7 +58,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
         }
 
 
-        private (string Token, DateTime Expires) GenerateJwtToken(User user)
+        public (string Token, DateTime Expires) GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);

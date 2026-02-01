@@ -8,5 +8,6 @@ namespace LaylaApi.Services.AuthServices.Interfaces
         string GenerateRandomToken();
         RefreshToken CreateRefreshToken(string ipAddress, int userId);
         Task<AuthResponse> GenerateAuthResponseAsync(User user, string originIp);
+        (string Token, DateTime Expires) GenerateJwtToken(User user);
     }
 }
