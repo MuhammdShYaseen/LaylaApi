@@ -100,8 +100,8 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<ApartmentDto?> UpdateAsync(int id, CreateApartmentDto dto, int ownerId, bool isAdmin)
         {
-            var apartment = await _context.Apartments.FindAsync(id)
-        ?? throw new KeyNotFoundException("Apartment not found.");
+            var apartment = await _context.Apartments.FindAsync(id)?? 
+                throw new KeyNotFoundException("Apartment not found.");
 
             if (apartment.OwnerId != ownerId && !isAdmin)
                 throw new UnauthorizedAccessException("Access denied.");

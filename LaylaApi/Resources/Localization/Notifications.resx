@@ -233,4 +233,27 @@
   <data name="Booking_Completed_Body">
     <value>Your stay at {0} has been completed successfully.</value>
   </data>
+
+<data name="UserUpdateEmailAddress_Email_Subject" xml:space="preserve">
+  <value>Confirm Your New Email Address</value>
+</data>
+
+<data name="UserUpdateEmailAddress_Email_Body" xml:space="preserve">
+  <value>
+Hello {0},
+
+You recently requested to change your email address.
+
+Please confirm your new email by clicking the link below:
+
+{1}
+
+This link will expire on: {2}
+
+If you did not request this change, please ignore this email.
+
+Best regards,
+Layla Team
+  </value>
+</data>
 </root>

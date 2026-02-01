@@ -1,4 +1,6 @@
-﻿using LaylaApi.DataAccess;
+﻿using AutoMapper;
+using LaylaApi.DataAccess;
+using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using LaylaApi.Services.LanguageServices;
@@ -11,10 +13,13 @@ namespace LaylaApi.Services.DataCRUD.Implementations
     {
         private readonly LaylaContext _context;
         private readonly ISupportedLanguagePolicy _languagePolicy;
-        public UserService(LaylaContext context, ISupportedLanguagePolicy languagePolicy)
+        private readonly IMapper _mapper;
+
+        public UserService(LaylaContext context, ISupportedLanguagePolicy languagePolicy, IMapper mapper)
         {
             _context = context;
             _languagePolicy = languagePolicy;
+            _mapper = mapper;
         }
 
         public async Task<int>GetCountAsync()=>
@@ -35,15 +40,64 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return user;
         }
 
-        public async Task<User?> UpdateAsync(int id, User user)
+        public async Task<UpdateUserDto?> UpdateEmailAsync(int id, bool isAdmin, string newEmail)
         {
-            var existing = await _context.Users.FindAsync(id);
-            if (existing == null) return null;
+            var user = await _context.Users.FindAsync(id);
 
-            existing.Update(user.FullName, user.Email!.Value, user.PhoneNumber!.Value, user.Lang!.Code, _languagePolicy);
+            if (user == null)
+                return null;
+
+            // صلاحيات
+            if (!isAdmin && user.Id != id)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            // Normalize email
+            newEmail = newEmail.Trim().ToLowerInvariant();
+
+            // لا تعيد الطلب إذا نفس الإيميل
+            if (user.Email!.Value == newEmail)
+                return _mapper.Map<UpdateUserDto>(user);
+
+            // تحقق من التكرار
+            var exists = await _context.Users
+                .AnyAsync(u =>
+                    u.Email!.Value == newEmail &&
+                    u.Id != id);
+
+            if (exists)
+                throw new ArgumentException("Email is already in use.");
+
+            // Domain logic
+            user.RequestEmailChange(newEmail);
 
             await _context.SaveChangesAsync();
-            return existing;
+
+            return _mapper.Map<UpdateUserDto>(user);
+
+        }
+
+        public async Task<UpdateUserDto?> UpdateAsync(int id, UpdateUserDto dto, bool isAdmin)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+                return null;
+
+            if (!isAdmin && user.Id != id)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            // Delegate logic to Aggregate
+            user.Update(
+                dto.FullName,
+                dto.Email,
+                dto.PhoneNumber,
+                dto.Lang,
+                _languagePolicy
+            );
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<UpdateUserDto>(user);
         }
 
         public async Task<bool> DeleteAsync(int id)

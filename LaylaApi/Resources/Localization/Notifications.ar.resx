@@ -234,4 +234,26 @@
     <data name="Booking_Completed_Body">
       <value>تم إتمام إقامتك في {0} بنجاح.</value>
     </data>
+
+  <data name="UserUpdateEmailAddress_Email_Subject" xml:space="preserve">
+  <value>تأكيد تغيير البريد الإلكتروني</value>
+</data>
+
+  <data name="UserUpdateEmailAddress_Email_Body" xml:space="preserve">
+  <value>
+مرحباً {0}،
+
+لقد طلبت مؤخراً تغيير عنوان بريدك الإلكتروني.
+
+يرجى تأكيد بريدك الجديد من خلال الضغط على الرابط التالي:
+
+{1}
+
+ينتهي صلاحية هذا الرابط في: {2}
+
+إذا لم تقم بطلب هذا التغيير، يرجى تجاهل هذه الرسالة.
+
+مع تحيات فريق Layla
+  </value>
+</data>
 </root>
