@@ -27,7 +27,7 @@ namespace LaylaApi.Services.BackgroundServices
             {
                 await CleanupAsync(stoppingToken);
 
-                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken); 
             }
         }
 
