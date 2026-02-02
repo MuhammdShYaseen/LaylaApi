@@ -18,6 +18,7 @@ using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Services.EventsDataProviderServices.ServiceCollectionExtensions;
 using Microsoft.Extensions.Configuration;
 using LaylaApi.Services.LanguageServices;
+using LaylaApi.Services.BackgroundServices;
 namespace LaylaApi
 {
     public class Program
@@ -38,6 +39,8 @@ namespace LaylaApi
             builder.Services.AddModelStateValidationHandler();
             builder.Services.AddCustomRateLimiter();
             builder.Services.AddLaylaContextExtension(builder.Configuration);
+            builder.Services.AddHostedService<SoftDeleteCleanupService>();
+            builder.Services.AddHostedService<VoiceCleanupService>();
             builder.Services.AddDataRepository();
             builder.Services.AddEventDataProviders(typeof(IEvent).Assembly);
             builder.Services.AddJwtAuthentication(builder.Configuration);

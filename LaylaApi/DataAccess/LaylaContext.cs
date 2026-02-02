@@ -45,7 +45,6 @@ namespace LaylaApi.DataAccess
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
-            //modelBuilder.ApplyConfiguration(new UserConfiguration());
             var moneyConverter = new ValueConverter<Money, decimal>(v => v.Value, v => Money.Create(v));
             var languageConverter = new ValueConverter<Language, string>(v => v.Code, v => Language.FromPersistence(v));
             var emailConverter = new ValueConverter<Email, string>(v => v.Value, v => Email.Create(v));

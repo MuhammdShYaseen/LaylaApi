@@ -29,11 +29,13 @@ namespace LaylaApi.DomainEvents.Domain.Common
         public void Delete()
         {
             IsDeleted = true;
+            Touch();
         }
 
         public void Restore()
         {
             IsDeleted = false;
+            Touch();
         }
 
         protected void Touch()
