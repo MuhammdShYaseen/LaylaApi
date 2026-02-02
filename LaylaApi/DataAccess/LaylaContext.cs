@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using LaylaApi.DataAccess.Configurations;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
@@ -32,6 +33,13 @@ namespace LaylaApi.DataAccess
         public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
+
+        private static void SetSoftDeleteFilter<T>(ModelBuilder builder)
+        where T : Entity
+        {
+            builder.Entity<T>()
+                   .HasQueryFilter(e => !e.IsDeleted);
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -50,6 +58,16 @@ namespace LaylaApi.DataAccess
                     modelBuilder.Entity(entityType.ClrType)
                         .HasIndex(nameof(Entity.Guid))
                         .IsUnique();
+                }
+
+                if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
+                {
+                    var method = typeof(LaylaContext)
+                        .GetMethod(nameof(SetSoftDeleteFilter),
+                            BindingFlags.NonPublic | BindingFlags.Static)!
+                        .MakeGenericMethod(entityType.ClrType);
+
+                    method.Invoke(null, new object[] { modelBuilder });
                 }
             }
 
