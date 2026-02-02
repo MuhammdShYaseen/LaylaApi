@@ -8,7 +8,9 @@ namespace LaylaApi.DataRepository
 
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
-        void Delete(TEntity entity);
+        Task<bool> Restore(int id);
+        Task<bool> SoftDelete(int id);
+        void HardDelete(TEntity entity);
         IQueryable<TEntity> Query(bool noTracking);
         Task<int> SaveChangesAsync(); // إضافة ضرورية
     }
