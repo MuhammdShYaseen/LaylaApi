@@ -16,7 +16,7 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<bool> ExistsByEmailAsync(string email);
         Task<bool> ExistsByPhoneAsync(string phone);
         Task<UpdateUserDto?> UpdateAsync(int id, UpdateUserDto dto, bool iSAdmin);
-        Task<UpdateUserDto?> UpdateEmailAsync(int id, bool isAdmin, string newEmail);
+        Task<UpdateUserDto?> UpdateEmailAsync(int targetUserId, int currentUserId, bool isAdmin, string newEmail);
         Task<bool> DeleteAsync(int id);
         Task<string> GetUserPreferredLanguage(int userId);
         Task SaveAsync();

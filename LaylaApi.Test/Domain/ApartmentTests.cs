@@ -113,5 +113,26 @@ namespace LaylaApi.Test.Domain
             apartment.PricePerHour!.Value.Should().Be(5);
             apartment.IsAvailable.Should().BeTrue();
         }
+
+        [Fact]
+        public void MarkAsUnavailable_ShouldSetIsAvailableToFalse()
+        {
+            var apartment = Apartment.Create(ValidDto(), 1);
+
+            apartment.Availability(false);
+
+            apartment.IsAvailable.Should().BeFalse();
+        }
+        [Fact]
+        public void MarkAsAvailable_ShouldSetIsAvailableToFalse()
+        {
+            var apartment = Apartment.Create(ValidDto(), 1);
+
+            apartment.Availability(true);
+
+            apartment.IsAvailable.Should().BeTrue();
+        }
+
+       
     }
 }

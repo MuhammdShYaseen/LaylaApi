@@ -44,15 +44,15 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return user;
         }
 
-        public async Task<UpdateUserDto?> UpdateEmailAsync(int id, bool isAdmin, string newEmail)
+        public async Task<UpdateUserDto?> UpdateEmailAsync(int targetUserId, int currentUserId, bool isAdmin, string newEmail)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(targetUserId);
 
             if (user == null)
                 return null;
 
             // صلاحيات
-            if (!isAdmin && user.Id != id)
+            if (!isAdmin && currentUserId != targetUserId)
                 throw new UnauthorizedAccessException("Access denied.");
 
             // Normalize email
@@ -66,7 +66,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var exists = await _context.Users
                 .AnyAsync(u =>
                     u.Email!.Value == newEmail &&
-                    u.Id != id);
+                    u.Id != currentUserId);
 
             if (exists)
                 throw new ArgumentException("Email is already in use.");

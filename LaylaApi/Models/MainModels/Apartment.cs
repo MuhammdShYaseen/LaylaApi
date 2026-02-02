@@ -92,5 +92,7 @@ namespace LaylaApi.Models.MainModels
         {
             IsAvailable = isAvailable;
         }
+
+       
     }
 }
