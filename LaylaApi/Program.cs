@@ -16,9 +16,9 @@ using LaylaApi.SignalR_Hubs;
 using LaylaApi.DataRepository;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Services.EventsDataProviderServices.ServiceCollectionExtensions;
-using Microsoft.Extensions.Configuration;
 using LaylaApi.Services.LanguageServices;
 using LaylaApi.Services.BackgroundServices;
+using LaylaApi.Services.MediaStorageProviderServices.ServiceCollectionExtensions;
 namespace LaylaApi
 {
     public class Program
@@ -29,6 +29,7 @@ namespace LaylaApi
             Logging.SerilogConfiguration.Configure(builder);
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
             builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("FrontEnd"));
+            builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"));
             builder.Services.Configure<LanguageOptions>(builder.Configuration.GetSection("AppSetting"));
             builder.Services.AddSupportedLanguageService();
             builder.Services.Configure<ChatOptions>(builder.Configuration.GetSection("Chat"));
@@ -42,6 +43,7 @@ namespace LaylaApi
             builder.Services.AddHostedService<SoftDeleteCleanupService>();
             builder.Services.AddHostedService<VoiceCleanupService>();
             builder.Services.AddDataRepository();
+            builder.Services.AddCloudinaryProvider();
             builder.Services.AddEventDataProviders(typeof(IEvent).Assembly);
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddDomainEvents();

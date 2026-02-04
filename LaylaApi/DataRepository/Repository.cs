@@ -1,8 +1,6 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.DomainEvents.Domain.Common;
-using LaylaApi.Services.SoftDeleteService;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace LaylaApi.DataRepository
 {
@@ -10,12 +8,10 @@ namespace LaylaApi.DataRepository
     { 
         protected readonly LaylaContext _context;
         protected readonly DbSet<TEntity> _dbSet;
-        protected readonly ISoftDeleteService<TEntity> _softDeleteService;
-        public Repository(LaylaContext context, ISoftDeleteService<TEntity> softDeleteService) 
+        public Repository(LaylaContext context) 
         { 
             _context = context ??  throw new ArgumentNullException(nameof(context));
             _dbSet = context.Set<TEntity>();
-            _softDeleteService = softDeleteService;
         } 
         public virtual Task<TEntity?> GetByIdAsync(long id) 
             => _dbSet.FindAsync(id).AsTask();
@@ -31,16 +27,6 @@ namespace LaylaApi.DataRepository
             if (entity == null) 
                 throw new ArgumentNullException(nameof(entity));
             _dbSet.Update(entity);
-        }
-
-        public async Task<bool> SoftDelete(int id)
-        {
-           return await _softDeleteService.SoftDeleteAsync(id);
-        }
-
-        public async Task<bool> Restore(int id)
-        {
-           return await _softDeleteService.RestoreAsync(id);
         }
         public virtual void HardDelete(TEntity entity)
         {

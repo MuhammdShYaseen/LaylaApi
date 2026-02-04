@@ -1,12 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using LaylaApi.DomainEvents.Domain.Common;
-using LaylaApi.DomainEvents.Domain.Events;
+
 
 namespace LaylaApi.Models.MainModels
 {
     public class MediaFile : Entity
     {
+        public enum MediaStatus
+        {
+            Pending = 0,   // Uploaded but not verified yet
+            Approved = 1,
+            Rejected = 2,
+            Deleted = 3
+        }
 
         [Required]
         public int ApartmentId { get; private set; }
@@ -19,6 +26,24 @@ namespace LaylaApi.Models.MainModels
 
         [Required]
         public string FileType { get; private set; } = "image"; // "image" أو "video"
+
+        
+        // Owner
+        public int UserId { get; private set; }
+        public string PublicId { get; private set; } = "";
+        public string Format { get; private set; } = "";
+
+        // Metadata
+        public long Bytes { get; private set; }
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+        public double Duration { get; private set; } // For video
+        
+        //Status
+        public MediaStatus Status { get; private set; }
+
+        //Provider
+        public string MediaStorageProvider { get; private set; } = "";
 
         public static MediaFile Create(int apartmentId, string fileUrl, string fileType = "image")
         {
@@ -33,8 +58,40 @@ namespace LaylaApi.Models.MainModels
                 FileUrl = fileUrl,
                 FileType = normalizedType                
             };
-            //media.AddDomainEvent(new MediaUploadedEvent(media));
             return media;
+        }
+
+        public static MediaFile CreatePending(int userId, int apartmentId, string mediaStorageProvider)
+        {
+            return new MediaFile
+            {
+                UserId = userId,
+                ApartmentId = apartmentId ,
+                Status = MediaStatus.Pending,
+                MediaStorageProvider = mediaStorageProvider
+            };
+        }
+
+        public void UpdateToApproved(string publicId, string secureUrl, string format,long bytes, int width, int height, double duration,string resourceType)
+        {
+            PublicId = publicId;
+            FileUrl = secureUrl;
+
+            Format = format;
+            Bytes =  bytes;
+
+            Width = width;
+            Height = height;
+            Duration = duration;
+
+            FileType = resourceType;
+            Status = MediaStatus.Approved;
+        }
+
+        public void ChangeMediaStatus(MediaStatus newStatus)
+        {
+            if (Status != newStatus)
+                Status = newStatus;
         }
     }
 }
