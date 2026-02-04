@@ -1,4 +1,5 @@
-﻿using LaylaApi.DataAccess;
+﻿
+using LaylaApi.DataRepository;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.Models.MainModels;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,7 @@ namespace LaylaApi.Services.BackgroundServices
 
         private const int RetentionDays = 30;
 
-        public SoftDeleteCleanupService(
-            IServiceScopeFactory scopeFactory,
-            ILogger<SoftDeleteCleanupService> logger)
+        public SoftDeleteCleanupService(IServiceScopeFactory scopeFactory, ILogger<SoftDeleteCleanupService> logger)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
@@ -85,20 +84,20 @@ namespace LaylaApi.Services.BackgroundServices
             }
         }
 
-        // كلاس مساعد
-        private record CleanupTask(string EntityType, Func<CancellationToken, Task> ExecuteAsync);
-
+        
         private async Task CleanupAsync<T>(CancellationToken ct) where T : Entity
         {
             using var scope = _scopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<LaylaContext>();
+            var context = scope.ServiceProvider.GetRequiredService<IRepository<T>>();
 
             var threshold = DateTime.UtcNow.AddDays(-RetentionDays);
 
-            await context.Set<T>()
+            await context.Query(true)
                 .IgnoreQueryFilters()
                 .Where(e => e.IsDeleted && e.UpdatedAt <= threshold)
                 .ExecuteDeleteAsync(ct);
         }
+        // كلاس مساعد
+        private record CleanupTask(string EntityType, Func<CancellationToken, Task> ExecuteAsync);
     }
 }

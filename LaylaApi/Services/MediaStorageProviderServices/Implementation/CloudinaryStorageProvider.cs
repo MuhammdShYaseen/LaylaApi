@@ -3,8 +3,14 @@ using CloudinaryDotNet.Actions;
 using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.ExternalMediaStorageDtos;
 using LaylaApi.Models.MainModels;
+using LaylaApi.Services.DataCRUD.Implementations;
 using LaylaApi.Services.MediaStorageProviderServices.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Drawing.Exceptions;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using static LaylaApi.Models.MainModels.MediaFile;
 
 namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
@@ -13,17 +19,30 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
     {
         private readonly Cloudinary _cloudinary;
         private readonly IRepository<MediaFile> _repository;
+        private readonly ApartmentService _apartmentService;
         private static readonly string[] AllowedFormats = {"jpg", "png", "webp", "mp4"};
-        public CloudinaryStorageProvider(Cloudinary cloudinary, IRepository<MediaFile> repository)
+        public enum WebhookResult
+        {
+            Success,
+            Unauthorized,
+            Invalid
+        }
+        public CloudinaryStorageProvider(Cloudinary cloudinary, IRepository<MediaFile> repository, ApartmentService apartmentService)
         {
             _cloudinary = cloudinary;
             _repository = repository;
+            _apartmentService = apartmentService;
         }
-        public async Task<UploadSignatureDto> CreateUploadSignatureAsync(int userId, int apartmentId)
+
+        
+        public async Task<UploadSignatureDto> CreateUploadSignatureAsync(int userId, int apartmentId, bool isAdmin)
         {
+
+            await HasPermission(userId, apartmentId, isAdmin);
+
             var used = await _repository.Query(true)
-            .Where(x => x.UserId == userId && x.Status == MediaStatus.Approved)
-            .SumAsync(x => (long?)x.Bytes) ?? 0;
+                          .Where(x => x.UserId == userId && x.Status == MediaStatus.Approved)
+                          .SumAsync(x => (long?)x.Bytes) ?? 0;
 
             if (used > 2L * 1024 * 1024 * 1024) // 2GB
                 throw new InvalidOperationException("Quota exceeded");
@@ -38,14 +57,14 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             var folder = $"users/{userId}/apartments/{apartmentId}";
 
             var parameters = new SortedDictionary<string, object>
-        {
-            { "timestamp", timestamp },
-            { "folder", folder },
-            { "resource_type", "auto" },
-            { "allowed_formats", "jpg,png,webp,mp4" },
-            { "max_file_size", 50_000_000 },
-            { "context", $"media_id={media.Id}" }
-        };
+            {
+                { "timestamp", timestamp },
+                { "folder", folder },
+                { "resource_type", "auto" },
+                { "allowed_formats", "jpg,png,webp,mp4" },
+                { "max_file_size", 50_000_000 },
+                { "context", $"media_id={media.Id}" }
+            };
 
             var signature = _cloudinary.Api.SignParameters(parameters);
 
@@ -61,12 +80,48 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             };
         }
 
-        public async Task<bool> DeleteAsync(int mediaId)
+        public async Task<WebhookResult> ProcessWebhookAsync(HttpRequest request)
+        {
+            // 1️⃣ قراءة الـ body
+            string body;
+            using (var reader = new StreamReader(request.Body))
+            {
+                body = await reader.ReadToEndAsync();
+            }
+
+            // 2️⃣ الحصول على Headers
+            var timestamp = request.Headers["X-Cld-Timestamp"].FirstOrDefault();
+            var signature = request.Headers["X-Cld-Signature"].FirstOrDefault();
+
+            // 3️⃣ تحقق من وجود البيانات
+            if (string.IsNullOrEmpty(timestamp) || string.IsNullOrEmpty(signature))
+                return WebhookResult.Unauthorized;
+
+            // 4️⃣ تحقق من التوقيع
+            if (!IsValidSignature(body, timestamp, signature))
+                return WebhookResult.Unauthorized;
+
+            // 5️⃣ تحويل body إلى DTO
+            var dto = JsonSerializer.Deserialize<WebhookDto>(body);
+
+            if (dto == null)
+                return WebhookResult.Invalid;
+
+            // 6️⃣ معالجة المنطق
+            await HandleWebhookAsync(dto);
+
+            return WebhookResult.Success;
+        }
+
+        public async Task<bool> DeleteAsync(int mediaId, int CurrentUserId, bool isAdmin)
         {
             var media = await _repository.GetByIdAsync(mediaId);
 
             if (media == null)
                 return false;
+
+            if (isAdmin == false && media.UserId != CurrentUserId)
+                throw new UnauthorizedAccessException("you do not have a permission to delete this media");
 
             if (!string.IsNullOrEmpty(media.PublicId))
             {
@@ -83,7 +138,15 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             return true;
         }
 
-        public async Task HandleWebhookAsync(WebhookDto data)
+        #region Helpper
+        private async Task HasPermission(int userId, int apartmentId, bool isAdmin)
+        {
+            var apartment = await _apartmentService.GetEntityByIdAsync(apartmentId);
+
+            if (isAdmin == false && apartment.OwnerId != userId)
+                throw new UnauthorizedAccessException("You are not own this apartment");
+        }
+        private async Task HandleWebhookAsync(WebhookDto data)
         {
             if (!int.TryParse(data.Context?["media_id"], out var mediaId))
                 return;
@@ -91,6 +154,9 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             var media = await _repository.GetByIdAsync(mediaId);
 
             if (media == null)
+                return;
+
+            if (media.Status != MediaStatus.Pending)
                 return;
 
             if (string.IsNullOrEmpty(data.PublicId) || string.IsNullOrEmpty(data.ResourceType))
@@ -110,7 +176,7 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
                 media.UpdateToApproved(data.PublicId!, data.SecureUrl!,
                                        data.Format!, data.Bytes,
                                        data.Width ?? 0, data.Height ?? 0,
-                                       data.Duration ?? 0, data.ResourceType!);
+                                       0, data.ResourceType!);
             }
 
             await _repository.SaveChangesAsync();
@@ -125,6 +191,36 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             {
                 ResourceType = type
             });
+        } 
+        private bool IsValidSignature(string body, string timestamp, string signature)
+        {
+            if (string.IsNullOrEmpty(timestamp) || string.IsNullOrEmpty(signature))
+                return false;
+
+            if (!long.TryParse(timestamp, out var timestampLong))
+                return false;
+
+            var requestTime = DateTimeOffset.FromUnixTimeSeconds(timestampLong);
+
+            if (requestTime < DateTimeOffset.UtcNow.AddHours(-2))
+                return false;
+
+            var apiSecret = _cloudinary.Api.Account.ApiSecret;
+
+            var signedPayload = body + timestamp + apiSecret;
+
+            using var sha1 = SHA1.Create();
+
+            var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(signedPayload));
+
+            var computedSignature =
+                BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(computedSignature),
+                Encoding.UTF8.GetBytes(signature)
+            );
         }
+        #endregion
     }
 }

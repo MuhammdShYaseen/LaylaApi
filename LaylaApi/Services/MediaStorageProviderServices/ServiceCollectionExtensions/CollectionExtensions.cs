@@ -3,7 +3,6 @@ using LaylaApi.Options;
 using LaylaApi.Services.MediaStorageProviderServices.Implementation;
 using LaylaApi.Services.MediaStorageProviderServices.Interfaces;
 using Microsoft.Extensions.Options;
-using System.Reflection;
 
 namespace LaylaApi.Services.MediaStorageProviderServices.ServiceCollectionExtensions
 {
