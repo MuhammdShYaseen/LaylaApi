@@ -1,4 +1,6 @@
 ﻿using LaylaApi.DomainEvents.Domain.Common;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 
 namespace LaylaApi.ValueObjects.ApartmentValueObject
 {
@@ -12,13 +14,16 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
         public string City { get; private set; } = null!;
         public string District { get; private set; } = null!;
         public string Country { get; private set; } = null!;
-        public Coordinates Location { get; private set; } = null!;
+        public Point Location { get; private set; } = null!;
 
         public static GeoLocation Create(string street, string buildingNumber, string apartmentNumber,
-                                         string city, string district, Coordinates location, string country)
+                                         string city, string district, Coordinates coordinates, string country)
         {
             Validate(street, buildingNumber, apartmentNumber,
-                     city, district, location, country);
+                     city, district, coordinates, country);
+
+            var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+            var point = geometryFactory.CreatePoint(new Coordinate(coordinates.Longitude, coordinates.Latitude ));
 
             return new GeoLocation
             {
@@ -28,7 +33,7 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
                 City = city,
                 District = district,
                 Country = country,
-                Location = location ?? throw new ArgumentNullException(nameof(location))
+                Location = point ?? throw new ArgumentNullException(nameof(point))
             };
             
         }

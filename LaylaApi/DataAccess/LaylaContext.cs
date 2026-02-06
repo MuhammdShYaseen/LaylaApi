@@ -109,6 +109,25 @@ namespace LaylaApi.DataAccess
                       .WithMany(u => u.Apartments)
                       .HasForeignKey(a => a.OwnerId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(a => new
+                {
+                    a.PricePerDay,
+                    a.PricePerHour,
+                    a.Area,
+                    a.FloorNumber,
+                    a.NumberOfBedRooms,
+                    a.NumberOfBathrooms
+                });
+
+                //entity.HasIndex(a => a.Location!.Location);
+                // Flags / Enums
+                entity.HasIndex(a => new
+                {
+                    a.IsAvailable,
+                    a.Type,
+                    a.Finishing
+                })
+                ;
             });
 
             // ✅ العلاقة: User  → RefreshToken (One-to-Many)

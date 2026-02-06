@@ -2,7 +2,8 @@
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 using System.Linq.Expressions;
 using System.Reflection;
 using static LaylaApi.Models.MainModels.Booking;
@@ -11,6 +12,7 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 {
     public class ApartmentFilterBuilder
     {
+        private static readonly GeometryFactory _geoFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
         public static Expression<Func<Apartment, bool>> Build(ApartmentSearchRequestDto request)
         {
             var predicate = PredicateBuilder.True<Apartment>();
@@ -57,7 +59,7 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
                     ));
             }
 
-            Add(request.MinPricePerDay, v => v.PricePerDay!.Value >= request.MinPricePerDay,nameof(request.MinPricePerDay));
+            Add(request.MinPricePerDay, v => v.PricePerDay!.Value >= request.MinPricePerDay, nameof(request.MinPricePerDay));
             Add(request.MaxPricePerDay, v => v.PricePerDay!.Value <= request.MaxPricePerDay, nameof(request.MaxPricePerDay));
 
             Add(request.MinPricePerHour, v => v.PricePerHour!.Value >= request.MinPricePerHour, nameof(request.MinPricePerHour));
@@ -65,8 +67,9 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 
             Add(request.MinArea, v => v.Area >= request.MinArea, nameof(request.MinArea));
             Add(request.MaxArea, v => v.Area <= request.MaxArea, nameof(request.MaxArea));
-
+            Add(request.MaxFloorNumber, v => v.FloorNumber <= request.MaxFloorNumber, nameof(request.MaxFloorNumber));
             Add(request.MinBedrooms, v => v.NumberOfBedRooms >= request.MinBedrooms, nameof(request.MinBedrooms));
+            Add(request.MinFloorNumber, v => v.FloorNumber >= request.MinFloorNumber, nameof(request.MinFloorNumber));
             Add(request.MaxBedrooms, v => v.NumberOfBedRooms <= request.MaxBedrooms, nameof(request.MaxBedrooms));
 
             Add(request.MinBathrooms, v => v.NumberOfBathrooms >= request.MinBathrooms, nameof(request.MinBathrooms));
@@ -99,35 +102,19 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
                     EF.Functions.Like(a.Description, $"%{request.Description}%"));
             }
 
-            if (request.UserLatitude != null && request.UserLongitude != null && request.MaxDistance.HasValue)
+            if (request.UserLatitude.HasValue && request.UserLongitude.HasValue && request.MaxDistance.HasValue)
             {
-                var lat = request.UserLatitude;
-                var lon = request.UserLongitude;
+                var lat = request.UserLatitude.Value;
+                var lon = request.UserLongitude.Value;
+                var maxKm = request.MaxDistance.Value;
 
-                var max = request.MaxDistance.Value;
-                predicate = predicate.And(a =>
-                    CalculateDistanceKm(lat ?? 0, lon ?? 0, a.Location!.Location.Latitude, a.Location.Location.Longitude) <= max);
+                var userPoint = _geoFactory.CreatePoint(new Coordinate(lon, lat));
+
+                var maxMeters = maxKm * 1000;
+
+                predicate = predicate.And(a => a.Location!.Location.IsWithinDistance(userPoint, maxMeters));
             }
-
             return predicate;
-        }
-        private static double CalculateDistanceKm(double lat1, double lon1, double lat2, double lon2)
-        {
-            double R = 6371;
-            double dLat = ToRadians(lat2 - lat1);
-            double dLon = ToRadians(lon2 - lon1);
-
-            double h = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                       Math.Cos(ToRadians(lat1)) *
-                       Math.Cos(ToRadians(lat2)) *
-                       Math.Sin(dLon / 2) *
-                       Math.Sin(dLon / 2);
-
-            return 2 * R * Math.Asin(Math.Sqrt(h));
-        }
-        private static double ToRadians(double angle)
-        {
-            return Math.PI * angle / 180.0;
         }
     }
 }

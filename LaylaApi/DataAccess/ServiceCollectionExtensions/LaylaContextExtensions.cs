@@ -7,7 +7,8 @@ namespace LaylaApi.DataAccess.ServiceCollectionExtensions
         public static IServiceCollection AddLaylaContextExtension(this IServiceCollection services, IConfiguration configuration) 
         {
             services.AddDbContext<LaylaContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+             sqlOptions => sqlOptions.UseNetTopologySuite()));
             return services;
         }
     }

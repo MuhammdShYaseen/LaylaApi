@@ -20,26 +20,36 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         }
         [IgnoreIfNonPositive]
         public decimal? MinPricePerDay { get; set; }
+
         [IgnoreIfNonPositive]
         public decimal? MaxPricePerDay { get; set; }
+
         [IgnoreIfNonPositive]
         public decimal? MinPricePerHour { get; set; }
+
         [IgnoreIfNonPositive]
         public decimal? MaxPricePerHour { get; set; }
+
         [IgnoreIfNonPositive]
         public double? MinArea { get; set; }
+
         [IgnoreIfNonPositive]
         public double? MaxArea { get; set; }
+
         [IgnoreIfNonPositive]
         public int? MinBedrooms { get; set; }
+
         [IgnoreIfNonPositive]
         public int? MaxBedrooms { get; set; }
+
         [IgnoreIfNonPositive]
         public int? MinBathrooms { get; set; }
         [IgnoreIfNonPositive]
         public int? MaxBathrooms { get; set; }
+
         [IgnoreIfNonPositive]
         public int? MinFloorNumber { get; set; }
+
         [IgnoreIfNonPositive]
         public int? MaxFloorNumber { get; set; }
 

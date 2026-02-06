@@ -4,6 +4,9 @@ using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
+using NetTopologySuite;
+using Serilog;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
 {
@@ -11,6 +14,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
     {
         private readonly LaylaContext _context;
         private readonly IMapper _mapper;
+        private static readonly GeometryFactory _geoFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
         public ApartmentService(LaylaContext context, IMapper mapper)
         {
             _context = context;
@@ -130,19 +134,18 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<IEnumerable<ApartmentDto>> GetNearbyAsync(double userLat, double userLng, double maxDistanceKm)
         {
+            var userPoint = _geoFactory.CreatePoint(new Coordinate(userLng, userLat));
+
             var apartments = await _context.Apartments
                 .AsNoTracking()
                 .Include(a => a.MediaFiles)
-                .ToListAsync();
+                .Where(a => a.Location != null && a.Location!.Location.
+                 IsWithinDistance(userPoint, maxDistanceKm * 1000)).ToListAsync();
 
-            var result = apartments
-                .Where(a => CalculateDistanceKm(userLat, userLng, a.Location!.Location.Latitude, a.Location.Location.Longitude) <= maxDistanceKm)
-                .ToList();
-
-            return _mapper.Map<IEnumerable<ApartmentDto>>(result);
+            return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
         }
 
-        private double CalculateDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        /*private double CalculateDistanceKm(double lat1, double lon1, double lat2, double lon2)
         {
             double R = 6371;
             double dLat = ToRadians(lat2 - lat1);
@@ -155,7 +158,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                        Math.Sin(dLon / 2);
 
             return 2 * R * Math.Asin(Math.Sqrt(h));
-        }
+        }*/
 
         private double ToRadians(double angle)
         {

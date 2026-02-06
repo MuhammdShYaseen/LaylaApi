@@ -26,11 +26,8 @@ namespace LaylaApi.DataAccess.Configurations
                 geo.Property(g => g.Country).HasMaxLength(100);
 
                 // Nested Value Object Coordinates
-                geo.OwnsOne(g => g.Location, coord =>
-                {
-                    coord.Property(c => c.Latitude).HasColumnName("Latitude");
-                    coord.Property(c => c.Longitude).HasColumnName("Longitude");
-                });
+                geo.Property(g => g.Location)
+                   .HasColumnType("geography");
             });
         }
     }
