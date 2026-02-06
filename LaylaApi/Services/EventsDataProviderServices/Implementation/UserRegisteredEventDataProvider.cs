@@ -26,7 +26,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
             UserRegisteredEvent @event,
             CancellationToken ct)
         {
-            return await _users.Query(false)
+            return await _users.Query()
                 .AsNoTracking()
                 .Where(u => u.Guid == @event.UserGuid)
                 .Select(u => new UserRegisteredEventDto

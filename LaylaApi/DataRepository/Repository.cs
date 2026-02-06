@@ -36,7 +36,7 @@ namespace LaylaApi.DataRepository
         
         public virtual async Task<int> SaveChangesAsync() 
             => await _context.SaveChangesAsync();
-        public virtual IQueryable<TEntity> Query(bool noTracking = false)
-        => noTracking ? _dbSet.AsNoTracking() : _dbSet;
+        public virtual IQueryable<TEntity> Query()
+        =>  _dbSet;
     } 
 }

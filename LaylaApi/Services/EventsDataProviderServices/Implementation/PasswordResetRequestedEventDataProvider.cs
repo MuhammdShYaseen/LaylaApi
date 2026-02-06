@@ -17,7 +17,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
         }
         public async Task<PasswordResetRequestedEventDto> GetDataAsync(PasswordResetRequestedEvent @event, CancellationToken ct)
         {
-            return await _users.Query(false)
+            return await _users.Query()
             .AsNoTracking()
             .Where(u => u.Guid == @event.UserGuid)
             .Select(u => new PasswordResetRequestedEventDto

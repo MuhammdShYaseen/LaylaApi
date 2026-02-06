@@ -55,11 +55,15 @@ namespace LaylaApi.Controllers
         }
 
         [HttpDelete("{mediaId:int}")]
+        [Authorize]
         public async Task<IActionResult> DeleteMedia(int mediaId)
         {
             
-                bool result = await _storageProvider.DeleteAsync(mediaId, CurrentUserId(), IsAdmin());
-                return Ok(ApiResponse<object>.Ok("Deleted"));
+            bool result = await _storageProvider.DeleteAsync(mediaId, CurrentUserId(), IsAdmin());
+            if (!result)
+                return BadRequest(ApiResponse<object>.Fail("can not delete this media"));
+
+            return Ok(ApiResponse<object>.Ok("Deleted"));
 
         }
 

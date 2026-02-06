@@ -92,7 +92,7 @@ namespace LaylaApi.Services.BackgroundServices
 
             var threshold = DateTime.UtcNow.AddDays(-RetentionDays);
 
-            await context.Query(true)
+            await context.Query()
                 .IgnoreQueryFilters()
                 .Where(e => e.IsDeleted && e.UpdatedAt <= threshold)
                 .ExecuteDeleteAsync(ct);

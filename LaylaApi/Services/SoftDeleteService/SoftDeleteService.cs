@@ -23,7 +23,7 @@ namespace LaylaApi.Services.SoftDeleteService
         }
         public async Task<bool> RestoreAsync(int id)
         {
-            var entity = await _repository.Query(true)
+            var entity = await _repository.Query()
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.Id == id);
 

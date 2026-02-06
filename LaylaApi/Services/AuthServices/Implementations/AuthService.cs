@@ -32,7 +32,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
             // تجزئة كلمة المرور (BCrypt)
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var user = User.Create(request.FullName,request.Email,request.PhoneNumber,request.Password, passwordHash,request.Lang,_tokenService.GenerateRandomToken(), _languagePolicy);
+            var user = User.Create(request.FullName, request.Email, request.PhoneNumber, request.Password, passwordHash, request.Lang, _tokenService.GenerateRandomToken(), _languagePolicy);
             await _userService.AddAsync(user);
 
             var authResponse = await _tokenService.GenerateAuthResponseAsync(user, originIp);

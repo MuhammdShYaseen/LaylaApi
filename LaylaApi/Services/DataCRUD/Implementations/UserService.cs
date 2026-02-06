@@ -34,7 +34,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         public async Task<User?> GetByEmailAsync(string email)
         {
             var normalized = email.Trim().ToLowerInvariant();
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email!.Value == normalized);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == Email.Create(normalized));
         }
 
         public async Task<User> AddAsync(User user)

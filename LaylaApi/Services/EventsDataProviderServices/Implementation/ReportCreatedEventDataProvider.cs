@@ -17,7 +17,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
         }
         public async Task<ReportCreatedEventDto> GetDataAsync(ReportCreatedEvent @event, CancellationToken ct)
         {
-            return await _reports.Query(false)
+            return await _reports.Query()
             .AsNoTracking()
             .Where(r => r.Guid == @event.ReportGuid)
             .Select(r => new ReportCreatedEventDto

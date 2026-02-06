@@ -16,7 +16,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
         }
         public async Task<ApartmentCreatedEventDto> GetDataAsync(ApartmentCreatedEvent @event, CancellationToken ct)
         {
-            return await _repository.Query(false)
+            return await _repository.Query()
                 .AsNoTracking()
                 .Where(a => a.Guid == @event.ApartmentGuid)
                 .Select(a => new ApartmentCreatedEventDto

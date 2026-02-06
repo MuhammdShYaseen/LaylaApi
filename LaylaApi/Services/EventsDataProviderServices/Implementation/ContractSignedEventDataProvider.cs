@@ -18,7 +18,7 @@ namespace LaylaApi.Services.EventsDataProviderServices.Implementation
         public async Task<ContractSignedEventDto> GetDataAsync(ContractSignedEvent @event, CancellationToken ct)
         {
             return await _contractRepository
-            .Query(false)
+            .Query()
             .AsNoTracking()
             .Where(c => c.Guid == @event.ContractGuid)
             .Select(c => new ContractSignedEventDto

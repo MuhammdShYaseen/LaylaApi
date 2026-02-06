@@ -40,7 +40,9 @@ namespace LaylaApi.Models.MainModels
         public ICollection<Apartment>? Apartments { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<RefreshToken>? RefreshToken { get; set; }
-        public static User Create(string fullName,string email,string phoneNumber,string password, string passwordHash,string lang, string emailVerificationToken, ISupportedLanguagePolicy languagePolicy)
+        public static User Create(string fullName, string email, string phoneNumber,
+                                  string password, string passwordHash,string lang,
+                                  string emailVerificationToken, ISupportedLanguagePolicy languagePolicy)
         {
             ValidatePassword(password);
             ValidateRequest(fullName, email, phoneNumber, lang, languagePolicy);

@@ -2,8 +2,10 @@
 using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
+using LaylaApi.Services.DynamicApartmentSearchService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 
 namespace LaylaApi.Controllers
@@ -13,6 +15,7 @@ namespace LaylaApi.Controllers
     public class ApartmentsController : ControllerBase
     {
         private readonly IApartmentService _apartmentService;
+        private readonly IApartmentSearchService _dynamicSearch;
         private bool IsAdmin()
         {
             var role = User.FindFirstValue(ClaimTypes.Role);
@@ -22,9 +25,10 @@ namespace LaylaApi.Controllers
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         }
-        public ApartmentsController(IApartmentService apartmentService)
+        public ApartmentsController(IApartmentService apartmentService, IApartmentSearchService searchService)
         {
             _apartmentService = apartmentService;
+            _dynamicSearch = searchService;
         }
 
         // 🔐 إضافة شقة — فقط للمستخدم المسجّل
@@ -87,12 +91,13 @@ namespace LaylaApi.Controllers
             return Ok(ApiResponse<object>.Ok( "Apartment deleted successfully."));
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetAll()
-        //{
-        //    var result = await _apartmentService.GetAllAsync();
-        //    return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
-        //}
+        [HttpGet("dynamic")]
+        public async Task<ActionResult<PagedResult<ApartmentDto>>> Search([FromQuery] ApartmentSearchRequestDto request, CancellationToken ct)
+        {
+            var result = await _dynamicSearch.SearchAsync(request, ct);
+
+            return Ok(ApiResponse<PagedResult<ApartmentDto>>.Ok(result));
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

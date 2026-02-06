@@ -19,6 +19,7 @@ using LaylaApi.Services.EventsDataProviderServices.ServiceCollectionExtensions;
 using LaylaApi.Services.LanguageServices;
 using LaylaApi.Services.BackgroundServices;
 using LaylaApi.Services.MediaStorageProviderServices.ServiceCollectionExtensions;
+using LaylaApi.Services.DynamicApartmentSearchService;
 namespace LaylaApi
 {
     public class Program
@@ -50,6 +51,7 @@ namespace LaylaApi
             builder.Services.AddAuthServices();
             builder.Services.AddLocalizationExtension();
             builder.Services.AddDataCRUDServices();
+            builder.Services.AddApartmentDynamicSearch();
             builder.Services.AddChatServiceExtensions();
             builder.Services.AddAdminDashBoardService();
             builder.Services.AddFirebaseServices();

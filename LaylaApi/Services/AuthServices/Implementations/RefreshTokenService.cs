@@ -21,7 +21,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
         }
         public async Task<AuthResponse?> RefreshTokenAsync(string token, string originIp)
         {
-            var refreshToken = await _repository.Query(true).Include(r => r.User).FirstOrDefaultAsync(rt => rt.Token == token);
+            var refreshToken = await _repository.Query().Include(r => r.User).FirstOrDefaultAsync(rt => rt.Token == token);
             if (refreshToken == null || !refreshToken.IsActive) return null;
 
             // استبدال التوكن القديم بآخر جديد (rotate)
@@ -48,7 +48,7 @@ namespace LaylaApi.Services.AuthServices.Implementations
 
         public async Task<bool> RevokeRefreshTokenAsync(string token, string originIp)
         {
-            var refreshToken = await _repository.Query(true).FirstOrDefaultAsync(rt => rt.Token == token);
+            var refreshToken = await _repository.Query().FirstOrDefaultAsync(rt => rt.Token == token);
             if (refreshToken == null || !refreshToken.IsActive) return false;
 
             refreshToken.Revoked = DateTime.UtcNow;

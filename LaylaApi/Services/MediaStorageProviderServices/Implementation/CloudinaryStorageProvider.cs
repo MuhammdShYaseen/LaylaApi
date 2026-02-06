@@ -3,11 +3,9 @@ using CloudinaryDotNet.Actions;
 using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.ExternalMediaStorageDtos;
 using LaylaApi.Models.MainModels;
-using LaylaApi.Services.DataCRUD.Implementations;
+using LaylaApi.Services.DataCRUD.Interfaces;
 using LaylaApi.Services.MediaStorageProviderServices.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using QuestPDF.Drawing.Exceptions;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -19,7 +17,7 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
     {
         private readonly Cloudinary _cloudinary;
         private readonly IRepository<MediaFile> _repository;
-        private readonly ApartmentService _apartmentService;
+        private readonly IApartmentService _apartmentService;
         private static readonly string[] AllowedFormats = {"jpg", "png", "webp", "mp4"};
         public enum WebhookResult
         {
@@ -27,20 +25,19 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             Unauthorized,
             Invalid
         }
-        public CloudinaryStorageProvider(Cloudinary cloudinary, IRepository<MediaFile> repository, ApartmentService apartmentService)
+        public CloudinaryStorageProvider(Cloudinary cloudinary, IRepository<MediaFile> repository, IApartmentService apartmentService)
         {
             _cloudinary = cloudinary;
             _repository = repository;
             _apartmentService = apartmentService;
         }
-
-        
+     
         public async Task<UploadSignatureDto> CreateUploadSignatureAsync(int userId, int apartmentId, bool isAdmin)
         {
 
             await HasPermission(userId, apartmentId, isAdmin);
 
-            var used = await _repository.Query(true)
+            var used = await _repository.Query()
                           .Where(x => x.UserId == userId && x.Status == MediaStatus.Approved)
                           .SumAsync(x => (long?)x.Bytes) ?? 0;
 
@@ -202,7 +199,7 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
 
             var requestTime = DateTimeOffset.FromUnixTimeSeconds(timestampLong);
 
-            if (requestTime < DateTimeOffset.UtcNow.AddHours(-2))
+            if (requestTime < DateTimeOffset.UtcNow.AddMinutes(-5) || requestTime > DateTimeOffset.UtcNow.AddMinutes(5))
                 return false;
 
             var apiSecret = _cloudinary.Api.Account.ApiSecret;

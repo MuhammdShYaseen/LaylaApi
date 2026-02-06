@@ -11,7 +11,7 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<Booking?> GetEntityByIdAsync(int id);
         Task<IEnumerable<BookingDto>> GetBookingsForOwnerAsync(int ownerId);
         Task<IEnumerable<BookingDto>> GetByUserIdAsync(int userId);
-        Task<IEnumerable<BookingDto>> GetByApartmentIdAsync(int apartmentId);       
+        Task<IEnumerable<BookingDto>> GetByApartmentIdAsync(int apartmentId);
         Task<BookingDto?> UpdateAsync(int bookingId, CreateBookingDto dto, int renterId, bool isAdmin);       
         Task<bool> IsDateAvailableAsync(int apartmentId, DateTime startDate, DateTime endDate);
         Task<BookingDto> AddAsync(CreateBookingDto booking,int UserID);

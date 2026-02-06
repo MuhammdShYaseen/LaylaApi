@@ -132,12 +132,16 @@ namespace LaylaApi.DataAccess
                 .HasForeignKey(b => b.ApartmentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
             // ✅ العلاقة: User → Bookings (One-to-Many)
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.User)
                 .WithMany(u => u.Bookings)
                 .HasForeignKey(b => b.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Booking>()
+                .HasIndex(b => new { b.ApartmentId, b.Status, b.StartDate, b.EndDate });
 
             // ✅ العلاقة: Booking → Contract (One-to-One)
             modelBuilder.Entity<Contract>()

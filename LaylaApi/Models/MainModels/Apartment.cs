@@ -1,17 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewEngines;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using LaylaApi.DomainEvents.Domain.Common;
-using System.Net;
 using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.ValueObjects.ApartmentValueObject;
-using static Google.Protobuf.Reflection.SourceCodeInfo.Types;
 
 namespace LaylaApi.Models.MainModels
 {
     public class Apartment : Entity
     {
+        #region Enums
+        public enum Amenities
+        {
+            ShellAndCore,
+            Basic,
+            Standard,
+            Good,
+            Luxury,
+            SuperLuxury,
+            FullyFitted,
+        }
+        public enum ApartmentView
+        {
+            SeaView,
+            MountainView,
+            CityView,
+            GardenView,
+            StreetView,
+            PanoramicView,
+            DualAspect,
+            CornerView,
+            None
+        }
+        public enum BuildingType
+        {
+            Apartment,
+            Villa,                  // فيلا
+            Townhouse,              // تاون هاوس
+            TwinHouse,              // منزل ثنائي
+            DetachedHouse,          // منزل منفصل
+            SemiDetachedHouse,      // منزل شبه منفصل
+            Duplex,                 // دوبلكس
+            Triplex,                // تريبلوكس
+            Penthouse,              // بنتهاوس
+            Palace,                 // قصر
+            Farmhouse,              // مزرعة
+            Chalet,                 // شاليه
+        }
+        #endregion
 
         [Required, MaxLength(200)]
         public string Title { get; private set; } = string.Empty;
@@ -21,6 +57,24 @@ namespace LaylaApi.Models.MainModels
 
         [Required]
         public GeoLocation? Location { get; private set; }
+
+        #region Detiles
+        public int NumberOfBedRooms { get; private set; } = 1;
+        public int NumberOfLivingRooms { get; private set; } = 1;
+        public int NumberOfReceptionRooms { get; private set; } = 1;
+        public int NumberOfBathrooms { get; private set; } = 1;
+        public int NumberOfBalconies { get; private set; } = 0;
+        public int FloorNumber { get; private set; } = 0;
+        public double Area { get; private set; }
+        public string? Orientation { get; private set; }
+        public BuildingType Type { get; private set; } = BuildingType.Apartment;
+        public ApartmentView View {  get; private set; } = ApartmentView.None;
+        public Amenities Finishing { get; private set; } = Amenities.Standard;
+        public bool HasElevator { get; private set; } = false;
+        public bool HasParking { get; private set; } = false;
+        public bool HasPool { get; private set; } = false;
+
+        #endregion
 
         [Required]
         public Money? PricePerHour { get; private set; }
