@@ -109,6 +109,7 @@ namespace LaylaApi.DataAccess
                       .WithMany(u => u.Apartments)
                       .HasForeignKey(a => a.OwnerId)
                       .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasIndex(a => new
                 {
                     a.PricePerDay,
@@ -119,7 +120,6 @@ namespace LaylaApi.DataAccess
                     a.NumberOfBathrooms
                 });
 
-                //entity.HasIndex(a => a.Location!.Location);
                 // Flags / Enums
                 entity.HasIndex(a => new
                 {
