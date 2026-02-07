@@ -20,6 +20,8 @@ using LaylaApi.Services.LanguageServices;
 using LaylaApi.Services.BackgroundServices;
 using LaylaApi.Services.MediaStorageProviderServices.ServiceCollectionExtensions;
 using LaylaApi.Services.DynamicApartmentSearchService;
+using LaylaApi.DataAccess;
+using Microsoft.EntityFrameworkCore;
 namespace LaylaApi
 {
     public class Program
@@ -58,9 +60,19 @@ namespace LaylaApi
             builder.Services.AddCustomSwagger();
 
             var app = builder.Build();
+            
 
             if (app.Environment.IsDevelopment())
             {
+                using var scope = app.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<LaylaContext>();
+                db.Database.GetPendingMigrations();
+                db.Database.Migrate();
+
+                _ = db.Users.AsNoTracking().Take(1).ToList();
+                _ = db.Apartments.AsNoTracking().Take(1).ToList();
+                _ = db.Bookings.AsNoTracking().Take(1).ToList();
+
                 app.UseSwagger();
                 app.UseCustomSwaggerUI();
             }

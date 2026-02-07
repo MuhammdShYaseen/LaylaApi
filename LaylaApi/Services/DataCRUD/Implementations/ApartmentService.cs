@@ -20,6 +20,8 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             _context = context;
             _mapper = mapper;
         }
+
+        
         public async Task<IEnumerable<ApartmentDto>> GetAllAsync()
         {
             var apartments = await _context.Apartments
@@ -132,17 +134,71 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return true;
         }
 
-        public async Task<IEnumerable<ApartmentDto>> GetNearbyAsync(double userLat, double userLng, double maxDistanceKm)
+        public async Task<IEnumerable<ApartmentDto>> GetNearbyAsync(double userLat, double userLng, double maxDistanceKm, CancellationToken ct = default)
         {
+            var maxMeters = maxDistanceKm * 1000;
+
+            // إنشاء النقطة مع SRID 4326
             var userPoint = _geoFactory.CreatePoint(new Coordinate(userLng, userLat));
+                userPoint.SRID = 4326;
+
+            var latDelta = maxDistanceKm / 111.0;
+            var lonDelta = maxDistanceKm / (111.0 * Math.Cos(userLat * Math.PI / 180));
+
+            var minLat = userLat - latDelta;
+            var maxLat = userLat + latDelta;
+            var minLon = userLng - lonDelta;
+            var maxLon = userLng + lonDelta;
 
             var apartments = await _context.Apartments
                 .AsNoTracking()
-                .Include(a => a.MediaFiles)
-                .Where(a => a.Location != null && a.Location!.Location.
-                 IsWithinDistance(userPoint, maxDistanceKm * 1000)).ToListAsync();
+                .Where(a => a.Location != null &&
+                            a.Location.Location.Y >= minLat &&
+                            a.Location.Location.Y <= maxLat &&
+                            a.Location.Location.X >= minLon &&
+                            a.Location.Location.X <= maxLon &&
+                            a.Location.Location.IsWithinDistance(userPoint, maxMeters))
+                .Select(a => new ApartmentDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    PricePerDay = a.PricePerDay!.Value,
+                    PricePerHour = a.PricePerHour!.Value,
+                    MediaUrls = a.MediaFiles!.Select(m => m.FileUrl).ToList(),
+                    Latitude = a.Location!.Location.Y,
+                    Longitude = a.Location.Location.X,
+                    City = a.Location.City,
+                    Country = a.Location.Country,
+                    Area = a.Area,
+                    FloorNumber = a.FloorNumber,
+                    NumberOfBedRooms = a.NumberOfBedRooms,
+                    NumberOfBalconies = a.NumberOfBalconies,
+                    NumberOfLivingRooms = a.NumberOfLivingRooms,
+                    NumberOfReceptionRooms = a.NumberOfReceptionRooms,
+                    NumberOfBathrooms = a.NumberOfBathrooms,
+                    IsChatEnabled = a.IsChatEnabled,
+                    Street = a.Location.Street,
+                    ApartmentNumber = a.Location.ApartmentNumber,
+                    AverageRating = a.Reviews!.Any() ? a.Reviews!.Average(r => r.Rating) : 0,
+                    CreatedAt = a.CreatedAt,
+                    Finishing = a.Finishing,
+                    Type = a.Type,
+                    Description = a.Description,
+                    View = a.View,
+                    OwnerName = a.Owner!.FullName,
+                    OwnerId = a.OwnerId,
+                    Orientation = a.Orientation,
+                    District = a.Location.District,
+                    BuildingNumber = a.Location.BuildingNumber,
+                    HasElevator = a.HasElevator,
+                    HasParking = a.HasParking,
+                    HasPool = a.HasPool,
+                    TotalReviews = a.Reviews!.Count(),
+                    IsAvailable = a.IsAvailable
+                })
+                .ToListAsync(ct);
 
-            return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
+            return apartments;
         }
 
         /*private double CalculateDistanceKm(double lat1, double lon1, double lat2, double lon2)

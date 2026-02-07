@@ -108,11 +108,29 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
                 var lon = request.UserLongitude.Value;
                 var maxKm = request.MaxDistance.Value;
 
-                var userPoint = _geoFactory.CreatePoint(new Coordinate(lon, lat));
-
                 var maxMeters = maxKm * 1000;
 
-                predicate = predicate.And(a => a.Location!.Location.IsWithinDistance(userPoint, maxMeters));
+                var latDelta = maxKm / 111.0;
+                var lonDelta = maxKm / (111.0 * Math.Cos(lat * Math.PI / 180));
+
+                var minLat = lat - latDelta;
+                var maxLat = lat + latDelta;
+                var minLon = lon - lonDelta;
+                var maxLon = lon + lonDelta;
+
+                var userPoint =
+                    _geoFactory.CreatePoint(new Coordinate(lon, lat));
+
+                predicate = predicate.And(a =>
+                    a.Location!.Location.Y >= minLat &&
+                    a.Location.Location.Y <= maxLat &&
+                    a.Location.Location.X >= minLon &&
+                    a.Location.Location.X <= maxLon
+                );
+
+                predicate = predicate.And(a =>
+                    a.Location!.Location.IsWithinDistance(userPoint, maxMeters)
+                );
             }
             return predicate;
         }

@@ -11,12 +11,6 @@ namespace LaylaApi.DataAccess.Configurations
     {
         public void Configure(EntityTypeBuilder<User> entity)
         {
-            entity.OwnsOne(u => u.Email, email =>
-            {
-                email.Property(e => e.Value)
-                     .HasColumnName("Email")
-                     .IsRequired();
-            });
 
             var emailConverter = new ValueConverter<Email, string>(v => v.Value, v => Email.Create(v));
             var phoneConverter = new ValueConverter<PhoneNumber, string>(v => v.Value, v => PhoneNumber.Create(v));
@@ -24,6 +18,7 @@ namespace LaylaApi.DataAccess.Configurations
 
             entity.Property(u => u.Email)
                   .HasConversion(emailConverter!)
+                  .HasColumnName("Email")
                   .HasMaxLength(200)
                   .IsRequired();
 

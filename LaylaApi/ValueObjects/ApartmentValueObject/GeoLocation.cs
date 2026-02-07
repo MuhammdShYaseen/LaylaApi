@@ -24,7 +24,7 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 
             var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
             var point = geometryFactory.CreatePoint(new Coordinate(coordinates.Longitude, coordinates.Latitude ));
-
+            point.SRID = 4326;
             return new GeoLocation
             {
                 Street = street,

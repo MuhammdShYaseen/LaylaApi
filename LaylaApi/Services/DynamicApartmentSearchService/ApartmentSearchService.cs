@@ -11,44 +11,78 @@ namespace LaylaApi.Services.DynamicApartmentSearchService
     public class ApartmentSearchService : IApartmentSearchService
     {
         private readonly IRepository<Apartment> _db;
-        private readonly IMapper _mapper;
-        public ApartmentSearchService(IRepository<Apartment> db, IMapper mapper)
+        public ApartmentSearchService(IRepository<Apartment> db)
         {
             _db = db;
-            _mapper = mapper;
         }
 
-        public async Task<PagedResult<ApartmentDto>> SearchAsync(
-            ApartmentSearchRequestDto request,
-            CancellationToken ct)
+        public async Task<PagedResult<ApartmentDto>> SearchAsync(ApartmentSearchRequestDto request, CancellationToken ct)
         {
-            var predicate =
-                ApartmentFilterBuilder.Build(request);
-
-            var baseQuery = _db.Query()
+            var predicate = ApartmentFilterBuilder.Build(request);
+            request.PageSize = Math.Clamp(request.PageSize, 1, 50);
+            request.PageNumber = Math.Max(request.PageNumber, 1);
+            var query = _db.Query()
                 .AsNoTracking()
                 .Where(predicate);
 
-            var totalCount =
-                await baseQuery.CountAsync(ct);
+            // Count
+            var totalCount = await query.CountAsync(ct);
 
-            var sorted =
-                baseQuery.ApplySorting(
-                    request.SortBy,
-                    request.SortDirection);
+            // Sorting
+            query = query.ApplySorting(
+                request.SortBy,
+                request.SortDirection);
 
-            var skip =
-                (request.PageNumber - 1) * request.PageSize;
+            // Pagination
+            var skip = (request.PageNumber - 1) * request.PageSize;
 
-            var data = await sorted
+            // Projection
+            var items = await query
                 .Skip(skip)
                 .Take(request.PageSize)
+                .Select(a => new ApartmentDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    PricePerDay = a.PricePerDay!.Value,
+                    PricePerHour = a.PricePerHour!.Value,
+                    MediaUrls = a.MediaFiles!.Select(m => m.FileUrl).ToList(),
+                    Latitude = a.Location!.Location.Y,
+                    Longitude = a.Location.Location.X,
+                    City = a.Location.City,
+                    Country = a.Location.Country,
+                    Area = a.Area,
+                    FloorNumber = a.FloorNumber,
+                    NumberOfBedRooms = a.NumberOfBedRooms,
+                    NumberOfBalconies = a.NumberOfBalconies,
+                    NumberOfLivingRooms = a.NumberOfLivingRooms,
+                    NumberOfReceptionRooms = a.NumberOfReceptionRooms,
+                    NumberOfBathrooms = a.NumberOfBathrooms,
+                    IsChatEnabled = a.IsChatEnabled,
+                    Street = a.Location.Street,
+                    ApartmentNumber = a.Location.ApartmentNumber,
+                    AverageRating = a.Reviews!.Any() ? a.Reviews!.Average(r => r.Rating) : 0,
+                    CreatedAt = a.CreatedAt,
+                    Finishing = a.Finishing,
+                    Type = a.Type,
+                    Description = a.Description,
+                    View = a.View,
+                    OwnerName = a.Owner!.FullName,
+                    OwnerId = a.OwnerId,
+                    Orientation = a.Orientation,
+                    District = a.Location.District,
+                    BuildingNumber = a.Location.BuildingNumber,
+                    HasElevator = a.HasElevator,
+                    HasParking = a.HasParking,
+                    HasPool = a.HasPool,
+                    TotalReviews = a.Reviews!.Count(),
+                    IsAvailable = a.IsAvailable
+                })
                 .ToListAsync(ct);
 
-            var dataDto = _mapper.Map<IEnumerable<ApartmentDto>>(data);
             return new PagedResult<ApartmentDto>
             {
-                Items = dataDto.ToList(),
+                Items = items,
                 TotalCount = totalCount,
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize

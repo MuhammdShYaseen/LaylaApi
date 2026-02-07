@@ -43,13 +43,15 @@ namespace LaylaApi.DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
 
-            modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
-            var moneyConverter = new ValueConverter<Money, decimal>(v => v.Value, v => Money.Create(v));
-            var languageConverter = new ValueConverter<Language, string>(v => v.Code, v => Language.FromPersistence(v));
-            var emailConverter = new ValueConverter<Email, string>(v => v.Value, v => Email.Create(v));
-            var phoneConverter = new ValueConverter<PhoneNumber, string>(v => v.Value, v => PhoneNumber.Create(v));
+            ApplyGlobalFilters(modelBuilder);
 
+
+        }
+
+        private static void ApplyGlobalFilters(ModelBuilder modelBuilder)
+        {
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
@@ -69,151 +71,6 @@ namespace LaylaApi.DataAccess
                     method.Invoke(null, new object[] { modelBuilder });
                 }
             }
-
-            modelBuilder.Entity<User>(entity =>
-            {
-                // Email
-                entity.Property(u => u.Email)
-                      .HasConversion(emailConverter!)
-                      .HasMaxLength(200)
-                      .IsRequired();
-
-                entity.HasIndex(u => u.Email)
-                      .IsUnique();
-
-                // Phone
-                entity.Property(u => u.PhoneNumber)
-                      .HasConversion(phoneConverter!)
-                      .HasMaxLength(50)
-                      .IsRequired();
-
-                entity.HasIndex(u => u.PhoneNumber)
-                      .IsUnique();
-
-                // Language
-                entity.Property(u => u.Lang)
-                      .HasConversion(languageConverter!)
-                      .HasMaxLength(5)
-                      .IsRequired();
-            });
-
-            // ✅ العلاقة: User (Owner) → Apartments (One-to-Many)
-            modelBuilder.Entity<Apartment>(entity =>
-            {
-                // Decimal precision
-                entity.Property(x => x.PricePerDay).HasPrecision(18, 2).HasConversion(moneyConverter!);
-                entity.Property(x => x.PricePerHour).HasPrecision(18, 2).HasConversion(moneyConverter!);
-
-                // Relationship: Apartment → Owner (User)
-                entity.HasOne(a => a.Owner)
-                      .WithMany(u => u.Apartments)
-                      .HasForeignKey(a => a.OwnerId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasIndex(a => new
-                {
-                    a.PricePerDay,
-                    a.PricePerHour,
-                    a.Area,
-                    a.FloorNumber,
-                    a.NumberOfBedRooms,
-                    a.NumberOfBathrooms
-                });
-
-                // Flags / Enums
-                entity.HasIndex(a => new
-                {
-                    a.IsAvailable,
-                    a.Type,
-                    a.Finishing
-                })
-                ;
-            });
-
-            // ✅ العلاقة: User  → RefreshToken (One-to-Many)
-            modelBuilder.Entity<RefreshToken>()
-                .HasOne(a => a.User)
-                .WithMany(u => u.RefreshToken)
-                .HasForeignKey(u => u.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // ✅ العلاقة: Apartment → MediaFiles (One-to-Many)
-            modelBuilder.Entity<MediaFile>()
-                .HasOne(m => m.Apartment)
-                .WithMany(a => a.MediaFiles)
-                .HasForeignKey(m => m.ApartmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // ✅ العلاقة: Apartment → Bookings (One-to-Many)
-            modelBuilder.Entity<Booking>()
-                .HasOne(b => b.Apartment)
-                .WithMany(a => a.Bookings)
-                .HasForeignKey(b => b.ApartmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-
-            // ✅ العلاقة: User → Bookings (One-to-Many)
-            modelBuilder.Entity<Booking>()
-                .HasOne(b => b.User)
-                .WithMany(u => u.Bookings)
-                .HasForeignKey(b => b.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Booking>()
-                .HasIndex(b => new { b.ApartmentId, b.Status, b.StartDate, b.EndDate });
-
-            // ✅ العلاقة: Booking → Contract (One-to-One)
-            modelBuilder.Entity<Contract>()
-                .HasOne(c => c.Booking)
-                .WithOne(b => b.Contract)
-                .HasForeignKey<Contract>(c => c.BookingId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // ✅ العلاقة: Booking → Payment (One-to-One)
-            modelBuilder.Entity<Payment>(entity =>
-            {
-                // Decimal precision
-                entity.Property(x => x.Amount).HasPrecision(18, 2);
-
-                // One-to-one relationship: Payment ↔ Booking
-                entity.HasOne(p => p.Booking)
-                      .WithOne(b => b.Payment)
-                      .HasForeignKey<Payment>(p => p.BookingId)
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            // ✅ العلاقة: Apartment → Reviews (One-to-Many)
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Apartment)
-                .WithMany(a => a.Reviews)
-                .HasForeignKey(r => r.ApartmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // ✅ العلاقة: User → Reviews (One-to-Many)
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.User)
-                .WithMany()
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Report>()
-                .HasOne(r => r.Reporter)
-                .WithMany()
-                .HasForeignKey(r => r.ReporterId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // ✅ العلاقة: Apartment → Reports (One-to-Many)
-            modelBuilder.Entity<Report>()
-                .HasOne(r => r.Apartment)
-                .WithMany()
-                .HasForeignKey(r => r.ApartmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            //Chat 
-            modelBuilder.Entity<Conversation>(e =>
-            {
-                e.HasIndex(x => new { x.ApartmentId, x.UserId }).IsUnique();
-            });
         }
         public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {

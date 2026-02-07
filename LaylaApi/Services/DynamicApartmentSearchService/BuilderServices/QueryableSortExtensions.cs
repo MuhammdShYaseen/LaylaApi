@@ -1,32 +1,52 @@
 ﻿using LaylaApi.Models.DtosModels.MainDtos;
+using LaylaApi.Models.MainModels;
 using System.Linq.Expressions;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 {
     public static class QueryableSortExtensions
     {
-        public static IQueryable<T> ApplySorting<T>(this IQueryable<T> query, string? sortBy, ApartmentSearchRequestDto.SortDirections direction)
+        public static IQueryable<Apartment> ApplySorting(this IQueryable<Apartment> query, string? sortBy,
+    ApartmentSearchRequestDto.SortDirections direction)
         {
             if (string.IsNullOrWhiteSpace(sortBy))
-                return query;
+                return query
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ThenBy(x => x.Id);
 
-            var param = Expression.Parameter(typeof(T));
-            var property = Expression.Property(param, sortBy);
+            if (!SortRegistry.TryGet(sortBy, out var sortExp))
+                return query
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ThenBy(x => x.Id);
 
-            var lambda = Expression.Lambda(property, param);
+            var parameter = Expression.Parameter(typeof(Apartment), "x");
 
-            var method = direction == ApartmentSearchRequestDto.SortDirections.Asc
+            var body = Expression.Invoke(sortExp, parameter);
+
+            var lambda = Expression.Lambda(body, parameter);
+
+            var methodName = direction == ApartmentSearchRequestDto.SortDirections.Asc
                 ? "OrderBy"
                 : "OrderByDescending";
 
-            var call = Expression.Call(
+            var orderByCall = Expression.Call(
                 typeof(Queryable),
-                method,
-                new[] { typeof(T), property.Type },
+                methodName,
+                new[] { typeof(Apartment), body.Type },
                 query.Expression,
                 Expression.Quote(lambda));
 
-            return query.Provider.CreateQuery<T>(call);
+            var orderedQuery = query.Provider.CreateQuery<Apartment>(orderByCall);
+
+            // ThenBy(Id) لضمان Pagination Stable
+            var thenBy = Expression.Call(
+                typeof(Queryable),
+                "ThenBy",
+                new[] { typeof(Apartment), typeof(Guid) },
+                orderedQuery.Expression,
+                Expression.Quote((Expression<Func<Apartment, int>>)(x => x.Id)));
+
+            return orderedQuery.Provider.CreateQuery<Apartment>(thenBy);
         }
     }
 }

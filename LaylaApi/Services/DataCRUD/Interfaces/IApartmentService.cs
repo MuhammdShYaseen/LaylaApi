@@ -12,7 +12,7 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
         Task<IEnumerable<ApartmentDto>> SearchAsync(string keyword);
         Task<ApartmentDto> AddAsync(CreateApartmentDto dto, int ownerId);
         Task<ApartmentDto?> UpdateAsync(int id, CreateApartmentDto dto, int ownerId, bool isAdmin);
-        Task<IEnumerable<ApartmentDto>> GetNearbyAsync(double userLat, double userLng, double maxDistanceKm);
+        Task<IEnumerable<ApartmentDto>> GetNearbyAsync(double userLat, double userLng, double maxDistanceKm, CancellationToken ct = default);
         Task<bool> DeleteAsync(int id, int ownerId);
     }
 }
