@@ -11,10 +11,10 @@ namespace LaylaApi.Models.MainModels
             Voice = 2
         }
         public int ConversationId { get; private set; }
-        public Conversation? Conversation { get; set; }
+        public Conversation Conversation { get; set; } = null!;
         public int SenderId { get; private set; }
         public MessageType Type { get; private set; }
-        public string? Content { get; private set; }
+        public string Content { get; private set; } = string.Empty;
         public string? VoiceFilePath { get; private set; }
         public int? VoiceDurationSeconds { get; private set; }
    

@@ -6,7 +6,7 @@ namespace LaylaApi.Models.MainModels
     public class Conversation : Entity
     {
         public int ApartmentId { get; private set; }
-        public Apartment? Apartment { get; set; }
+        public Apartment Apartment { get; set; } = null!;
         public int OwnerId { get; private set; }
         public int UserId { get; private set; }
         public bool IsClosedByOwner { get; private set; }

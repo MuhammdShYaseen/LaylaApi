@@ -29,7 +29,7 @@ namespace LaylaApi.Models.MainModels
         public int UserId { get; private set; }
 
         [ForeignKey("UserId")]
-        public User? User { get; set; }
+        public User User { get; set; } = null!;
 
         [Required]
         public DateTime StartDate { get; private set; }

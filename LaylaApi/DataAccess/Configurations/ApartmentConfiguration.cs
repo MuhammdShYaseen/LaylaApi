@@ -20,19 +20,19 @@ namespace LaylaApi.DataAccess.Configurations
             // Value Object GeoLocation 
             builder.OwnsOne(a => a.Location, geo =>
             {
-                geo.Property(g => g.Street).HasMaxLength(100);
+                geo.Property(g => g.Street).HasMaxLength(100).IsRequired();
                 geo.Property(g => g.BuildingNumber).HasMaxLength(50);
                 geo.Property(g => g.ApartmentNumber).HasMaxLength(50);
-                geo.Property(g => g.City).HasMaxLength(100);
+                geo.Property(g => g.City).HasMaxLength(100).IsRequired();
                 geo.Property(g => g.District).HasMaxLength(100);
-                geo.Property(g => g.Country).HasMaxLength(100);
+                geo.Property(g => g.Country).HasMaxLength(100).IsRequired();
                 geo.Property(g => g.Location)
-                   .HasColumnType("geography");
+                   .HasColumnType("geography").IsRequired();
             });
 
             var moneyConverter = new ValueConverter<Money, decimal>(v => v.Value, v => Money.Create(v));
-            builder.Property(x => x.PricePerDay).HasPrecision(18, 2).HasConversion(moneyConverter!);
-            builder.Property(x => x.PricePerHour).HasPrecision(18, 2).HasConversion(moneyConverter!);
+            builder.Property(x => x.PricePerDay).HasPrecision(18, 2).HasConversion(moneyConverter!).IsRequired();
+            builder.Property(x => x.PricePerHour).HasPrecision(18, 2).HasConversion(moneyConverter!).IsRequired();
 
             builder.HasOne(a => a.Owner)
                   .WithMany(u => u.Apartments)
@@ -46,7 +46,8 @@ namespace LaylaApi.DataAccess.Configurations
                 a.Area,
                 a.FloorNumber,
                 a.NumberOfBedRooms,
-                a.NumberOfBathrooms
+                a.NumberOfBathrooms,
+                a.NumberOfLivingRooms
             });
 
             builder.HasIndex(a => new

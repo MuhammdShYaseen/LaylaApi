@@ -22,6 +22,8 @@ using LaylaApi.Services.MediaStorageProviderServices.ServiceCollectionExtensions
 using LaylaApi.Services.DynamicApartmentSearchService;
 using LaylaApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
+using NetTopologySuite;
 namespace LaylaApi
 {
     public class Program
@@ -34,13 +36,14 @@ namespace LaylaApi
             builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("FrontEnd"));
             builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"));
             builder.Services.Configure<LanguageOptions>(builder.Configuration.GetSection("AppSetting"));
+            builder.Services.AddSingleton<GeometryFactory>(_ => NtsGeometryServices.Instance.CreateGeometryFactory(4326));
             builder.Services.AddSupportedLanguageService();
             builder.Services.Configure<ChatOptions>(builder.Configuration.GetSection("Chat"));
             builder.AddFirebaseApp();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddModelStateValidationHandler();
+            builder.Services.AddModelStateValidationHandler();          
             builder.Services.AddCustomRateLimiter();
             builder.Services.AddLaylaContextExtension(builder.Configuration);
             builder.Services.AddHostedService<SoftDeleteCleanupService>();

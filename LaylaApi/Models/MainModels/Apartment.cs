@@ -56,7 +56,7 @@ namespace LaylaApi.Models.MainModels
         public string? Description { get; private set; }
 
         [Required]
-        public GeoLocation? Location { get; private set; }
+        public GeoLocation Location { get; private set; } = GeoLocation.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, Coordinates.Create(0, 0), string.Empty);
 
         #region Detiles
         public int NumberOfBedRooms { get; private set; } = 1;
@@ -66,7 +66,7 @@ namespace LaylaApi.Models.MainModels
         public int NumberOfBalconies { get; private set; } = 0;
         public int FloorNumber { get; private set; } = 0;
         public double Area { get; private set; }
-        public string? Orientation { get; private set; }
+        public string Orientation { get; private set; } = string.Empty;
         public BuildingType Type { get; private set; } = BuildingType.Apartment;
         public ApartmentView View {  get; private set; } = ApartmentView.None;
         public Amenities Finishing { get; private set; } = Amenities.Standard;
@@ -77,10 +77,10 @@ namespace LaylaApi.Models.MainModels
         #endregion
 
         [Required]
-        public Money? PricePerHour { get; private set; }
+        public Money PricePerHour { get; private set; } =  Money.Create(1);
 
         [Required]
-        public Money? PricePerDay { get; private set; }
+        public Money PricePerDay { get; private set; } = Money.Create(1);
 
         public bool IsAvailable { get; private set; } = true;
         
@@ -89,11 +89,11 @@ namespace LaylaApi.Models.MainModels
         public int OwnerId { get; private set; }
 
         [ForeignKey("OwnerId")]
-        public User? Owner { get; set; }
+        public User Owner { get; set; } = null!;
         public bool IsChatEnabled { get; private set; } = true;
-        public ICollection<Booking>? Bookings { get; set; }
-        public ICollection<Review>? Reviews { get; set; }
-        public ICollection<MediaFile>? MediaFiles { get; set; }
+        public ICollection<Booking> Bookings { get; set; } = [];
+        public ICollection<Review> Reviews { get; set; } = [];
+        public ICollection<MediaFile> MediaFiles { get; set; } = [];
 
         public static Apartment Create(CreateApartmentDto dto, int ownerId)
         {

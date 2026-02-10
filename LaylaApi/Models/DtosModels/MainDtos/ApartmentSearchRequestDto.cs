@@ -53,6 +53,11 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         [IgnoreIfNonPositive]
         public int? MaxFloorNumber { get; set; }
 
+        [IgnoreIfNonPositive]
+        public int? MinLivingRooms { get; set; }
+
+        [IgnoreIfNonPositive]
+        public int? MaxLivingRooms { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public string? Description { get; set; }

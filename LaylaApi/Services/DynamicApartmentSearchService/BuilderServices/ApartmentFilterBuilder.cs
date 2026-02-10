@@ -1,88 +1,125 @@
-﻿using LaylaApi.Attributes;
+﻿using LaylaApi.DataAccess;
+using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using System.Linq.Expressions;
-using System.Reflection;
 using static LaylaApi.Models.MainModels.Booking;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 {
-    public class ApartmentFilterBuilder
+    public class ApartmentFilterBuilder : IApartmentFilterBuilder
     {
-        private static readonly GeometryFactory _geoFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
-        public static Expression<Func<Apartment, bool>> Build(ApartmentSearchRequestDto request)
+        private readonly GeometryFactory _factory;
+        private readonly IRepository<Booking> _repository;
+        public ApartmentFilterBuilder(GeometryFactory factory, IRepository<Booking> repository) 
+        { 
+            _factory = factory;
+            _repository = repository;
+        }
+        private static readonly BookingStatus[] ActiveStatuses =
+        {
+            BookingStatus.Confirmed,
+            BookingStatus.Pending,
+            BookingStatus.Accepted
+        };
+        public Expression<Func<Apartment, bool>> Build(ApartmentSearchRequestDto request)
         {
             var predicate = PredicateBuilder.True<Apartment>();
-
-            void Add<T>(T? value, Expression<Func<Apartment, bool>> exp, string propertyName)
-            {
-                if (value == null)
-                    return;
-
-                if (value is string s && string.IsNullOrWhiteSpace(s))
-                    return;
-
-                var prop = typeof(ApartmentSearchRequestDto)
-                    .GetProperty(propertyName);
-
-                var ignoreIfNonPositive =
-                    prop?.IsDefined(typeof(IgnoreIfNonPositiveAttribute));
-
-                if (ignoreIfNonPositive == true &&
-                    value is IComparable c &&
-                    c.CompareTo(default(T)) <= 0)
-                {
-                    return;
-                }
-
-                predicate = predicate.And(exp);
-            }
 
             if (request.StartDate.HasValue && request.EndDate.HasValue)
             {
                 var start = request.StartDate.Value;
                 var end = request.EndDate.Value;
-                var activeStatuses = new[]
-                {
-                     BookingStatus.Confirmed,
-                     BookingStatus.Pending,
-                     BookingStatus.Accepted
-                };
+
                 predicate = predicate.And(a =>
-                    !a.Bookings!.Any(b =>
-                        b.StartDate < end &&
-                        b.EndDate > start &&
-                        activeStatuses.Contains(b.Status)
-                    ));
+                    !_repository.Query()
+                        .AsNoTracking()
+                        .Where(b => b.ApartmentId == a.Id)
+                        .Where(b => b.StartDate < end && b.EndDate > start)
+                        .Where(b => ActiveStatuses.Contains(b.Status))
+                        .Any());
             }
 
-            Add(request.MinPricePerDay, v => v.PricePerDay!.Value >= request.MinPricePerDay, nameof(request.MinPricePerDay));
-            Add(request.MaxPricePerDay, v => v.PricePerDay!.Value <= request.MaxPricePerDay, nameof(request.MaxPricePerDay));
+            if (request.MinPricePerDay > 0)
+                predicate = predicate.And(a =>
+                    a.PricePerDay!.Value >= request.MinPricePerDay);
 
-            Add(request.MinPricePerHour, v => v.PricePerHour!.Value >= request.MinPricePerHour, nameof(request.MinPricePerHour));
-            Add(request.MaxPricePerHour, v => v.PricePerHour!.Value <= request.MaxPricePerHour, nameof(request.MaxPricePerHour));
+            if (request.MaxPricePerDay > 0)
+                predicate = predicate.And(a =>
+                    a.PricePerDay!.Value <= request.MaxPricePerDay);
 
-            Add(request.MinArea, v => v.Area >= request.MinArea, nameof(request.MinArea));
-            Add(request.MaxArea, v => v.Area <= request.MaxArea, nameof(request.MaxArea));
-            Add(request.MaxFloorNumber, v => v.FloorNumber <= request.MaxFloorNumber, nameof(request.MaxFloorNumber));
-            Add(request.MinBedrooms, v => v.NumberOfBedRooms >= request.MinBedrooms, nameof(request.MinBedrooms));
-            Add(request.MinFloorNumber, v => v.FloorNumber >= request.MinFloorNumber, nameof(request.MinFloorNumber));
-            Add(request.MaxBedrooms, v => v.NumberOfBedRooms <= request.MaxBedrooms, nameof(request.MaxBedrooms));
+            if (request.MinPricePerHour > 0)
+                predicate = predicate.And(a =>
+                    a.PricePerHour.Value >= request.MinPricePerHour);
 
-            Add(request.MinBathrooms, v => v.NumberOfBathrooms >= request.MinBathrooms, nameof(request.MinBathrooms));
-            Add(request.MaxBathrooms, v => v.NumberOfBathrooms <= request.MaxBathrooms, nameof(request.MaxBathrooms));
+            if (request.MaxPricePerHour > 0)
+                predicate = predicate.And(a =>
+                    a.PricePerHour.Value <= request.MaxPricePerHour);
 
-            Add(request.Type, v => v.Type == request.Type, nameof(request.Type));
-            Add(request.View, v => v.View == request.View, nameof(request.View));
-            Add(request.Finishing, v => v.Finishing == request.Finishing, nameof(request.Finishing));
+            if (request.MinArea > 0)
+                predicate = predicate.And(a => a.Area >= request.MinArea);
 
-            Add(request.HasElevator, v => v.HasElevator == request.HasElevator, nameof(request.HasElevator));
-            Add(request.HasParking, v => v.HasParking == request.HasParking, nameof(request.HasParking));
-            Add(request.HasPool, v => v.HasPool == request.HasPool, nameof(request.HasPool));
-            Add(request.IsAvailable, v => v.IsAvailable == request.IsAvailable, nameof(request.IsAvailable));
+            if (request.MaxArea > 0)
+                predicate = predicate.And(a => a.Area <= request.MaxArea);
+
+            if (request.MinFloorNumber > 0)
+                predicate = predicate.And(a =>
+                    a.FloorNumber >= request.MinFloorNumber);
+
+            if (request.MaxFloorNumber > 0)
+                predicate = predicate.And(a =>
+                    a.FloorNumber <= request.MaxFloorNumber);
+
+            if (request.MinBedrooms > 0)
+                predicate = predicate.And(a =>
+                    a.NumberOfBedRooms >= request.MinBedrooms);
+
+            if (request.MaxBedrooms > 0)
+                predicate = predicate.And(a =>
+                    a.NumberOfBedRooms <= request.MaxBedrooms);
+
+            if (request.MinBathrooms > 0)
+                predicate = predicate.And(a =>
+                    a.NumberOfBathrooms >= request.MinBathrooms);
+
+            if (request.MaxBathrooms > 0)
+                predicate = predicate.And(a =>
+                    a.NumberOfBathrooms <= request.MaxBathrooms);
+
+            if (request.MinLivingRooms > 0)
+                predicate = predicate.And(a =>
+                    a.NumberOfLivingRooms >= request.MinLivingRooms);
+
+            if (request.MaxLivingRooms > 0)
+                predicate = predicate.And(a =>
+                    a.NumberOfLivingRooms <= request.MaxLivingRooms);
+
+            if (request.Type.HasValue)
+                predicate = predicate.And(a => a.Type == request.Type);
+
+            if (request.View.HasValue)
+                predicate = predicate.And(a => a.View == request.View);
+
+            if (request.Finishing.HasValue)
+                predicate = predicate.And(a => a.Finishing == request.Finishing);
+
+            if (request.HasElevator.HasValue)
+                predicate = predicate.And(a =>
+                    a.HasElevator == request.HasElevator);
+
+            if (request.HasParking.HasValue)
+                predicate = predicate.And(a =>
+                    a.HasParking == request.HasParking);
+
+            if (request.HasPool.HasValue)
+                predicate = predicate.And(a =>
+                    a.HasPool == request.HasPool);
+
+            if (request.IsAvailable.HasValue)
+                predicate = predicate.And(a =>
+                    a.IsAvailable == request.IsAvailable);
 
             if (!string.IsNullOrWhiteSpace(request.Orientation))
             {
@@ -92,14 +129,18 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 
             if (!string.IsNullOrWhiteSpace(request.TitleKeyword))
             {
+                var keyword = request.TitleKeyword.Trim();
+
                 predicate = predicate.And(a =>
-                    EF.Functions.Like(a.Title, $"%{request.TitleKeyword}%"));
+                    EF.Functions.Like(a.Title, $"%{keyword}%"));
             }
 
             if (!string.IsNullOrWhiteSpace(request.Description))
             {
+                var desc = request.Description.Trim();
+
                 predicate = predicate.And(a =>
-                    EF.Functions.Like(a.Description, $"%{request.Description}%"));
+                    EF.Functions.Like(a.Description, $"%{desc}%"));
             }
 
             if (request.UserLatitude.HasValue && request.UserLongitude.HasValue && request.MaxDistance.HasValue)
@@ -118,21 +159,21 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
                 var minLon = lon - lonDelta;
                 var maxLon = lon + lonDelta;
 
-                var userPoint =
-                    _geoFactory.CreatePoint(new Coordinate(lon, lat));
-
+                var userPoint = _factory.CreatePoint(new Coordinate(lon, lat));
+                userPoint.SRID = 4326;
                 predicate = predicate.And(a =>
-                    a.Location!.Location.Y >= minLat &&
+                    a.Location.Location.Y >= minLat &&
                     a.Location.Location.Y <= maxLat &&
                     a.Location.Location.X >= minLon &&
                     a.Location.Location.X <= maxLon
                 );
 
                 predicate = predicate.And(a =>
-                    a.Location!.Location.IsWithinDistance(userPoint, maxMeters)
+                    a.Location.Location.IsWithinDistance(userPoint, maxMeters)
                 );
             }
             return predicate;
         }
+
     }
 }

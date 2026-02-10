@@ -4,6 +4,7 @@ using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DynamicApartmentSearchService.BuilderServices;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using System;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService
@@ -11,14 +12,16 @@ namespace LaylaApi.Services.DynamicApartmentSearchService
     public class ApartmentSearchService : IApartmentSearchService
     {
         private readonly IRepository<Apartment> _db;
-        public ApartmentSearchService(IRepository<Apartment> db)
+        private readonly IApartmentFilterBuilder _filterBuilder;
+        public ApartmentSearchService(IRepository<Apartment> db, IApartmentFilterBuilder filterBuilder)
         {
             _db = db;
+            _filterBuilder = filterBuilder;
         }
 
         public async Task<PagedResult<ApartmentDto>> SearchAsync(ApartmentSearchRequestDto request, CancellationToken ct)
         {
-            var predicate = ApartmentFilterBuilder.Build(request);
+            var predicate = _filterBuilder.Build(request);
             request.PageSize = Math.Clamp(request.PageSize, 1, 50);
             request.PageNumber = Math.Max(request.PageNumber, 1);
             var query = _db.Query()
