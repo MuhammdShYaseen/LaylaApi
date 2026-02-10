@@ -23,7 +23,7 @@ namespace LaylaApi.Models.MainModels
         public int ApartmentId { get; private set; }
 
         [ForeignKey("ApartmentId")]
-        public Apartment? Apartment { get; set; }
+        public Apartment Apartment { get; set; } = null!;
 
         [Required]
         public int UserId { get; private set; }

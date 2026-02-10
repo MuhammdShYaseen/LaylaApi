@@ -21,14 +21,15 @@ namespace LaylaApi.Services.DynamicApartmentSearchService
 
         public async Task<PagedResult<ApartmentDto>> SearchAsync(ApartmentSearchRequestDto request, CancellationToken ct)
         {
-            var predicate = _filterBuilder.Build(request);
             request.PageSize = Math.Clamp(request.PageSize, 1, 50);
             request.PageNumber = Math.Max(request.PageNumber, 1);
-            var query = _db.Query()
-                .AsNoTracking()
-                .Where(predicate);
 
-            // Count
+            var query = _db.Query().AsNoTracking();
+
+            // Apply Filters
+            query = _filterBuilder.Build(query, request);
+
+            // Count (after filters, before paging)
             var totalCount = await query.CountAsync(ct);
 
             // Sorting

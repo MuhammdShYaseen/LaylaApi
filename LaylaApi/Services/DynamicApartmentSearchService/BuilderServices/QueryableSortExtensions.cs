@@ -4,10 +4,9 @@ using System.Linq.Expressions;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 {
-    public static class QueryableSortExtensions
+    internal static class QueryableSortExtensions
     {
-        public static IQueryable<Apartment> ApplySorting(this IQueryable<Apartment> query, string? sortBy,
-    ApartmentSearchRequestDto.SortDirections direction)
+        internal static IQueryable<Apartment> ApplySorting(this IQueryable<Apartment> query, string? sortBy, ApartmentSearchRequestDto.SortDirections direction)
         {
             if (string.IsNullOrWhiteSpace(sortBy))
                 return query

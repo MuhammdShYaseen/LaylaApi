@@ -6,6 +6,6 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 {
     public interface IApartmentFilterBuilder
     {
-        Expression<Func<Apartment, bool>> Build(ApartmentSearchRequestDto request);
+        IQueryable<Apartment> Build(IQueryable<Apartment> query, ApartmentSearchRequestDto request);
     }
 }

@@ -20,5 +20,20 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
 
         public static Money Create(decimal value)
             => new Money(value);
+        // Comparisons
+        public int CompareTo(Money? other)
+            => Value.CompareTo(other!.Value);
+
+        public static bool operator >=(Money a, Money b)
+            => a.Value >= b.Value;
+
+        public static bool operator <=(Money a, Money b)
+            => a.Value <= b.Value;
+
+        public static bool operator >(Money a, Money b)
+            => a.Value > b.Value;
+
+        public static bool operator <(Money a, Money b)
+            => a.Value < b.Value;
     }
 }
