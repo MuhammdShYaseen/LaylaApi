@@ -1,11 +1,9 @@
-﻿using LaylaApi.DataAccess;
-using LaylaApi.DataRepository;
-using LaylaApi.Models.DtosModels.MainDtos;
+﻿using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.ValueObjects.ApartmentValueObject;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
-using System.Linq.Expressions;
+
 using static LaylaApi.Models.MainModels.Booking;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
@@ -25,7 +23,6 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
         };
         public IQueryable<Apartment> Build(IQueryable<Apartment> query, ApartmentSearchRequestDto request)
         {
-            //var predicate = PredicateBuilder.True<Apartment>();
             query = query.AsNoTracking();
             if (request.StartDate.HasValue && request.EndDate.HasValue)
             {
