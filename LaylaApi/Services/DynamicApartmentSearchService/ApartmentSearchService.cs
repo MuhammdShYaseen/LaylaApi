@@ -1,11 +1,8 @@
-﻿using AutoMapper;
-using LaylaApi.DataRepository;
+﻿using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DynamicApartmentSearchService.BuilderServices;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Geometries;
-using System;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService
 {

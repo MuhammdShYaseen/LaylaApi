@@ -1,5 +1,7 @@
 ﻿using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
+using LaylaApi.ValueObjects.ApartmentValueObject;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
@@ -24,6 +26,21 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 
             var lambda = Expression.Lambda(body, parameter);
 
+            if (sortBy == "PricePerDay")
+            {
+                query = direction == ApartmentSearchRequestDto.SortDirections.Asc
+                    ? query.OrderBy(a => a.PricePerDay!.Value)
+                    : query.OrderByDescending(a => a.PricePerDay!.Value);
+            }
+
+            if (sortBy == "PricePerDay" || sortBy == "PricePerHour")
+            {
+                var property = typeof(Apartment).GetProperty(sortBy);
+                query = direction == ApartmentSearchRequestDto.SortDirections.Asc
+                    ? query.OrderBy(a => EF.Property<Money>(a, sortBy).Value)
+                    : query.OrderByDescending(a => EF.Property<Money>(a, sortBy).Value);
+                return query;
+            }
             var methodName = direction == ApartmentSearchRequestDto.SortDirections.Asc
                 ? "OrderBy"
                 : "OrderByDescending";
@@ -41,7 +58,7 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
             var thenBy = Expression.Call(
                 typeof(Queryable),
                 "ThenBy",
-                new[] { typeof(Apartment), typeof(Guid) },
+                new[] { typeof(Apartment), typeof(int) },
                 orderedQuery.Expression,
                 Expression.Quote((Expression<Func<Apartment, int>>)(x => x.Id)));
 

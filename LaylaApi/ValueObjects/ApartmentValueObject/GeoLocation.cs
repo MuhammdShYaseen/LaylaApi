@@ -7,7 +7,23 @@ namespace LaylaApi.ValueObjects.ApartmentValueObject
     public class GeoLocation : ValueObject
     {
         private GeoLocation() { } // EF Core
-
+        private GeoLocation(
+        string street,
+        string buildingNumber,
+        string apartmentNumber,
+        string city,
+        string district,
+        Point location,
+        string country)
+        {
+            Street = street;
+            BuildingNumber = buildingNumber;
+            ApartmentNumber = apartmentNumber;
+            City = city;
+            District = district;
+            Location = location;
+            Country = country;
+        }
         public string Street { get; private set; } = null!;
         public string BuildingNumber { get; private set; } = null!;
         public string ApartmentNumber { get; private set; } = null!;

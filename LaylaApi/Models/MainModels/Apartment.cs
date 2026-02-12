@@ -56,7 +56,7 @@ namespace LaylaApi.Models.MainModels
         public string? Description { get; private set; }
 
         [Required]
-        public GeoLocation Location { get; private set; } = GeoLocation.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, Coordinates.Create(0, 0), string.Empty);
+        public GeoLocation? Location { get; private set; }
 
         #region Detiles
         public int NumberOfBedRooms { get; private set; } = 1;
@@ -104,7 +104,20 @@ namespace LaylaApi.Models.MainModels
             var apartment = new Apartment
             {
                 Location = location,
-
+                Area = dto.Area,
+                Finishing = dto.Finishing,
+                FloorNumber = dto.FloorNumber,
+                HasElevator = dto.HasElevator,
+                HasParking = dto.HasParking,
+                HasPool = dto.HasPool,
+                NumberOfBalconies = dto.NumberOfBalconies,
+                NumberOfBathrooms = dto.NumberOfBathrooms,
+                NumberOfBedRooms = dto.NumberOfBedRooms,
+                NumberOfLivingRooms = dto.NumberOfLivingRooms,
+                NumberOfReceptionRooms = dto.NumberOfReceptionRooms,
+                Orientation = dto.Orientation,
+                View = dto.View,
+                Type = dto.Type,
                 PricePerHour = Money.Create(dto.PricePerHour),
                 PricePerDay = Money.Create(dto.PricePerDay),
                 Description = dto.Description,
@@ -130,7 +143,22 @@ namespace LaylaApi.Models.MainModels
             PricePerHour = Money.Create(dto.PricePerHour);
             PricePerDay = Money.Create(dto.PricePerDay);
             Description = dto.Description;
-            
+
+            Area = dto.Area;
+            Finishing = dto.Finishing;
+            FloorNumber = dto.FloorNumber;
+            HasElevator = dto.HasElevator;
+            HasParking = dto.HasParking;
+            HasPool = dto.HasPool;
+            NumberOfBalconies = dto.NumberOfBalconies;
+            NumberOfBathrooms = dto.NumberOfBathrooms;
+            NumberOfBedRooms = dto.NumberOfBedRooms;
+            NumberOfLivingRooms = dto.NumberOfLivingRooms;
+            NumberOfReceptionRooms = dto.NumberOfReceptionRooms;
+            Orientation = dto.Orientation;
+            View = dto.View;
+            Type = dto.Type;
+
             Title = dto.Title;
             IsAvailable = dto.IsAvailable;
             IsChatEnabled = dto.IsChatEnabled;
