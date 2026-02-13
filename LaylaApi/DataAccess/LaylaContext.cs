@@ -44,14 +44,14 @@ namespace LaylaApi.DataAccess
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
-            modelBuilder.Entity<Apartment>()
-               .OwnsOne(a => a.Location, geo =>
-               {
-                   geo.Ignore(g => g.Location);
-               });
+            //only for xunit test disable it when you finished test
+            //modelBuilder.Entity<Apartment>()
+            //   .OwnsOne(a => a.Location, geo =>
+            //  {
+            //      geo.Ignore(g => g.Location);
+            //   });
+
             ApplyGlobalFilters(modelBuilder);
-
-
         }
 
         private static void ApplyGlobalFilters(ModelBuilder modelBuilder)

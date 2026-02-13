@@ -2,11 +2,8 @@
 using LaylaApi.DataAccess.Configurations;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.Models.MainModels;
-using LaylaApi.Test.Services.ApartmentServiceTests;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +26,14 @@ namespace LaylaApi.Test.Services.MokeDbContext
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
+            modelBuilder.Entity<Apartment>()
+              .Property(a => a.View)
+              .HasColumnName("ApartmentView");
+            modelBuilder.Entity<Apartment>()
+               .OwnsOne(a => a.Location, geo =>
+               {
+                   geo.Ignore(g => g.Location);
+               });
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             ApplyGlobalFilters(modelBuilder);
 

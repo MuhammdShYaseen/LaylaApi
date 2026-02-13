@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using LaylaApi.DataAccess;
 using LaylaApi.DataRepository;
-using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DynamicApartmentSearchService.BuilderServices;
@@ -157,6 +156,12 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             result.Items.First().PricePerDay.Should().Be(50);
         }
 
+
+
+
+
+        #region Helper
+
         private Apartment CreateApartmentWithPrice(int price)
         {
             var dto = CreateValidDto(pricePerDay: price, pricePerHour: price / 10m, title: $"Apartment {price}");
@@ -169,10 +174,6 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
 
             return apartment;
         }
-
-
-
-        #region Helper
         private Apartment CreateFullApartment()
         {
             var dto = CreateValidDto();

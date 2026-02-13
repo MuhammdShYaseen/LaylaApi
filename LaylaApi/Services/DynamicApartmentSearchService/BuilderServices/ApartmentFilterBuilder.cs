@@ -164,14 +164,14 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
                 var userPoint = _factory.CreatePoint(new Coordinate(lon, lat));
                 userPoint.SRID = 4326;
                 query = query.Where(a =>
-                    a.Location.Location.Y >= minLat &&
+                    a.Location!.Location.Y >= minLat &&
                     a.Location.Location.Y <= maxLat &&
                     a.Location.Location.X >= minLon &&
                     a.Location.Location.X <= maxLon
                 );
 
                 query = query.Where(a =>
-                    a.Location.Location.IsWithinDistance(userPoint, maxMeters)
+                    a.Location!.Location.IsWithinDistance(userPoint, maxMeters)
                 );
             }
             return query;

@@ -11,6 +11,12 @@ namespace LaylaApi.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<DateTime>(
+                name: "UpdatedAt",
+                table: "Apartments",
+                type: "datetime2",
+                nullable: true);
+
             migrationBuilder.RenameColumn(
                 name: "Created",
                 table: "RefreshTokens",
@@ -217,6 +223,8 @@ namespace LaylaApi.Migrations
                 table: "MediaFiles",
                 type: "datetime2",
                 nullable: true);
+
+            
 
             migrationBuilder.AddColumn<Guid>(
                 name: "Guid",
@@ -584,6 +592,11 @@ namespace LaylaApi.Migrations
             migrationBuilder.RenameColumn(
                 name: "CreatedAt",
                 table: "MediaFiles",
+                newName: "UploadedAt");
+
+            migrationBuilder.RenameColumn(
+                name: "CreatedAt",
+                table: "Apartments",
                 newName: "UploadedAt");
 
             migrationBuilder.AlterColumn<string>(

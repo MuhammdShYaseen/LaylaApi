@@ -36,9 +36,8 @@ namespace LaylaApi.Controllers
         [Authorize]
         public async Task<IActionResult> AddApartment([FromBody] CreateApartmentDto dto)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var result = await _apartmentService.AddAsync(dto, userId);
+            var result = await _apartmentService.AddAsync(dto, CurrentUserId());
             
             return Ok(ApiResponse<ApartmentDto>.Ok(result));
         }

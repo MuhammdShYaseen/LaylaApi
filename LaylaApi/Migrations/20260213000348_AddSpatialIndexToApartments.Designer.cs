@@ -13,7 +13,7 @@ using NetTopologySuite.Geometries;
 namespace LaylaApi.Migrations
 {
     [DbContext(typeof(LaylaContext))]
-    [Migration("20260207090053_AddSpatialIndexToApartments")]
+    [Migration("20260213000348_AddSpatialIndexToApartments")]
     partial class AddSpatialIndexToApartments
     {
         /// <inheritdoc />
@@ -87,6 +87,7 @@ namespace LaylaApi.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Orientation")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OwnerId")
@@ -123,7 +124,7 @@ namespace LaylaApi.Migrations
 
                     b.HasIndex("IsAvailable", "Type", "Finishing");
 
-                    b.HasIndex("PricePerDay", "PricePerHour", "Area", "FloorNumber", "NumberOfBedRooms", "NumberOfBathrooms");
+                    b.HasIndex("PricePerDay", "PricePerHour", "Area", "FloorNumber", "NumberOfBedRooms", "NumberOfBathrooms", "NumberOfLivingRooms");
 
                     b.ToTable("Apartments");
                 });
@@ -353,6 +354,7 @@ namespace LaylaApi.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Content")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ConversationId")
