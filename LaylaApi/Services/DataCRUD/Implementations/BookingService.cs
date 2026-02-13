@@ -73,6 +73,15 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (dto.StartDate >= dto.EndDate)
                 throw new BadHttpRequestException("Start date must be earlier than end date.");
 
+            if (dto.StartDate < DateTime.UtcNow.Date)
+                throw new BadHttpRequestException("Cannot book dates in the past.");
+
+            if (dto.EndDate < DateTime.UtcNow.Date)
+                throw new BadHttpRequestException("End date cannot be in the past.");
+
+            if (dto.StartDate >= dto.EndDate)
+                throw new BadHttpRequestException("Start date must be earlier than end date.");
+
             var apartment = await _context.Apartments
                 .AsNoTracking()
                 .Where(a => a.Id == dto.ApartmentId)
