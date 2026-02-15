@@ -42,8 +42,13 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
         public async Task SearchAsync_ShouldClampPageSize_AndPageNumber()
         {
             var context = CreateDbContext();
+            var owner = CreateUserEntity(1, "owner@test.com");
+            context.Users.Add(owner);
 
-            context.Apartments.AddRange(CreateApartments(10));
+            context.Apartments.AddRange(CreateApartments(10, owner.Id));
+
+            await context.SaveChangesAsync();
+            context.Apartments.AddRange(CreateApartments(10,1));
             await context.SaveChangesAsync();
 
             var repo = CreateRepository(context);
@@ -63,14 +68,18 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             result.PageNumber.Should().Be(1);
         }
 
-        
+
 
         [Fact]
         public async Task SearchAsync_ShouldReturnCorrectTotalCount()
         {
             var context = CreateDbContext();
 
-            context.Apartments.AddRange(CreateApartments(5));
+            var owner = CreateUserEntity(1, "owner@test.com");
+            context.Users.Add(owner);
+
+            context.Apartments.AddRange(CreateApartments(5, owner.Id));
+
             await context.SaveChangesAsync();
 
             var repo = CreateRepository(context);
@@ -113,13 +122,13 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             var context = CreateDbContext();
             var repo = CreateRepository(context);
             var apartment = CreateFullApartment();
-            apartment.Reviews.Add(Review.Create(1,1,4,""));
-            apartment.Reviews.Add(Review.Create(1,1,2,""));
+            apartment.Reviews.Add(Review.Create(1, 1, 4, ""));
+            apartment.Reviews.Add(Review.Create(1, 1, 2, ""));
 
             context.Apartments.Add(apartment);
             await context.SaveChangesAsync();
 
-            
+
             var filter = new ApartmentFilterBuilder(new NetTopologySuite.Geometries.GeometryFactory());
 
             var service = new ApartmentSearchService(repo, filter);
@@ -129,7 +138,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             result.Items.Single().AverageRating.Should().Be(3.75);
         }
 
-        
+
 
         [Fact]
         public async Task SearchAsync_ShouldSortByPriceAscending()
@@ -156,9 +165,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             result.Items.First().PricePerDay.Should().Be(50);
         }
 
-
-
-
+  
 
         #region Helper
 
@@ -197,7 +204,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
 
             return apartment;
         }
-        private Apartment[] CreateApartments(int count)
+        private Apartment[] CreateApartments(int count, int ownerId)
         {
             var list = new List<Apartment>();
 
@@ -209,12 +216,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
                     title: $"Apartment {i}"
                 );
 
-                var apartment = Apartment.Create(dto, ownerId: 1);
-
-                apartment.Owner = CreateUserEntity(1, $"owner{i}@test.com");
-
-                apartment.MediaFiles = new List<MediaFile>();
-                apartment.Reviews = new List<Review>();
+                var apartment = Apartment.Create(dto, ownerId);
 
                 list.Add(apartment);
             }

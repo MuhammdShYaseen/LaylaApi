@@ -26,13 +26,11 @@ namespace LaylaApi.Test.Services.MokeDbContext
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
-            modelBuilder.Entity<Apartment>()
-              .Property(a => a.View)
-              .HasColumnName("ApartmentView");
+            
             modelBuilder.Entity<Apartment>()
                .OwnsOne(a => a.Location, geo =>
                {
-                   geo.Ignore(g => g.Location);
+                   
                });
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             ApplyGlobalFilters(modelBuilder);

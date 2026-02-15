@@ -8,16 +8,14 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LaylaApi.Test.Services.ApartmentServiceTests
+namespace LaylaApi.Test.Services.ApartmentServiceTests.IntegrationTests
 {
     public class ApartmentsControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
     {
         private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory _factory;
 
         public ApartmentsControllerIntegrationTests(CustomWebApplicationFactory factory)
         {
-            _factory = factory;
             _client = factory.CreateClient();
         }
 
@@ -38,8 +36,8 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResult<ApartmentDto>>>();
-            content.Success.Should().BeTrue();
-            content.Data.Items.Should().AllSatisfy(a => a.City.Should().Be("Cairo"));
+            content!.Success.Should().BeTrue();
+            content!.Data!.Items.Should().AllSatisfy(a => a.City.Should().Be("Cairo"));
         }
 
         [Fact]
@@ -56,10 +54,10 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResult<ApartmentDto>>>();
-            content.Data.Items.Should().AllSatisfy(a =>
+            content!.Data!.Items.Should().AllSatisfy(a =>
             {
-                a.PricePerDay.Should().BeGreaterOrEqualTo(minPrice);
-                a.PricePerDay.Should().BeLessOrEqualTo(maxPrice);
+                a.PricePerDay.Should().BeGreaterThanOrEqualTo(minPrice);
+                a.PricePerDay.Should().BeLessThanOrEqualTo(maxPrice);
             });
         }
     }

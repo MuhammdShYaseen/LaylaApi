@@ -83,6 +83,8 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
 
+        public string? City { get; set; }
+        public string? Country { get; set; }
         public string? SortBy { get; set; }
         public SortDirections SortDirection { get; set; } = SortDirections.Desc;
     }

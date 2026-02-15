@@ -1,26 +1,23 @@
-﻿using System;
-using System.Reflection;
+﻿using LaylaApi.DataAccess;
 using LaylaApi.DataAccess.Configurations;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
-using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Models.NotificationsModels;
-using LaylaApi.ValueObjects.ApartmentValueObject;
-using LaylaApi.ValueObjects.UserValueObject;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Reflection;
 
-namespace LaylaApi.DataAccess
+
+namespace LaylaApi.Test.Services.MokeDbContext
 {
-    public class LaylaContext : DbContext
+    public class XUnitTestLaylaDbContext : DbContext
     {
-        private readonly IEventDispatcher _dispatcher;
-        public LaylaContext(DbContextOptions<LaylaContext> options, IEventDispatcher dispatcher) : base(options) 
-        {
-            _dispatcher = dispatcher;
+        private readonly FakeEventDispatcher _dispatcher;
+        public XUnitTestLaylaDbContext(DbContextOptions<XUnitTestLaylaDbContext> options, FakeEventDispatcher fakeEventDispatcher) : base(options) 
+        { 
+            _dispatcher = fakeEventDispatcher;
         }
-        // 🧩 تعريف الجداول
         public DbSet<User> Users { get; set; }
         public DbSet<Apartment> Apartments { get; set; }
         public DbSet<Booking> Bookings { get; set; }
@@ -29,13 +26,12 @@ namespace LaylaApi.DataAccess
         public DbSet<Review> Reviews { get; set; }
         public DbSet<MediaFile> MediaFiles { get; set; }
         public DbSet<Report> Reports { get; set; }
-        public DbSet<RefreshToken> RefreshTokens {  get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
 
-        private static void SetSoftDeleteFilter<T>(ModelBuilder builder)
-        where T : Entity
+        private static void SetSoftDeleteFilter<T>(ModelBuilder builder) where T : Entity
         {
             builder.Entity<T>()
                    .HasQueryFilter(e => !e.IsDeleted);
@@ -43,7 +39,17 @@ namespace LaylaApi.DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new ApartmentConfiguration());
+            modelBuilder.ApplyConfiguration(new BookingConfiguration());
+            modelBuilder.ApplyConfiguration(new ContractConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+            modelBuilder.ApplyConfiguration(new ReviewConfiguration());
+            modelBuilder.ApplyConfiguration(new MediaFileConfiguration());
+            modelBuilder.ApplyConfiguration(new ReportConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+            modelBuilder.ApplyConfiguration(new ConversationConfiguration());
+
             ApplyGlobalFilters(modelBuilder);
         }
 
@@ -69,6 +75,7 @@ namespace LaylaApi.DataAccess
                 }
             }
         }
+
         public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
             var entitiesWithEvents = ChangeTracker

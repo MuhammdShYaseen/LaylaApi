@@ -111,6 +111,22 @@ namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
                 query = query.Where(a =>
                     a.HasElevator == request.HasElevator);
 
+            if (!string.IsNullOrWhiteSpace(request.City))
+            {
+                var keyword = request.City.Trim();
+
+                query = query.Where(a =>
+                    EF.Functions.Like(a.Location!.City, $"%{keyword}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Country))
+            {
+                var keyword = request.Country.Trim();
+
+                query = query.Where(a =>
+                    EF.Functions.Like(a.Location!.Country, $"%{keyword}%"));
+            }
+
             if (request.HasParking.HasValue)
                 query = query.Where(a =>
                     a.HasParking == request.HasParking);
