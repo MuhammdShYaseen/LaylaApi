@@ -12,7 +12,7 @@ using Moq;
 using System.Diagnostics;
 
 
-namespace LaylaApi.Test.Services.ApartmentServiceTests
+namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
 {
     public class AddAsyncTest
     {

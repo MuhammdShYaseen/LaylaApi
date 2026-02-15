@@ -11,7 +11,7 @@ using LaylaApi.Services.LanguageServices;
 using LaylaApi.Test.Services.MokeDbContext;
 
 
-namespace LaylaApi.Test.Services.ApartmentServiceTests
+namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
 {
     public class ApartmentSearchServiceTests
     {
