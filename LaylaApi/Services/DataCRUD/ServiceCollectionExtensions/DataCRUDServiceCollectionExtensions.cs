@@ -15,6 +15,7 @@ namespace LaylaApi.Services.DataCRUD.ServiceCollectionExtensions
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IDeviceTokenService, DeviceTokenService>();
             return services;
         }
     }

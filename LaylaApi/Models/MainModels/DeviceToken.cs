@@ -1,8 +1,7 @@
 ﻿using LaylaApi.DomainEvents.Domain.Common;
-using LaylaApi.Models.MainModels;
 using System.ComponentModel.DataAnnotations;
 
-namespace LaylaApi.Models.NotificationsModels
+namespace LaylaApi.Models.MainModels
 {
     public class DeviceToken : Entity
     {

@@ -33,7 +33,11 @@ namespace LaylaApi.DataRepository
             if (entity == null) throw new ArgumentNullException(nameof(entity));
              _dbSet.Remove(entity); 
         } 
-        
+        public virtual void RemoveRange(TEntity[] entities)
+        {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+            _dbSet.RemoveRange(entities);
+        }
         public virtual async Task<int> SaveChangesAsync() 
             => await _context.SaveChangesAsync();
         public virtual IQueryable<TEntity> Query()

@@ -1,6 +1,5 @@
 ﻿using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.Models.MainModels;
-using LaylaApi.Models.NotificationsModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

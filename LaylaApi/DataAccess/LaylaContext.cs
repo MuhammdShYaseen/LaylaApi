@@ -2,7 +2,6 @@
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
 using LaylaApi.Models.MainModels;
-using LaylaApi.Models.NotificationsModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace LaylaApi.DataAccess

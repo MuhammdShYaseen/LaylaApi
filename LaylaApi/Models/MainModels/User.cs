@@ -1,7 +1,6 @@
 ﻿
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
-using LaylaApi.Models.NotificationsModels;
 using LaylaApi.Services.LanguageServices;
 using LaylaApi.ValueObjects.UserValueObject;
 
