@@ -1,7 +1,7 @@
 ﻿
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
-
+using LaylaApi.Models.NotificationsModels;
 using LaylaApi.Services.LanguageServices;
 using LaylaApi.ValueObjects.UserValueObject;
 
@@ -40,6 +40,8 @@ namespace LaylaApi.Models.MainModels
         public ICollection<Apartment>? Apartments { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<RefreshToken>? RefreshToken { get; set; }
+        public ICollection<Conversation> Conversations { get; set; } = null!;
+        public ICollection<DeviceToken> DeviceTokens { get; set; } = null!;
         public static User Create(string fullName, string email, string phoneNumber,
                                   string password, string passwordHash,string lang,
                                   string emailVerificationToken, ISupportedLanguagePolicy languagePolicy)

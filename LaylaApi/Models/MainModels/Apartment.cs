@@ -91,9 +91,10 @@ namespace LaylaApi.Models.MainModels
         [ForeignKey("OwnerId")]
         public User Owner { get; set; } = null!;
         public bool IsChatEnabled { get; private set; } = true;
-        public ICollection<Booking> Bookings { get; set; } = [];
-        public ICollection<Review> Reviews { get; set; } = [];
-        public ICollection<MediaFile> MediaFiles { get; set; } = [];
+        public ICollection<Booking> Bookings { get; set; } = null!;
+        public ICollection<Review> Reviews { get; set; } = null!;
+        public ICollection<MediaFile> MediaFiles { get; set; } = null!;
+        public ICollection<Conversation> Conversations { get; set; } = null!;
 
         public static Apartment Create(CreateApartmentDto dto, int ownerId)
         {

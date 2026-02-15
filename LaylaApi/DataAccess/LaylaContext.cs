@@ -1,15 +1,9 @@
-﻿using System;
-using System.Reflection;
-using LaylaApi.DataAccess.Configurations;
+﻿using System.Reflection;
 using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Dispatcher;
-using LaylaApi.DomainEvents.Domain.Events;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Models.NotificationsModels;
-using LaylaApi.ValueObjects.ApartmentValueObject;
-using LaylaApi.ValueObjects.UserValueObject;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LaylaApi.DataAccess
 {

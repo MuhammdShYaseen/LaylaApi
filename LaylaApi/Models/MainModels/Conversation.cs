@@ -11,6 +11,7 @@ namespace LaylaApi.Models.MainModels
         public int UserId { get; private set; }
         public bool IsClosedByOwner { get; private set; }
         public ICollection<Message>? Messages { get; set; }
+        public User User { get; set; } = null!;
 
         public static Conversation Create(int apartmentId, int ownerId, int userId)
         {

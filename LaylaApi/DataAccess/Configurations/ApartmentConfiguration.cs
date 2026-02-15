@@ -47,7 +47,9 @@ namespace LaylaApi.DataAccess.Configurations
                 a.FloorNumber,
                 a.NumberOfBedRooms,
                 a.NumberOfBathrooms,
-                a.NumberOfLivingRooms
+                a.NumberOfLivingRooms,
+                a.Location!.Country,
+                a.Location!.City,
             });
 
             builder.HasIndex(a => new

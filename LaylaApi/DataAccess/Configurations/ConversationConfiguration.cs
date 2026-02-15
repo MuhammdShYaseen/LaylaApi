@@ -9,6 +9,20 @@ namespace LaylaApi.DataAccess.Configurations
         public void Configure(EntityTypeBuilder<Conversation> entity)
         {
             entity.HasIndex(c => new { c.ApartmentId, c.UserId }).IsUnique();
+            entity.HasOne(c => c.Apartment)
+                  .WithMany(a => a.Conversations)
+                  .HasForeignKey(c => c.ApartmentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.User)
+                  .WithMany(u => u.Conversations)
+                  .HasForeignKey(c => c.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(c => c.Messages)
+                  .WithOne(m => m.Conversation)
+                  .HasForeignKey(m => m.ConversationId)
+                  .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
