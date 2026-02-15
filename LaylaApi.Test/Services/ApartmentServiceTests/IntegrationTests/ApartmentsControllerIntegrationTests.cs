@@ -60,5 +60,23 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.IntegrationTests
                 a.PricePerDay.Should().BeLessThanOrEqualTo(maxPrice);
             });
         }
+        [Fact]
+        public async Task Search_WithCityAndPrice_ReturnsCorrectResults()
+        {
+            var response = await _client.GetAsync(
+                "/api/apartments/dynamic?City=Cairo&MinPrice=100&MaxPrice=200");
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content
+                .ReadFromJsonAsync<ApiResponse<PagedResult<ApartmentDto>>>();
+
+            content.Data.Items.Should().AllSatisfy(a =>
+            {
+                a.City.Should().Be("Cairo");
+                a.PricePerDay.Should().BeInRange(100, 200);
+            });
+        }
+
     }
 }
