@@ -12,9 +12,9 @@ namespace LaylaApi.Services.SoftDeleteService
             _repository = repository;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id)
+        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetByIdAsync(id, ct);
             if (entity == null) return false;
             entity.Delete();
 

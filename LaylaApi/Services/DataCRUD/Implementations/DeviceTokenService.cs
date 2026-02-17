@@ -29,13 +29,13 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
 
             if (id <= 0)
                 throw new BadHttpRequestException("device id is required");
 
-            var dvToken = await _repository.GetByIdAsync(id);
+            var dvToken = await _repository.GetByIdAsync(id, ct);
             if (dvToken == null) return false;
 
             _repository.HardDelete(dvToken);
@@ -43,14 +43,14 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return true;
         }
 
-        public async Task<IEnumerable<DeviceToken>> GetByUserIdAsync(int userId)
+        public async Task<IEnumerable<DeviceToken>> GetByUserIdAsync(int userId, CancellationToken ct)
         {
             if (userId <= 0)
                 throw new BadHttpRequestException("user id is required");
 
             return await _repository.Query().AsNoTracking()
             .Where(dt => dt.UserId == userId)
-            .ToListAsync();
+            .ToListAsync(ct);
         }
 
         public async Task<DeviceToken> UpsertAsync(DeviceTokenUpsertDto dto, int currentUserId, CancellationToken ct)

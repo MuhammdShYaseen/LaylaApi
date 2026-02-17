@@ -32,9 +32,9 @@ namespace LaylaApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet("users/{userId:int}")]
-        public async Task<IActionResult> GetByUserId(int userId)
+        public async Task<IActionResult> GetByUserId(int userId, CancellationToken ct)
         {
-            var tokens = await _service.GetByUserIdAsync(userId);
+            var tokens = await _service.GetByUserIdAsync(userId, ct);
 
             return Ok(ApiResponse<IEnumerable<DeviceToken>>.Ok(tokens));
         }
@@ -52,9 +52,9 @@ namespace LaylaApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var deleted = await _service.DeleteAsync(id);
+            var deleted = await _service.DeleteAsync(id, ct);
 
             if (!deleted)
                 return NotFound();

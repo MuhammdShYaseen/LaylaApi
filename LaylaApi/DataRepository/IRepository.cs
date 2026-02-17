@@ -3,8 +3,8 @@ namespace LaylaApi.DataRepository
 {
     public interface IRepository<TEntity> where TEntity : Entity
     {
-        Task<TEntity?> GetByIdAsync(long id);
-        Task<TEntity?> GetByGuidAsync(Guid guid);
+        Task<TEntity?> GetByIdAsync(long id, CancellationToken ct);
+        Task<TEntity?> GetByGuidAsync(Guid guid, CancellationToken ct);
 
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);

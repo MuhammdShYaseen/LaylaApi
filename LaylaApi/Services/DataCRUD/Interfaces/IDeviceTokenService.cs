@@ -5,9 +5,9 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
 {
     public interface IDeviceTokenService
     {
-        Task<IEnumerable<DeviceToken>> GetByUserIdAsync(int userId);
+        Task<IEnumerable<DeviceToken>> GetByUserIdAsync(int userId, CancellationToken ct);
         Task<DeviceToken> UpsertAsync(DeviceTokenUpsertDto dto, int currentUserId, CancellationToken ct);
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id, CancellationToken ct);
         Task CleanupInactiveAsync(TimeSpan maxAge);
     }
 }

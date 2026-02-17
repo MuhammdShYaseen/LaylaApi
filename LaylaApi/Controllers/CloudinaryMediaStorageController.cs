@@ -1,15 +1,10 @@
 ﻿using LaylaApi.Models.DtosModels.ExternalMediaStorageDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using System.Security.Cryptography;
-using System.Text;
 using LaylaApi.Services.MediaStorageProviderServices.Interfaces;
 using static LaylaApi.Services.MediaStorageProviderServices.Implementation.CloudinaryStorageProvider;
 using System.Security.Claims;
-using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.GenericResponseModels;
-using System.Security.Cryptography.Xml;
 
 namespace LaylaApi.Controllers
 {
@@ -34,17 +29,17 @@ namespace LaylaApi.Controllers
 
         [HttpPost("signature")]
         [Authorize]
-        public async Task<ActionResult<UploadSignatureDto>> CreateUploadSignature([FromQuery] int apartmentId)
+        public async Task<ActionResult<UploadSignatureDto>> CreateUploadSignature([FromQuery] int apartmentId, CancellationToken ct)
         {
-             var signature = await _storageProvider.CreateUploadSignatureAsync(CurrentUserId(), apartmentId, IsAdmin());
+             var signature = await _storageProvider.CreateUploadSignatureAsync(CurrentUserId(), apartmentId, IsAdmin(), ct);
              return Ok(ApiResponse<UploadSignatureDto>.Ok(signature));
         }
 
         [HttpPost("webhook")]
         [AllowAnonymous]
-        public async Task<IActionResult> Webhook()
+        public async Task<IActionResult> Webhook(CancellationToken ct)
         {
-            var result = await _storageProvider.ProcessWebhookAsync(Request);
+            var result = await _storageProvider.ProcessWebhookAsync(Request,ct);
 
             return result switch
             {
@@ -56,10 +51,10 @@ namespace LaylaApi.Controllers
 
         [HttpDelete("{mediaId:int}")]
         [Authorize]
-        public async Task<IActionResult> DeleteMedia(int mediaId)
+        public async Task<IActionResult> DeleteMedia(int mediaId, CancellationToken ct)
         {
             
-            bool result = await _storageProvider.DeleteAsync(mediaId, CurrentUserId(), IsAdmin());
+            bool result = await _storageProvider.DeleteAsync(mediaId, CurrentUserId(), IsAdmin(),ct);
             if (!result)
                 return BadRequest(ApiResponse<object>.Fail("can not delete this media"));
 

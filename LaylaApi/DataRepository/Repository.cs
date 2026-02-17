@@ -13,10 +13,10 @@ namespace LaylaApi.DataRepository
             _context = context ??  throw new ArgumentNullException(nameof(context));
             _dbSet = context.Set<TEntity>();
         } 
-        public virtual Task<TEntity?> GetByIdAsync(long id) 
-            => _dbSet.FindAsync(id).AsTask();
-        public virtual Task<TEntity?> GetByGuidAsync(Guid guid) 
-            => _dbSet.FirstOrDefaultAsync(x => x.Guid == guid);
+        public virtual Task<TEntity?> GetByIdAsync(long id, CancellationToken ct) 
+            => _dbSet.FindAsync(id,ct).AsTask();
+        public virtual Task<TEntity?> GetByGuidAsync(Guid guid, CancellationToken ct) 
+            => _dbSet.FirstOrDefaultAsync(x => x.Guid == guid, ct);
         public virtual async Task AddAsync(TEntity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));

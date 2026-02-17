@@ -32,14 +32,14 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             _apartmentService = apartmentService;
         }
      
-        public async Task<UploadSignatureDto> CreateUploadSignatureAsync(int userId, int apartmentId, bool isAdmin)
+        public async Task<UploadSignatureDto> CreateUploadSignatureAsync(int userId, int apartmentId, bool isAdmin, CancellationToken ct)
         {
 
             await HasPermission(userId, apartmentId, isAdmin);
 
             var used = await _repository.Query()
                           .Where(x => x.UserId == userId && x.Status == MediaStatus.Approved)
-                          .SumAsync(x => (long?)x.Bytes) ?? 0;
+                          .SumAsync(x => (long?)x.Bytes, ct) ?? 0;
 
             if (used > 2L * 1024 * 1024 * 1024) // 2GB
                 throw new InvalidOperationException("Quota exceeded");
@@ -77,7 +77,7 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             };
         }
 
-        public async Task<WebhookResult> ProcessWebhookAsync(HttpRequest request)
+        public async Task<WebhookResult> ProcessWebhookAsync(HttpRequest request, CancellationToken ct)
         {
             // 1️⃣ قراءة الـ body
             string body;
@@ -105,14 +105,14 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
                 return WebhookResult.Invalid;
 
             // 6️⃣ معالجة المنطق
-            await HandleWebhookAsync(dto);
+            await HandleWebhookAsync(dto, ct);
 
             return WebhookResult.Success;
         }
 
-        public async Task<bool> DeleteAsync(int mediaId, int CurrentUserId, bool isAdmin)
+        public async Task<bool> DeleteAsync(int mediaId, int CurrentUserId, bool isAdmin, CancellationToken ct)
         {
-            var media = await _repository.GetByIdAsync(mediaId);
+            var media = await _repository.GetByIdAsync(mediaId, ct);
 
             if (media == null)
                 return false;
@@ -143,12 +143,12 @@ namespace LaylaApi.Services.MediaStorageProviderServices.Implementation
             if (isAdmin == false && apartment.OwnerId != userId)
                 throw new UnauthorizedAccessException("You are not own this apartment");
         }
-        private async Task HandleWebhookAsync(WebhookDto data)
+        private async Task HandleWebhookAsync(WebhookDto data, CancellationToken ct)
         {
             if (!int.TryParse(data.Context?["media_id"], out var mediaId))
                 return;
 
-            var media = await _repository.GetByIdAsync(mediaId);
+            var media = await _repository.GetByIdAsync(mediaId, ct);
 
             if (media == null)
                 return;
