@@ -8,19 +8,22 @@ namespace LaylaApi.DataRepository
     { 
         protected readonly LaylaContext _context;
         protected readonly DbSet<TEntity> _dbSet;
-        public Repository(LaylaContext context) 
+        private readonly IHttpContextAccessor _http;
+        private CancellationToken Ct => _http.HttpContext?.RequestAborted ?? CancellationToken.None;
+        public Repository(LaylaContext context, IHttpContextAccessor http) 
         { 
             _context = context ??  throw new ArgumentNullException(nameof(context));
+             _http = http ?? throw new ArgumentNullException(nameof(http));
             _dbSet = context.Set<TEntity>();
         } 
         public virtual Task<TEntity?> GetByIdAsync(long id) 
-            => _dbSet.FindAsync(id).AsTask();
+            => _dbSet.FindAsync(id,Ct).AsTask();
         public virtual Task<TEntity?> GetByGuidAsync(Guid guid) 
-            => _dbSet.FirstOrDefaultAsync(x => x.Guid == guid);
+            => _dbSet.FirstOrDefaultAsync(x => x.Guid == guid,Ct);
         public virtual async Task AddAsync(TEntity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-            await _dbSet.AddAsync(entity); 
+            await _dbSet.AddAsync(entity, Ct); 
         }
         public virtual void Update(TEntity entity)
         {
@@ -39,7 +42,7 @@ namespace LaylaApi.DataRepository
             _dbSet.RemoveRange(entities);
         }
         public virtual async Task<int> SaveChangesAsync() 
-            => await _context.SaveChangesAsync();
+            => await _context.SaveChangesAsync(Ct);
         public virtual IQueryable<TEntity> Query()
         =>  _dbSet;
     } 
