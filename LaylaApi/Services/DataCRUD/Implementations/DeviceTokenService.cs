@@ -29,10 +29,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             }
         }
 
-        public async Task<bool> DeleteAsync(int id, bool isAdmin)
+        public async Task<bool> DeleteAsync(int id)
         {
-            if (isAdmin == false) 
-                throw new UnauthorizedAccessException("you can not delete this file");
+
+            if (id <= 0)
+                throw new BadHttpRequestException("device id is required");
 
             var dvToken = await _repository.GetByIdAsync(id);
             if (dvToken == null) return false;
@@ -44,20 +45,27 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<IEnumerable<DeviceToken>> GetByUserIdAsync(int userId)
         {
-            return await _repository.Query()
+            if (userId <= 0)
+                throw new BadHttpRequestException("user id is required");
+
+            return await _repository.Query().AsNoTracking()
             .Where(dt => dt.UserId == userId)
             .ToListAsync();
         }
 
-        public async Task<DeviceToken> UpsertAsync(DeviceTokenUpsertDto dto, int currentUserId)
+        public async Task<DeviceToken> UpsertAsync(DeviceTokenUpsertDto dto, int currentUserId, CancellationToken ct)
         {
-            var existing = await _repository.Query()
-                .FirstOrDefaultAsync(dt => dt.UserId == currentUserId && dt.DeviceId == dto.DeviceId);
+            if (currentUserId <= 0)
+                throw new BadHttpRequestException("user id is required");
 
+            var existing = await _repository.Query()
+                .FirstOrDefaultAsync(dt => dt.UserId == currentUserId && dt.DeviceId == dto.DeviceId, ct);
+
+            if (string.IsNullOrEmpty(dto.Token))
+                    throw new BadHttpRequestException("this data can not be empty");
             if (existing != null)
             {
-                if (string.IsNullOrEmpty(dto.Token))
-                    throw new BadHttpRequestException("this data can not be empty");
+                
 
                 existing.UpdateToken(dto.Token);
 
@@ -67,9 +75,6 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
                 return existing;
             }
-
-            if (string.IsNullOrEmpty(dto.Token) || string.IsNullOrEmpty(dto.DeviceId) || string.IsNullOrEmpty(dto.Platform))
-                throw new BadHttpRequestException("this data can not be empty");
 
             var deviceToken = DeviceToken.Create(currentUserId, dto.Token , dto.Platform, dto.DeviceId);
             

@@ -1,9 +1,14 @@
-﻿namespace LaylaApi.Models.DtosModels.MainDtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace LaylaApi.Models.DtosModels.MainDtos
 {
     public class DeviceTokenUpsertDto
     {
-        public string? Token { get; set; }
-        public string? Platform { get; set; } 
-        public string? DeviceId { get; private set; }
+        [Required]
+        public string Token { get; set; } = null!;
+        [Required]
+        public string Platform { get; set; } = null!;
+        [Required]
+        public string DeviceId { get; private set; } = null!;
     }
 }
