@@ -34,14 +34,14 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
         }
 
-        public async Task<ApartmentDto> GetByIdAsync(int id)
+        public async Task<ApartmentDto> GetByIdAsync(int id, CancellationToken ct)
         {
             var apartment = await _context.Apartments
                 .AsNoTracking()
                 .Include(a => a.Owner)
                 .Include(a => a.MediaFiles)
                 .Include(a => a.Reviews)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .FirstOrDefaultAsync(a => a.Id == id, ct);
 
             return _mapper.Map<ApartmentDto>(apartment);
         }
@@ -58,19 +58,19 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 throw new ArgumentNullException(nameof(apartment));
             return apartment;
         }
-        public async Task <IEnumerable<ApartmentDto>> GetByOwnerIdAsync(int id)
+        public async Task <IEnumerable<ApartmentDto>> GetByOwnerIdAsync(int id, CancellationToken ct)
         {
             var apartments = await _context.Apartments
                   .AsNoTracking()
                   .Include(a => a.MediaFiles)
                   .Include(a => a.Reviews)
                   .Where(a => a.OwnerId == id)
-                  .ToListAsync();
+                  .ToListAsync(ct);
 
             return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
         }
 
-        public async Task<IEnumerable<ApartmentDto>> SearchAsync(string keyword)
+        public async Task<IEnumerable<ApartmentDto>> SearchAsync(string keyword, CancellationToken ct)
         {
             keyword = keyword.ToLower();
 
@@ -82,17 +82,17 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                     a.Location!.ToString().ToLower().Contains(keyword) ||
                     (a.Description != null && a.Description.ToLower().Contains(keyword))
                 )
-                .ToListAsync();
+                .ToListAsync(ct);
 
             return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
         }
 
-        public async Task<ApartmentDto> AddAsync(CreateApartmentDto dto, int userId)
+        public async Task<ApartmentDto> AddAsync(CreateApartmentDto dto, int userId, CancellationToken ct)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
 
-            var ownerExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            var ownerExists = await _context.Users.AnyAsync(u => u.Id == userId, ct);
             if (!ownerExists)
                 throw new KeyNotFoundException("User not found");
 
@@ -104,9 +104,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ApartmentDto>(apartment);
         }
 
-        public async Task<ApartmentDto?> UpdateAsync(int id, CreateApartmentDto dto, int ownerId, bool isAdmin)
+        public async Task<ApartmentDto?> UpdateAsync(int id, CreateApartmentDto dto, int ownerId, bool isAdmin, CancellationToken ct)
         {
-            var apartment = await _context.Apartments.FindAsync(id)?? 
+            var apartment = await _context.Apartments.FindAsync(id, ct)?? 
                 throw new KeyNotFoundException("Apartment not found.");
 
             if (apartment.OwnerId != ownerId && !isAdmin)
@@ -119,9 +119,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ApartmentDto>(apartment);
         }
 
-        public async Task<bool> DeleteAsync(int id, int ownerId)
+        public async Task<bool> DeleteAsync(int id, int ownerId, CancellationToken ct)
         {
-            var apartment = await _context.Apartments.FindAsync(id);
+            var apartment = await _context.Apartments.FindAsync(id, ct);
 
             if (apartment == null)
                 return false;

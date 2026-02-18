@@ -256,7 +256,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             var dto = ValidCreateApartmentDto();
 
             // Act
-            var result = await service.AddAsync(dto, 1);
+            var result = await service.AddAsync(dto, 1, CancellationToken.None);
         }
 
 

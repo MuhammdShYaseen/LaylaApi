@@ -83,7 +83,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                service.AddAsync(null!, 1)
+                service.AddAsync(null!, 1, CancellationToken.None)
             );
         }
         [Fact]
@@ -98,7 +98,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
 
             // Act & Assert
             await Assert.ThrowsAsync < KeyNotFoundException>(() =>
-                service.AddAsync(dto, userId: 999)
+                service.AddAsync(dto, userId: 999, CancellationToken.None)
             );
         }
 
@@ -127,7 +127,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             var dto = ValidCreateApartmentDto();
 
             // Act
-            var result = await service.AddAsync(dto, 1);
+            var result = await service.AddAsync(dto, 1, CancellationToken.None);
 
             // Assert
             context.Apartments.Should().HaveCount(1);
