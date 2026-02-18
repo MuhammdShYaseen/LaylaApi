@@ -5,15 +5,15 @@ namespace LaylaApi.Services.AdminDashboardService.Interfaces
 {
     public interface IDashboardService
     {
-        Task<OverviewDto> GetOverviewAsync();
-        Task<IEnumerable<StatusStatsDto>> GetBookingStatusStatsAsync();
-        Task<IEnumerable<MonthlyStatsDto>> GetMonthlyBookingsAsync();
-        Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenueAsync();
-        Task<IEnumerable<TopApartmentDto>> GetTopBookedApartmentsAsync();
-        Task<IEnumerable<TopRatedApartmentDto>> GetTopRatedApartmentsAsync();
-        Task<IEnumerable<TopUserDto>> GetTopRentersAsync();
-        Task<IEnumerable<TopUserDto>> GetTopOwnersAsync();
-        Task<IEnumerable<MonthlyStatsDto>> GetMonthlyReportsAsync();
-        Task<int> GetTodayReportsAsync();
+        Task<OverviewDto> GetOverviewAsync(CancellationToken ct);
+        Task<IEnumerable<StatusStatsDto>> GetBookingStatusStatsAsync(CancellationToken ct);
+        Task<IEnumerable<MonthlyStatsDto>> GetMonthlyBookingsAsync(CancellationToken ct);
+        Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenueAsync(CancellationToken ct);
+        Task<IEnumerable<TopApartmentDto>> GetTopBookedApartmentsAsync(CancellationToken ct);
+        Task<IEnumerable<TopRatedApartmentDto>> GetTopRatedApartmentsAsync(CancellationToken ct);
+        Task<IEnumerable<TopUserDto>> GetTopRentersAsync(CancellationToken ct);
+        Task<IEnumerable<TopUserDto>> GetTopOwnersAsync(CancellationToken ct);
+        Task<IEnumerable<MonthlyStatsDto>> GetMonthlyReportsAsync(CancellationToken ct);
+        Task<int> GetTodayReportsAsync(CancellationToken ct);
     }
 }

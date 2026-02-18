@@ -34,20 +34,20 @@ namespace LaylaApi.Controllers
         // 🔐 إضافة شقة — فقط للمستخدم المسجّل
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddApartment([FromBody] CreateApartmentDto dto)
+        public async Task<IActionResult> AddApartment([FromBody] CreateApartmentDto dto, CancellationToken ct)
         {
 
-            var result = await _apartmentService.AddAsync(dto, CurrentUserId());
+            var result = await _apartmentService.AddAsync(dto, CurrentUserId(), ct);
             
             return Ok(ApiResponse<ApartmentDto>.Ok(result));
         }
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateApartment(int id, [FromBody] CreateApartmentDto dto)
+        public async Task<IActionResult> UpdateApartment(int id, [FromBody] CreateApartmentDto dto, CancellationToken ct)
         {
 
-            var result = await _apartmentService.UpdateAsync(id, dto, CurrentUserId(), IsAdmin());
+            var result = await _apartmentService.UpdateAsync(id, dto, CurrentUserId(), IsAdmin(), ct);
 
             if (result == null)
                 throw new KeyNotFoundException("Apartment not found or you do not own it.");
@@ -57,32 +57,32 @@ namespace LaylaApi.Controllers
 
         // 🔍 البحث عن شقق
         [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string keyword)
+        public async Task<IActionResult> Search([FromQuery] string keyword, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(keyword))
                 throw new BadHttpRequestException("Keyword cannot be empty.");
 
-            var result = await _apartmentService.SearchAsync(keyword);
+            var result = await _apartmentService.SearchAsync(keyword, ct);
 
             return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
 
         // 📍 الشقق القريبة من موقع المستخدم
         [HttpGet("nearby")]
-        public async Task<IActionResult> GetNearby([FromQuery] double lat, [FromQuery] double lng, [FromQuery] double distanceKm = 5.0)
+        public async Task<IActionResult> GetNearby(CancellationToken ct, [FromQuery] double lat, [FromQuery] double lng, [FromQuery] double distanceKm = 5.0)
         {
-            var result = await _apartmentService.GetNearbyAsync(lat, lng, distanceKm);
+            var result = await _apartmentService.GetNearbyAsync(lat, lng, distanceKm, ct);
 
             return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }
 
         [HttpDelete("{id}")]
         [Authorize]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var success = await _apartmentService.DeleteAsync(id, userId);
+            var success = await _apartmentService.DeleteAsync(id, userId, ct);
 
             if (!success)
                 throw new BadHttpRequestException("Unable to delete apartment or you do not own it.");
@@ -99,9 +99,9 @@ namespace LaylaApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
-            var result = await _apartmentService.GetByIdAsync(id);
+            var result = await _apartmentService.GetByIdAsync(id, ct);
 
             if (result == null)
                throw new KeyNotFoundException("Apartment not found.");
@@ -111,11 +111,11 @@ namespace LaylaApi.Controllers
 
         [HttpGet("my")]
         [Authorize]
-        public async Task<IActionResult> GetMyApartments()
+        public async Task<IActionResult> GetMyApartments(CancellationToken ct)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var result = await _apartmentService.GetByOwnerIdAsync(userId);
+            var result = await _apartmentService.GetByOwnerIdAsync(userId, ct);
 
             return Ok(ApiResponse<IEnumerable<ApartmentDto>>.Ok(result));
         }

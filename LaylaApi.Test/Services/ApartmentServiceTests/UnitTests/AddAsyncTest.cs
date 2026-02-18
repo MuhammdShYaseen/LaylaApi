@@ -52,7 +52,24 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
                 Longitude = 36.3,
                 PricePerDay = 50,
                 PricePerHour = 5,
-                ApartmentNumber ="iop"
+                ApartmentNumber ="iop",
+                Description = "Test Apartment Des",
+                Finishing = Apartment.Amenities.Basic,
+                FloorNumber = 2,
+                HasElevator = true,
+                HasParking = true,
+                HasPool = true,
+                Area = 23,
+                IsAvailable = true,
+                IsChatEnabled = true,
+                NumberOfBalconies = 1,
+                NumberOfBathrooms = 1,
+                NumberOfBedRooms = 1,
+                NumberOfLivingRooms = 1,
+                NumberOfReceptionRooms = 1,
+                Orientation = "West Est",
+                Type = Apartment.BuildingType.Apartment,
+                View = Apartment.ApartmentView.SeaView,
             };
         }
 

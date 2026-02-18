@@ -14,29 +14,29 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
             _context = context;
         }
 
-        public async Task<OverviewDto> GetOverviewAsync()
+        public async Task<OverviewDto> GetOverviewAsync(CancellationToken ct)
         {
             var today = DateTime.UtcNow.Date;
 
             return new OverviewDto
             {
-                TotalUsers = await _context.Users.CountAsync(),
-                TotalApartments = await _context.Apartments.CountAsync(),
-                TotalBookings = await _context.Bookings.CountAsync(),
-                TotalReviews = await _context.Reviews.CountAsync(),
-                TotalReports = await _context.Reports.CountAsync(),
+                TotalUsers = await _context.Users.CountAsync(ct),
+                TotalApartments = await _context.Apartments.CountAsync(ct),
+                TotalBookings = await _context.Bookings.CountAsync(ct),
+                TotalReviews = await _context.Reviews.CountAsync(ct),
+                TotalReports = await _context.Reports.CountAsync(ct),
                 TotalRevenue = await _context.Payments
                     .Where(p => p.Status == "Completed")
                     .SumAsync(p => p.Amount),
 
-                NewUsersToday = await _context.Users.CountAsync(u => u.CreatedAt.Date == today),
-                NewApartmentsToday = await _context.Apartments.CountAsync(a => a.CreatedAt.Date == today),
-                NewBookingsToday = await _context.Bookings.CountAsync(b => b.CreatedAt.Date == today),
-                NewReportsToday = await _context.Reports.CountAsync(r => r.CreatedAt.Date == today)
+                NewUsersToday = await _context.Users.CountAsync(u => u.CreatedAt.Date == today, ct),
+                NewApartmentsToday = await _context.Apartments.CountAsync(a => a.CreatedAt.Date == today, ct),
+                NewBookingsToday = await _context.Bookings.CountAsync(b => b.CreatedAt.Date == today, ct),
+                NewReportsToday = await _context.Reports.CountAsync(r => r.CreatedAt.Date == today, ct)
             };
         }
 
-        public async Task<IEnumerable<StatusStatsDto>> GetBookingStatusStatsAsync()
+        public async Task<IEnumerable<StatusStatsDto>> GetBookingStatusStatsAsync(CancellationToken ct)
         {
             return await _context.Bookings
                 .GroupBy(b => b.Status)
@@ -45,10 +45,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                     Status = g.Key,
                     Count = g.Count()
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<MonthlyStatsDto>> GetMonthlyBookingsAsync()
+        public async Task<IEnumerable<MonthlyStatsDto>> GetMonthlyBookingsAsync(CancellationToken ct)
         {
             return await _context.Bookings
                 .GroupBy(b => new { b.CreatedAt.Year, b.CreatedAt.Month })
@@ -60,10 +60,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                 })
                 .OrderBy(g => g.Year)
                 .ThenBy(g => g.Month)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenueAsync()
+        public async Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenueAsync(CancellationToken ct)
         {
             return await _context.Payments
                 .Where(p => p.Status == "Completed")
@@ -76,10 +76,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                 })
                 .OrderBy(x => x.Year)
                 .ThenBy(x => x.Month)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<TopApartmentDto>> GetTopBookedApartmentsAsync()
+        public async Task<IEnumerable<TopApartmentDto>> GetTopBookedApartmentsAsync(CancellationToken ct)
         {
             return await _context.Bookings
                 .GroupBy(b => b.ApartmentId)
@@ -91,10 +91,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                 })
                 .OrderByDescending(x => x.TotalBookings)
                 .Take(10)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<TopRatedApartmentDto>> GetTopRatedApartmentsAsync()
+        public async Task<IEnumerable<TopRatedApartmentDto>> GetTopRatedApartmentsAsync(CancellationToken ct)
         {
             return await _context.Reviews
                 .GroupBy(r => r.ApartmentId)
@@ -108,10 +108,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                 .OrderByDescending(x => x.AverageRating)
                 .ThenByDescending(x => x.ReviewCount)
                 .Take(10)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<TopUserDto>> GetTopRentersAsync()
+        public async Task<IEnumerable<TopUserDto>> GetTopRentersAsync(CancellationToken ct)
         {
             return await _context.Bookings
                 .GroupBy(b => b.UserId)
@@ -123,10 +123,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                 })
                 .OrderByDescending(x => x.Count)
                 .Take(10)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<TopUserDto>> GetTopOwnersAsync()
+        public async Task<IEnumerable<TopUserDto>> GetTopOwnersAsync(CancellationToken ct)
         {
             return await _context.Apartments
                 .GroupBy(a => a.OwnerId)
@@ -138,10 +138,10 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                 })
                 .OrderByDescending(x => x.Count)
                 .Take(10)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<MonthlyStatsDto>> GetMonthlyReportsAsync()
+        public async Task<IEnumerable<MonthlyStatsDto>> GetMonthlyReportsAsync(CancellationToken ct)
         {
             return await _context.Reports
                 .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
@@ -151,15 +151,15 @@ namespace LaylaApi.Services.AdminDashboardService.Implementations
                     Month = g.Key.Month,
                     Count = g.Count()
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<int> GetTodayReportsAsync()
+        public async Task<int> GetTodayReportsAsync(CancellationToken ct)
         {
             var today = DateTime.UtcNow.Date;
 
             return await _context.Reports
-                .CountAsync(r => r.CreatedAt.Date == today);
+                .CountAsync(r => r.CreatedAt.Date == today, ct);
         }
     }
 }

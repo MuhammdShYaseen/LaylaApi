@@ -70,17 +70,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<BookingDto> AddAsync(CreateBookingDto dto, int userId)
         {
-            if (dto.StartDate >= dto.EndDate)
-                throw new BadHttpRequestException("Start date must be earlier than end date.");
-
-            if (dto.StartDate < DateTime.UtcNow.Date)
-                throw new BadHttpRequestException("Cannot book dates in the past.");
-
-            if (dto.EndDate < DateTime.UtcNow.Date)
-                throw new BadHttpRequestException("End date cannot be in the past.");
-
-            if (dto.StartDate >= dto.EndDate)
-                throw new BadHttpRequestException("Start date must be earlier than end date.");
+            
 
             var apartment = await _context.Apartments
                 .AsNoTracking()
@@ -128,7 +118,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (dto.StartDate >= dto.EndDate)
                 throw new BadHttpRequestException("Invalid date range.");
 
-            if (!await IsDateAvailableAsync( booking.ApartmentId, dto.StartDate, dto.EndDate))
+            if (!await IsDateAvailableAsync(booking.ApartmentId, dto.StartDate, dto.EndDate))
                 throw new BadHttpRequestException("Booking time overlap.");
 
             // ✅ التحديث يتم عبر الكيان
@@ -153,8 +143,16 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<bool> IsDateAvailableAsync(int apartmentId, DateTime startDate, DateTime endDate)
         {
-            //return !await _context.Bookings.AnyAsync(b => b.ApartmentId == apartmentId && b.Status != "Cancelled" && ((startDate >= b.StartDate && startDate < b.EndDate) ||(endDate > b.StartDate && endDate <= b.EndDate)));
-            //return !await _context.Bookings.AnyAsync(b => b.ApartmentId == apartmentId && b.Status == BookingStatus.Confirmed && b.StartDate < endDate && b.EndDate > startDate);
+           
+            if (startDate >= endDate)
+                throw new BadHttpRequestException("Start date must be earlier than end date.");
+
+            if (startDate < DateTime.UtcNow)
+                throw new BadHttpRequestException("Cannot book dates in the past.");
+
+            if (endDate < DateTime.UtcNow)
+                throw new BadHttpRequestException("End date cannot be in the past.");
+
             var forbiddenStatuses = new[]
             {
                 BookingStatus.Accepted,
