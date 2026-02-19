@@ -11,7 +11,7 @@ namespace LaylaApi.Controllers
 {
     [ApiController]
     [Route("api/messages")]
-    [Authorize]
+    [Authorize(Policy = "ConfirmedEmail")]
     public class MessagesController : ControllerBase
     {
         private readonly IMessageService _messageService;

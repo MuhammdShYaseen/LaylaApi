@@ -12,7 +12,7 @@ namespace LaylaApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "ConfirmedEmail")]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;

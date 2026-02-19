@@ -38,7 +38,7 @@ namespace LaylaApi.Controllers
 
         // 🟦 رفع الصور والفيديوهات لشقة
         [HttpPost("upload/{apartmentId}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         [RequestSizeLimit(50_000_000)] // 50 MB
         public async Task<IActionResult> Upload(int apartmentId, List<IFormFile> files)
         {
@@ -50,7 +50,7 @@ namespace LaylaApi.Controllers
 
         // 🗑️ حذف ملف
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
 
         public async Task<IActionResult> Delete(int id)
         {
@@ -61,7 +61,6 @@ namespace LaylaApi.Controllers
 
         // 🔍 عرض ملفات شقة
         [HttpGet("mediafiles/apartment/{apartmentId}")]
-        //[Authorize]
         public async Task<IActionResult> GetByApartment(int apartmentId)
         {
             var result = await _mediaService.GetByApartmentIdAsync(apartmentId);

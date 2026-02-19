@@ -33,7 +33,7 @@ namespace LaylaApi.Controllers
 
         // 🔐 إضافة شقة — فقط للمستخدم المسجّل
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> AddApartment([FromBody] CreateApartmentDto dto, CancellationToken ct)
         {
 
@@ -43,7 +43,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> UpdateApartment(int id, [FromBody] CreateApartmentDto dto, CancellationToken ct)
         {
 
@@ -77,7 +77,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

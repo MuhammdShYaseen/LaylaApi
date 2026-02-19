@@ -51,7 +51,17 @@ namespace LaylaApi.Services.AuthServices.ServiceCollectionExtensions
             });
 
             services.AddAuthorization();
-
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ConfirmedEmail", policy =>
+                {
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(c =>
+                            c.Type == "EmailConfirmed" &&
+                            bool.TryParse(c.Value, out var v) &&
+                            v));
+                });
+            });
             return services;
         }
     }

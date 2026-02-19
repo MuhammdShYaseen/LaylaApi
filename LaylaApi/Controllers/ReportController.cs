@@ -40,7 +40,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _reportService.GetByIdAsync(id, CurrentUserId(), IsAdmin());
@@ -57,7 +57,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpGet("my")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> GetMyReports()
         {
             var result = await _reportService.GetByReporterIdAsync(CurrentUserId());
@@ -65,7 +65,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> Create([FromBody] ReportCreateDto model)
         {
             var result = await _reportService.CreateAsync(model, CurrentUserId(), IsAdmin());
@@ -87,7 +87,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> Delete(int id)
         {
             await _reportService.DeleteAsync(id, CurrentUserId(), IsAdmin());

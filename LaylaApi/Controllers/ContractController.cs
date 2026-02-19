@@ -10,6 +10,7 @@ namespace LaylaApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "ConfirmedEmail")]
     public class ContractController : ControllerBase
     {
         private readonly IContractService _contractService;
@@ -36,7 +37,6 @@ namespace LaylaApi.Controllers
         }
         
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
             var userId = CurrentUserId();
@@ -51,7 +51,6 @@ namespace LaylaApi.Controllers
         }
 
         [HttpGet("booking/{bookingId}")]
-        [Authorize]
         public async Task<IActionResult> GetByBooking(int bookingId)
         {
             var userId = CurrentUserId();
@@ -65,7 +64,6 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}/sign-owner")]
-        [Authorize]
         public async Task<IActionResult> SignByOwner(int id)
         {
             var userId = CurrentUserId();
@@ -79,7 +77,6 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}/sign-renter")]
-        [Authorize]
         public async Task<IActionResult> SignByRenter(int id)
         {
             var userId = CurrentUserId();
@@ -94,7 +91,6 @@ namespace LaylaApi.Controllers
 
 
         [HttpPost("generate")]
-        [Authorize]
         public async Task<IActionResult> GenerateContract([FromBody] ContractCreateDto model)
         {
             var userId = CurrentUserId();
@@ -109,7 +105,6 @@ namespace LaylaApi.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var isDeleted = await _contractService.DeleteAsync(id, CurrentUserId(), IsAdmin());

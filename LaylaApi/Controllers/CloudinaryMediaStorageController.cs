@@ -28,7 +28,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("signature")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<ActionResult<UploadSignatureDto>> CreateUploadSignature([FromQuery] int apartmentId, CancellationToken ct)
         {
              var signature = await _storageProvider.CreateUploadSignatureAsync(CurrentUserId(), apartmentId, IsAdmin(), ct);
@@ -50,7 +50,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpDelete("{mediaId:int}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> DeleteMedia(int mediaId, CancellationToken ct)
         {
             

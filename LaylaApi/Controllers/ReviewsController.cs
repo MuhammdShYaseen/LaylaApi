@@ -74,7 +74,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> Create([FromBody] ReviewCreateDto dto)
         {
             var result = await _reviewService.AddAsync(dto, CurrentUserId(), IsAdmin());
@@ -83,7 +83,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> Update(int id, [FromBody] ReviewCreateDto dto)
         {
             var result = await _reviewService.UpdateAsync(id, dto, CurrentUserId(), IsAdmin());
@@ -92,7 +92,7 @@ namespace LaylaApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Policy = "ConfirmedEmail")]
         public async Task<IActionResult> Delete(int id)
         {
             await _reviewService.DeleteAsync(id, CurrentUserId(), IsAdmin());

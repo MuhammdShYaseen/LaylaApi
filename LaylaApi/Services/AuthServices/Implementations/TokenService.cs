@@ -68,7 +68,8 @@ namespace LaylaApi.Services.AuthServices.Implementations
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email !.Value),
                 new Claim(ClaimTypes.Name, user.FullName),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("EmailConfirmed", user.EmailConfirmed.ToString())
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
