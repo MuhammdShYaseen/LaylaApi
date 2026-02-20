@@ -6,7 +6,13 @@ using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using NetTopologySuite;
-using Serilog;
+using LaylaApi.Services.LocationFromIPService.Interfaces;
+using LaylaApi.Services.DynamicApartmentSearchService;
+using LaylaApi.Models.DtosModels.AdminDashboardDtos;
+using Azure.Core;
+using NetTopologySuite.Index.HPRtree;
+using QuestPDF.Helpers;
+using LaylaApi.Models.DtosModels.ExternalServicesDtos;
 
 namespace LaylaApi.Services.DataCRUD.Implementations
 {
@@ -15,23 +21,161 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         private readonly LaylaContext _context;
         private readonly IMapper _mapper;
         private static readonly GeometryFactory _geoFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
-        public ApartmentService(LaylaContext context, IMapper mapper)
+        private readonly ILocationFromIPExternalService _locationFromIP;
+        private readonly IApartmentSearchService _apartmentSearchService;
+        public ApartmentService(LaylaContext context, IMapper mapper, ILocationFromIPExternalService location, IApartmentSearchService apartmentSearchService)
         {
             _context = context;
             _mapper = mapper;
+            _locationFromIP = location;
+            _apartmentSearchService = apartmentSearchService;
         }
 
-        
-        public async Task<IEnumerable<ApartmentDto>> GetAllAsync()
+        public async Task<PagedResult<ApartmentDto>> GetTopBookedApartmentsAsync(CancellationToken ct = default)
         {
-            var apartments = await _context.Apartments
-                  .AsNoTracking()
-                  .Include(a => a.Owner)
-                  .Include(a => a.MediaFiles)
-                  .Include(a => a.Reviews)
-                  .ToListAsync();
+            const int pageSize = 10;
 
-            return _mapper.Map<IEnumerable<ApartmentDto>>(apartments);
+            var items = await _context.Bookings
+                .GroupBy(b => new
+                {
+                    b.Apartment
+
+                })
+                .Select(g => new ApartmentDto
+                {
+                    Id = g.Key.Apartment.Id,
+                    Title = g.Key.Apartment.Title,
+                    TotalBookings = g.Count(),
+                    PricePerDay = g.Key.Apartment.PricePerDay!.Value,
+                    PricePerHour = g.Key.Apartment.PricePerHour!.Value,
+                    MediaUrls = g.Key.Apartment.MediaFiles!.Select(m => m.FileUrl).ToList(),
+                    Latitude = g.Key.Apartment.Location!.Location.Y,
+                    Longitude = g.Key.Apartment.Location.Location.X,
+                    City = g.Key.Apartment.Location.City,
+                    Country = g.Key.Apartment.Location.Country,
+                    Area = g.Key.Apartment.Area,
+                    FloorNumber = g.Key.Apartment.FloorNumber,
+                    NumberOfBedRooms = g.Key.Apartment.NumberOfBedRooms,
+                    NumberOfBalconies = g.Key.Apartment.NumberOfBalconies,
+                    NumberOfLivingRooms = g.Key.Apartment.NumberOfLivingRooms,
+                    NumberOfReceptionRooms = g.Key.Apartment.NumberOfReceptionRooms,
+                    NumberOfBathrooms = g.Key.Apartment.NumberOfBathrooms,
+                    IsChatEnabled = g.Key.Apartment.IsChatEnabled,
+                    Street = g.Key.Apartment.Location.Street,
+                    ApartmentNumber = g.Key.Apartment.Location.ApartmentNumber,
+                    AverageRating = g.Key.Apartment.Reviews!.Any() ? g.Key.Apartment.Reviews!.Average(r => r.Rating) : 0,
+                    CreatedAt = g.Key.Apartment.CreatedAt,
+                    Finishing = g.Key.Apartment.Finishing,
+                    Type = g.Key.Apartment.Type,
+                    Description = g.Key.Apartment.Description,
+                    View = g.Key.Apartment.View,
+                    OwnerName = g.Key.Apartment.Owner!.FullName,
+                    OwnerId = g.Key.Apartment.OwnerId,
+                    Orientation = g.Key.Apartment.Orientation,
+                    District = g.Key.Apartment.Location.District,
+                    BuildingNumber = g.Key.Apartment.Location.BuildingNumber,
+                    HasElevator = g.Key.Apartment.HasElevator,
+                    HasParking = g.Key.Apartment.HasParking,
+                    HasPool = g.Key.Apartment.HasPool,
+                    TotalReviews = g.Key.Apartment.Reviews!.Count(),
+                    IsAvailable = g.Key.Apartment.IsAvailable
+                })
+                .OrderByDescending(x => x.TotalBookings)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            return new PagedResult<ApartmentDto>
+            {
+                Items = items,
+                TotalCount = items.Count,
+                PageNumber = 1,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<PagedResult<ApartmentDto>> GetTopRatedApartmentsAsync(CancellationToken ct = default)
+        {
+            const int pageSize = 10;
+            var items = await _context.Reviews
+                .GroupBy(r => r.Apartment)
+                .Select(g => new ApartmentDto
+                {
+                    Id = g.Key!.Id,
+                    AverageRating = g.Average(r => r.Rating),
+                    TotalReviews = g.Count(),
+                    Title = g.First().Apartment!.Title,
+                    PricePerDay = g.Key.PricePerDay!.Value,
+                    PricePerHour = g.Key.PricePerHour!.Value,
+                    MediaUrls = g.Key.MediaFiles!.Select(m => m.FileUrl).ToList(),
+                    Latitude = g.Key.Location!.Location.Y,
+                    Longitude = g.Key.Location.Location.X,
+                    City = g.Key.Location.City,
+                    Country = g.Key.Location.Country,
+                    Area = g.Key.Area,
+                    FloorNumber = g.Key.FloorNumber,
+                    NumberOfBedRooms = g.Key.NumberOfBedRooms,
+                    NumberOfBalconies = g.Key.NumberOfBalconies,
+                    NumberOfLivingRooms = g.Key.NumberOfLivingRooms,
+                    NumberOfReceptionRooms = g.Key.NumberOfReceptionRooms,
+                    NumberOfBathrooms = g.Key.NumberOfBathrooms,
+                    IsChatEnabled = g.Key.IsChatEnabled,
+                    Street = g.Key.Location.Street,
+                    ApartmentNumber = g.Key.Location.ApartmentNumber,
+                    CreatedAt = g.Key.CreatedAt,
+                    Finishing = g.Key.Finishing,
+                    Type = g.Key.Type,
+                    Description = g.Key.Description,
+                    View = g.Key.View,
+                    OwnerName = g.Key.Owner!.FullName,
+                    OwnerId = g.Key.OwnerId,
+                    Orientation = g.Key.Orientation,
+                    District = g.Key.Location.District,
+                    BuildingNumber = g.Key.Location.BuildingNumber,
+                    HasElevator = g.Key.HasElevator,
+                    HasParking = g.Key.HasParking,
+                    HasPool = g.Key.HasPool,
+                    IsAvailable = g.Key.IsAvailable
+                })
+                .OrderByDescending(x => x.AverageRating)
+                .ThenByDescending(x => x.TotalReviews)
+                .Take(pageSize)
+                .ToListAsync(ct);
+            return new PagedResult<ApartmentDto>
+            {
+                Items = items,
+                TotalCount = items.Count,
+                PageNumber = 1,
+                PageSize = pageSize
+            };
+        }
+        public async Task<PagedResult<ApartmentDto>> GetAllAsync(string userIp, CancellationToken ct)
+        {
+            // 1️⃣ محاولة البحث الجغرافي
+            var location = await _locationFromIP.GetAsync(userIp, ct);
+
+            if (IsValidLocation(location))
+            {
+                var geoResult = await SearchByLocationAsync(location!, ct);
+
+                if (geoResult.Items.Any())
+                    return geoResult;
+            }
+
+            // 2️⃣ الأكثر حجزًا
+            var topBooked = await GetTopBookedApartmentsAsync(ct);
+
+            if (topBooked.Items.Any())
+                return topBooked;
+
+            // 3️⃣ الأعلى تقييمًا
+            var topRated = await GetTopRatedApartmentsAsync(ct);
+
+            if (topRated.Items.Any())
+                return topRated;
+
+            // 4️⃣ fallback: المتاح فقط
+            return await SearchAvailableAsync(ct);
+
         }
 
         public async Task<ApartmentDto> GetByIdAsync(int id, CancellationToken ct)
@@ -200,27 +344,39 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             return apartments;
         }
-
-        /*private double CalculateDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        private static bool IsValidLocation(IpApiResponseDto? loc)
         {
-            double R = 6371;
-            double dLat = ToRadians(lat2 - lat1);
-            double dLon = ToRadians(lon2 - lon1);
+            if (loc == null)
+                return false;
 
-            double h = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                       Math.Cos(ToRadians(lat1)) *
-                       Math.Cos(ToRadians(lat2)) *
-                       Math.Sin(dLon / 2) *
-                       Math.Sin(dLon / 2);
-
-            return 2 * R * Math.Asin(Math.Sqrt(h));
-        }*/
-
-        private double ToRadians(double angle)
+            return loc.Lat is >= -90 and <= 90
+                && loc.Lon is >= -180 and <= 180;
+        }
+        private Task<PagedResult<ApartmentDto>> SearchByLocationAsync(IpApiResponseDto loc, CancellationToken ct)
         {
-            return Math.PI * angle / 180.0;
+            var request = new ApartmentSearchRequestDto
+            {
+                City = loc.City,
+                Country = loc.Country,
+                UserLatitude = loc.Lat,
+                UserLongitude = loc.Lon,
+                MinDistance = 1,
+                MaxDistance = 100,
+                IsAvailable = true
+            };
+
+            return _apartmentSearchService.SearchAsync(request, ct);
         }
 
-        
+        private Task<PagedResult<ApartmentDto>> SearchAvailableAsync(CancellationToken ct)
+        {
+            var request = new ApartmentSearchRequestDto
+            {
+                IsAvailable = true
+            };
+
+            return _apartmentSearchService.SearchAsync(request, ct);
+        }
+
     }
 }

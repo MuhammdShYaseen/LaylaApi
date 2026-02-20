@@ -48,5 +48,6 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         public List<string>? MediaUrls { get; set; }
         public double AverageRating { get; set; }
         public int TotalReviews { get; set; }
+        public int TotalBookings { get; set; }
     }
 }

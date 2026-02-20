@@ -24,6 +24,7 @@ using LaylaApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using NetTopologySuite;
+using LaylaApi.Services.LocationFromIPService.LocationFromIPServiceExt;
 namespace LaylaApi
 {
     public class Program
@@ -48,6 +49,7 @@ namespace LaylaApi
             builder.Services.AddLaylaContextExtension(builder.Configuration);
             builder.Services.AddHostedService<SoftDeleteCleanupService>();
             builder.Services.AddHostedService<VoiceCleanupService>();
+            builder.Services.AddLocationFromApi();
             builder.Services.AddDataRepository();
             builder.Services.AddCloudinaryProvider();
             builder.Services.AddEventDataProviders(typeof(IEvent).Assembly);
