@@ -77,7 +77,8 @@ namespace LaylaApi.Services.DynamicApartmentSearchService
                     HasParking = a.HasParking,
                     HasPool = a.HasPool,
                     TotalReviews = a.Reviews!.Count(),
-                    IsAvailable = a.IsAvailable
+                    IsAvailable = a.IsAvailable,
+                    TotalBookings = a.Bookings.Count(),
                 })
                 .ToListAsync(ct);
 
