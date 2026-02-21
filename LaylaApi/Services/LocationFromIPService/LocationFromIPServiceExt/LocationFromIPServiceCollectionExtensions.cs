@@ -7,6 +7,8 @@ namespace LaylaApi.Services.LocationFromIPService.LocationFromIPServiceExt
     {
         public static IServiceCollection AddLocationFromApi(this IServiceCollection services) 
         {
+            
+            services.AddHttpClient();
             services.AddScoped<ILocationFromIPExternalService, LocationFromIPExternalService>();
             return services;
         }

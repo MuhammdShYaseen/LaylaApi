@@ -49,5 +49,7 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         public double AverageRating { get; set; }
         public int TotalReviews { get; set; }
         public int TotalBookings { get; set; }
+
+        public double DistanceBetweenUserAndApartment { get; set; }
     }
 }

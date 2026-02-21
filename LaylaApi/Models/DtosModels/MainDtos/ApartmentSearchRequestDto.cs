@@ -9,8 +9,11 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         public enum ApartmentSortBy
         {
             CreatedAt,
-            Price,
-            Distance
+            Distance,
+            Title,
+            PricePerDay,
+            PricePerHour,
+            Area,
         }
 
         public enum SortDirections
@@ -52,7 +55,7 @@ namespace LaylaApi.Models.DtosModels.MainDtos
         public int PageSize { get; set; } = 20;
         public string? City { get; set; }
         public string? Country { get; set; }
-        public string? SortBy { get; set; }
+        public ApartmentSortBy? SortBy { get; set; }
         public SortDirections SortDirection { get; set; } = SortDirections.Desc;
     }
 }

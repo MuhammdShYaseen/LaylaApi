@@ -2,67 +2,75 @@
 using LaylaApi.Models.MainModels;
 using LaylaApi.ValueObjects.ApartmentValueObject;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using System.Linq.Expressions;
+using static LaylaApi.Models.DtosModels.MainDtos.ApartmentSearchRequestDto;
 
 namespace LaylaApi.Services.DynamicApartmentSearchService.BuilderServices
 {
     internal static class QueryableSortExtensions
     {
-        internal static IQueryable<Apartment> ApplySorting(this IQueryable<Apartment> query, string? sortBy, ApartmentSearchRequestDto.SortDirections direction)
+        internal static IQueryable<Apartment> ApplySorting(this IQueryable<Apartment> query, ApartmentSortBy? sortBy, SortDirections direction, Point? userLocation)
         {
-            if (string.IsNullOrWhiteSpace(sortBy))
-                return query
-                    .OrderByDescending(x => x.CreatedAt)
-                    .ThenBy(x => x.Id);
+            if (query is null)
+                throw new ArgumentNullException(nameof(query));
 
-            if (!SortRegistry.TryGet(sortBy, out var sortExp))
-                return query
-                    .OrderByDescending(x => x.CreatedAt)
-                    .ThenBy(x => x.Id);
-
-            var parameter = Expression.Parameter(typeof(Apartment), "x");
-
-            var body = Expression.Invoke(sortExp, parameter);
-
-            var lambda = Expression.Lambda(body, parameter);
-
-            if (sortBy == "PricePerDay")
+            if (sortBy is null)
             {
-                query = direction == ApartmentSearchRequestDto.SortDirections.Asc
-                    ? query.OrderBy(a => a.PricePerDay!.Value)
-                    : query.OrderByDescending(a => a.PricePerDay!.Value);
+                return ApplyDefaultSort(query);
             }
 
-            if (sortBy == "PricePerDay" || sortBy == "PricePerHour")
+            IOrderedQueryable<Apartment>? ordered = sortBy switch
             {
-                var property = typeof(Apartment).GetProperty(sortBy);
-                query = direction == ApartmentSearchRequestDto.SortDirections.Asc
-                    ? query.OrderBy(a => EF.Property<Money>(a, sortBy).Value)
-                    : query.OrderByDescending(a => EF.Property<Money>(a, sortBy).Value);
-                return query;
+                ApartmentSortBy.CreatedAt =>
+                    Apply(query, x => x.CreatedAt, direction),
+
+                ApartmentSortBy.Title =>
+                    Apply(query, x => x.Title!, direction),
+
+                ApartmentSortBy.PricePerDay =>
+                    Apply(query, x => x.PricePerDay!.Value, direction),
+
+                ApartmentSortBy.PricePerHour =>
+                    Apply(query, x => x.PricePerHour!.Value, direction),
+
+                ApartmentSortBy.Area =>
+                    Apply(query, x => x.Area, direction),
+
+               ApartmentSortBy.Distance =>
+                    Apply(query, x => x.Location!.Location.Distance(userLocation), direction),
+
+
+                _ => null
+            };
+
+            // Fallback for any invalid value
+            if (ordered is null)
+            {
+                return ApplyDefaultSort(query);
             }
-            var methodName = direction == ApartmentSearchRequestDto.SortDirections.Asc
-                ? "OrderBy"
-                : "OrderByDescending";
 
-            var orderByCall = Expression.Call(
-                typeof(Queryable),
-                methodName,
-                new[] { typeof(Apartment), body.Type },
-                query.Expression,
-                Expression.Quote(lambda));
-
-            var orderedQuery = query.Provider.CreateQuery<Apartment>(orderByCall);
-
-            // ThenBy(Id) لضمان Pagination Stable
-            var thenBy = Expression.Call(
-                typeof(Queryable),
-                "ThenBy",
-                new[] { typeof(Apartment), typeof(int) },
-                orderedQuery.Expression,
-                Expression.Quote((Expression<Func<Apartment, int>>)(x => x.Id)));
-
-            return orderedQuery.Provider.CreateQuery<Apartment>(thenBy);
+            // Always stable pagination
+            return ordered.ThenBy(x => x.Id);
         }
+
+        private static IOrderedQueryable<Apartment> Apply<TKey>(
+            IQueryable<Apartment> query,
+            Expression<Func<Apartment, TKey>> selector,
+            ApartmentSearchRequestDto.SortDirections direction)
+        {
+            return direction == ApartmentSearchRequestDto.SortDirections.Asc
+                ? query.OrderBy(selector)
+                : query.OrderByDescending(selector);
+        }
+
+        private static IQueryable<Apartment> ApplyDefaultSort(
+            IQueryable<Apartment> query)
+        {
+            return query
+                .OrderByDescending(x => x.CreatedAt)
+                .ThenBy(x => x.Id);
+        }
+
     }
 }

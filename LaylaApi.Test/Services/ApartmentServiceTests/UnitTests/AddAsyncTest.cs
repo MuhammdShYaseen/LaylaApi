@@ -6,7 +6,10 @@ using LaylaApi.Models.DtosModels.AuthDtos;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Implementations;
+using LaylaApi.Services.DynamicApartmentSearchService;
 using LaylaApi.Services.LanguageServices;
+using LaylaApi.Services.LocationFromIPService.Implementations;
+using LaylaApi.Services.LocationFromIPService.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Diagnostics;
@@ -79,12 +82,24 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             // Arrange
             var context = CreateDbContext();
             var mapper = new Mock<IMapper>();
-            var service = new ApartmentService(context, mapper.Object);
+            var service = new ApartmentService(context, mapper.Object, MockILocationFromIP(), MockApartmentSearchService());
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 service.AddAsync(null!, 1, CancellationToken.None)
             );
+        }
+
+        private static ILocationFromIPExternalService MockILocationFromIP() 
+        {
+            var mock = new Mock<ILocationFromIPExternalService>();
+            return mock.Object;
+        }
+
+        private static IApartmentSearchService MockApartmentSearchService()
+        {
+            var mock = new Mock<IApartmentSearchService>();
+            return mock.Object;
         }
         [Fact]
         public async Task AddAsync_WhenUserDoesNotExist_ShouldThrowKeyNotFoundException()
@@ -92,7 +107,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             // Arrange
             var context = CreateDbContext();
             var mapper = new Mock<IMapper>();
-            var service = new ApartmentService(context, mapper.Object);
+            var service = new ApartmentService(context, mapper.Object, MockILocationFromIP(), MockApartmentSearchService());
 
             var dto = ValidCreateApartmentDto();
 
@@ -122,7 +137,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             mapper.Setup(m => m.Map<ApartmentDto>(It.IsAny<Apartment>()))
                   .Returns(new ApartmentDto());
 
-            var service = new ApartmentService(context, mapper.Object);
+            var service = new ApartmentService(context, mapper.Object, MockILocationFromIP(), MockApartmentSearchService());
 
             var dto = ValidCreateApartmentDto();
 

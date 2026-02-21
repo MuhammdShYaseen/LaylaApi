@@ -1,23 +1,43 @@
-﻿using LaylaApi.DataRepository;
+﻿using Azure.Core;
+using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DynamicApartmentSearchService.BuilderServices;
 using Microsoft.EntityFrameworkCore;
-
+using NetTopologySuite.Geometries;
 namespace LaylaApi.Services.DynamicApartmentSearchService
 {
     public class ApartmentSearchService : IApartmentSearchService
     {
         private readonly IRepository<Apartment> _db;
         private readonly IApartmentFilterBuilder _filterBuilder;
-        public ApartmentSearchService(IRepository<Apartment> db, IApartmentFilterBuilder filterBuilder)
+        private readonly GeometryFactory _factory;
+        public ApartmentSearchService(IRepository<Apartment> db, IApartmentFilterBuilder filterBuilder, GeometryFactory factory)
         {
             _db = db;
             _filterBuilder = filterBuilder;
+            _factory = factory;
         }
+        private Point? UserPoint(double? lon, double? lat, double? maxDistance)
+        {
+            if (lat is < -90 or > 90)
+                return null;
 
+            if (lon is < -180 or > 180)
+                return null;
+
+            if (lat.HasValue && lon.HasValue && maxDistance.HasValue)
+            {
+                var userPoint = _factory.CreatePoint(new Coordinate(lon.Value, lat.Value));
+                userPoint.SRID = 4326;
+                return userPoint;
+            }
+            return null;
+        }
         public async Task<PagedResult<ApartmentDto>> SearchAsync(ApartmentSearchRequestDto request, CancellationToken ct)
         {
+            Point? userPoint = UserPoint(request.UserLongitude, request.UserLatitude, request.MaxDistance);
+
             request.PageSize = Math.Clamp(request.PageSize, 1, 50);
             request.PageNumber = Math.Max(request.PageNumber, 1);
 
@@ -30,9 +50,7 @@ namespace LaylaApi.Services.DynamicApartmentSearchService
             var totalCount = await query.CountAsync(ct);
 
             // Sorting
-            query = query.ApplySorting(
-                request.SortBy,
-                request.SortDirection);
+            query = query.ApplySorting(request.SortBy, request.SortDirection, userPoint);
 
             // Pagination
             var skip = (request.PageNumber - 1) * request.PageSize;

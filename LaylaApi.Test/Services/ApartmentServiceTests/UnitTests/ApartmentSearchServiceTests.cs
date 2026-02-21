@@ -29,7 +29,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
                                     It.IsAny<ApartmentSearchRequestDto>()))
                 .Returns<IQueryable<Apartment>, ApartmentSearchRequestDto>((q, r) => q);
 
-            var service = new ApartmentSearchService(repo, filterMock.Object);
+            var service = new ApartmentSearchService(repo, filterMock.Object, new NetTopologySuite.Geometries.GeometryFactory());
 
             await service.SearchAsync(new ApartmentSearchRequestDto(), CancellationToken.None);
 
@@ -54,7 +54,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             var repo = CreateRepository(context);
             var filter = new ApartmentFilterBuilder(new NetTopologySuite.Geometries.GeometryFactory());
 
-            var service = new ApartmentSearchService(repo, filter);
+            var service = new ApartmentSearchService(repo, filter, new NetTopologySuite.Geometries.GeometryFactory());
 
             var request = new ApartmentSearchRequestDto
             {
@@ -85,7 +85,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             var repo = CreateRepository(context);
             var filter = new ApartmentFilterBuilder(new NetTopologySuite.Geometries.GeometryFactory());
 
-            var service = new ApartmentSearchService(repo, filter);
+            var service = new ApartmentSearchService(repo, filter, new NetTopologySuite.Geometries.GeometryFactory());
 
             var result = await service.SearchAsync(new ApartmentSearchRequestDto(), CancellationToken.None);
 
@@ -104,7 +104,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             var repo = CreateRepository(context);
             var filter = new ApartmentFilterBuilder(new NetTopologySuite.Geometries.GeometryFactory());
 
-            var service = new ApartmentSearchService(repo, filter);
+            var service = new ApartmentSearchService(repo, filter, new NetTopologySuite.Geometries.GeometryFactory());
 
             var result = await service.SearchAsync(new ApartmentSearchRequestDto(), CancellationToken.None);
 
@@ -131,7 +131,7 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
 
             var filter = new ApartmentFilterBuilder(new NetTopologySuite.Geometries.GeometryFactory());
 
-            var service = new ApartmentSearchService(repo, filter);
+            var service = new ApartmentSearchService(repo, filter, new NetTopologySuite.Geometries.GeometryFactory());
 
             var result = await service.SearchAsync(new ApartmentSearchRequestDto(), CancellationToken.None);
 
@@ -152,11 +152,11 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.UnitTests
             var repo = CreateRepository(context);
             var filter = new ApartmentFilterBuilder(new NetTopologySuite.Geometries.GeometryFactory());
 
-            var service = new ApartmentSearchService(repo, filter);
+            var service = new ApartmentSearchService(repo, filter, new NetTopologySuite.Geometries.GeometryFactory());
 
             var request = new ApartmentSearchRequestDto
             {
-                SortBy = "PricePerDay",
+                SortBy = ApartmentSearchRequestDto.ApartmentSortBy.PricePerDay,
                 SortDirection = ApartmentSearchRequestDto.SortDirections.Asc
             };
 

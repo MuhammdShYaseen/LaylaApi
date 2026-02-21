@@ -1,7 +1,10 @@
 ﻿using LaylaApi.DataAccess;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
+using LaylaApi.Services.DynamicApartmentSearchService;
 using LaylaApi.Services.LanguageServices;
+using LaylaApi.Services.LocationFromIPService.Implementations;
+using LaylaApi.Services.LocationFromIPService.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +23,10 @@ namespace LaylaApi.Test.Services.ApartmentServiceTests.IntegrationTests
             {
                 builder.ConfigureServices(services =>
                 {
+                    services.AddHttpClient();
+                    services.AddScoped<IApartmentSearchService, ApartmentSearchService>();
+                    services.AddScoped<ILocationFromIPExternalService, LocationFromIPExternalService>();
+
                     // إزالة تسجيل LaylaContext القديم
                     var dbContextDescriptor = services
                         .SingleOrDefault(d =>

@@ -6,7 +6,9 @@ using LaylaApi.Models.DtosModels.AuthDtos;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.DataCRUD.Implementations;
+using LaylaApi.Services.DynamicApartmentSearchService;
 using LaylaApi.Services.LanguageServices;
+using LaylaApi.Services.LocationFromIPService.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -251,7 +253,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             mapper.Setup(m => m.Map<ApartmentDto>(It.IsAny<Apartment>()))
                   .Returns(new ApartmentDto());
 
-            var service = new ApartmentService(context, mapper.Object);
+            var service = new ApartmentService(context, mapper.Object, MockILocationFromIP(), MockApartmentSearchService());
 
             var dto = ValidCreateApartmentDto();
 
@@ -259,7 +261,17 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             var result = await service.AddAsync(dto, 1, CancellationToken.None);
         }
 
+        private static ILocationFromIPExternalService MockILocationFromIP()
+        {
+            var mock = new Mock<ILocationFromIPExternalService>();
+            return mock.Object;
+        }
 
+        private static IApartmentSearchService MockApartmentSearchService()
+        {
+            var mock = new Mock<IApartmentSearchService>();
+            return mock.Object;
+        }
 
         #endregion
     }
