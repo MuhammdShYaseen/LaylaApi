@@ -33,46 +33,46 @@ namespace LaylaApi.Controllers
         }
         // 🟦 إنشاء حجز جديد
         [HttpPost]
-        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto model)
+        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto model, CancellationToken ct)
         {
-            var result = await _bookingService.AddAsync(model, CurrentUserId());
+            var result = await _bookingService.AddAsync(model, CurrentUserId(),ct);
 
             return Ok(ApiResponse<BookingDto>.Ok(result));
         }
 
         // 🔍 عرض الحجوزات الخاصة بالمستخدم
         [HttpGet("my")]
-        public async Task<IActionResult> MyBookings()
+        public async Task<IActionResult> MyBookings(CancellationToken ct)
         {
 
-            var result = await _bookingService.GetByUserIdAsync(CurrentUserId());
+            var result = await _bookingService.GetByUserIdAsync(CurrentUserId(), ct);
 
             return Ok(ApiResponse<IEnumerable<BookingDto>>.Ok(result));
         }
 
         [HttpGet("owner")]
-        public async Task<IActionResult> OwnerBookings()
+        public async Task<IActionResult> OwnerBookings(CancellationToken ct)
         {
-            var result = await _bookingService.GetBookingsForOwnerAsync(CurrentUserId());
+            var result = await _bookingService.GetBookingsForOwnerAsync(CurrentUserId(), ct);
 
             return Ok(ApiResponse<IEnumerable<BookingDto>>.Ok(result.OrderByDescending(b => b.StartDate).ToList()));
         }
 
         // 📅 التحقق من توفر التاريخ
         [HttpGet("check")]
-        public async Task<IActionResult> CheckAvailability([FromQuery] int apartmentId, [FromQuery] DateTime start, [FromQuery] DateTime end)
+        public async Task<IActionResult> CheckAvailability([FromQuery] int apartmentId, [FromQuery] DateTime start, [FromQuery] DateTime end, CancellationToken ct)
         {
-            bool available = await _bookingService.IsDateAvailableAsync(apartmentId, start, end);
+            bool available = await _bookingService.IsDateAvailableAsync(apartmentId, start, end, ct);
 
             return Ok(ApiResponse<bool>.Ok(available));
         }
 
         // ❌ إلغاء حجز
         [HttpDelete("{id}")]
-        public async Task<IActionResult> CancelByUser(int id)
+        public async Task<IActionResult> CancelByUser(int id, CancellationToken ct)
         {
 
-            bool success = await _bookingService.CancelAsync(id, CurrentUserId());
+            bool success = await _bookingService.CancelAsync(id, CurrentUserId(), ct);
 
             if (!success)
                 throw new KeyNotFoundException();
@@ -81,10 +81,10 @@ namespace LaylaApi.Controllers
 
         }
         [HttpDelete("{id}/owner-cancel")]
-        public async Task<IActionResult> CancelByOwner(int id, [FromQuery] string? reason = null)
+        public async Task<IActionResult> CancelByOwner(CancellationToken ct, int id, [FromQuery] string? reason = null)
         {
 
-            var success = await _bookingService.CancelByOwnerAsync(id, CurrentUserId(), reason);
+            var success = await _bookingService.CancelByOwnerAsync( ct,id, CurrentUserId(), reason);
 
             if (!success) 
                 throw new BadHttpRequestException("Cannot cancel this booking");
@@ -94,13 +94,13 @@ namespace LaylaApi.Controllers
 
         // 🔄 تحديث حالة الحجز (يستخدمها صاحب الشقة أو Admin)
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
+        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status, CancellationToken ct)
         {
 
             if (!Enum.TryParse<BookingStatus>(status, true, out var newStatus))
                 throw new BadHttpRequestException("Invalid booking status");
 
-            var result = await _bookingService.UpdateStatusAsync(id, newStatus, CurrentUserId(), IsAdmin());
+            var result = await _bookingService.UpdateStatusAsync(id, newStatus, CurrentUserId(), IsAdmin(), ct);
 
             if (result == null)
                 throw new KeyNotFoundException("Booking not found or access denied");
@@ -109,9 +109,9 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}/UpdateBooking")]
-        public async Task<IActionResult> UpdateBooking (int id, [FromBody] CreateBookingDto dto)
+        public async Task<IActionResult> UpdateBooking (int id, [FromBody] CreateBookingDto dto, CancellationToken ct)
         {
-            var result = await _bookingService.UpdateAsync(id,dto, CurrentUserId(), IsAdmin());
+            var result = await _bookingService.UpdateAsync(id,dto, CurrentUserId(), IsAdmin(), ct);
             return Ok(ApiResponse<BookingDto>.Ok(result!));
         }
 

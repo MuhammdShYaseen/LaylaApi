@@ -38,23 +38,23 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 .FirstOrDefaultAsync(b => b.Id == id);
             return _mapper.Map<BookingDto>(booking);
         }
-        public async Task<IEnumerable<BookingDto>> GetBookingsForOwnerAsync(int ownerId)
+        public async Task<IEnumerable<BookingDto>> GetBookingsForOwnerAsync(int ownerId, CancellationToken ct)
         {
             var bookings = await _context.Bookings
                           .AsNoTracking()
                           .Include(b => b.Apartment)
                           .Include(b => b.User)
                           .Where(b => b.Apartment != null && b.Apartment.OwnerId == ownerId)
-                          .ToListAsync();
+                          .ToListAsync(ct);
 
             return _mapper.Map<IEnumerable<BookingDto>>(bookings);
         }
-        public async Task<IEnumerable<BookingDto>> GetByUserIdAsync(int userId)
+        public async Task<IEnumerable<BookingDto>> GetByUserIdAsync(int userId, CancellationToken ct)
         {
             var booking = await _context.Bookings
                 .Where(b => b.UserId == userId)
                 .Include(b => b.Apartment)
-                .ToListAsync();
+                .ToListAsync(ct);
             return _mapper.Map<IEnumerable<BookingDto>>(booking);
         }
 
@@ -68,7 +68,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<IEnumerable<BookingDto>>(booking);
         }
 
-        public async Task<BookingDto> AddAsync(CreateBookingDto dto, int userId)
+        public async Task<BookingDto> AddAsync(CreateBookingDto dto, int userId, CancellationToken ct)
         {
             
 
@@ -76,7 +76,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 .AsNoTracking()
                 .Where(a => a.Id == dto.ApartmentId)
                 .Select(a => new { a.Id, a.OwnerId })
-                .SingleOrDefaultAsync()
+                .SingleOrDefaultAsync(ct)
                 ?? throw new BadHttpRequestException("Apartment does not exist.");
 
             if (apartment.OwnerId == userId)
@@ -84,12 +84,12 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             var renterExists = await _context.Users
                 .AsNoTracking()
-                .AnyAsync(u => u.Id == userId);
+                .AnyAsync(u => u.Id == userId, ct);
 
             if (!renterExists)
                 throw new BadHttpRequestException("Renter does not exist.");
 
-            var isAvailable = await IsDateAvailableAsync(dto.ApartmentId, dto.StartDate, dto.EndDate);
+            var isAvailable = await IsDateAvailableAsync(dto.ApartmentId, dto.StartDate, dto.EndDate, ct);
 
             if (!isAvailable)
                 throw new BadHttpRequestException("Selected dates overlap with another booking.");
@@ -102,11 +102,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<BookingDto>(booking);
         }
 
-        public async Task<BookingDto?> UpdateAsync(int bookingId, CreateBookingDto dto, int renterId, bool isAdmin)
+        public async Task<BookingDto?> UpdateAsync(int bookingId, CreateBookingDto dto, int renterId, bool isAdmin, CancellationToken ct)
         {
             var booking = await _context.Bookings
                  .Include(b => b.Apartment)
-                 .FirstOrDefaultAsync(b => b.Id == bookingId);
+                 .FirstOrDefaultAsync(b => b.Id == bookingId, ct);
 
             if (booking == null)
                 return null;
@@ -118,7 +118,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             if (dto.StartDate >= dto.EndDate)
                 throw new BadHttpRequestException("Invalid date range.");
 
-            if (!await IsDateAvailableAsync(booking.ApartmentId, dto.StartDate, dto.EndDate))
+            if (!await IsDateAvailableAsync(booking.ApartmentId, dto.StartDate, dto.EndDate, ct))
                 throw new BadHttpRequestException("Booking time overlap.");
 
             // ✅ التحديث يتم عبر الكيان
@@ -141,7 +141,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return true;
         }
 
-        public async Task<bool> IsDateAvailableAsync(int apartmentId, DateTime startDate, DateTime endDate)
+        public async Task<bool> IsDateAvailableAsync(int apartmentId, DateTime startDate, DateTime endDate, CancellationToken ct)
         {
            
             if (startDate >= endDate)
@@ -158,16 +158,16 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                 BookingStatus.Accepted,
                 BookingStatus.Confirmed
             };
-            return !await _context.Bookings.AnyAsync(b => b.ApartmentId == apartmentId && forbiddenStatuses.Contains(b.Status) && b.StartDate < endDate && b.EndDate > startDate);
+            return !await _context.Bookings.AnyAsync(b => b.ApartmentId == apartmentId && forbiddenStatuses.Contains(b.Status) && b.StartDate < endDate && b.EndDate > startDate, ct);
         }
 
         // 🔄 تحديث حالة الحجز (Confirm / Cancel / Complete)
-        public async Task<BookingDto?> UpdateStatusAsync(int bookingId, BookingStatus newStatus, int actorUserId, bool isAdmin)
+        public async Task<BookingDto?> UpdateStatusAsync(int bookingId, BookingStatus newStatus, int actorUserId, bool isAdmin, CancellationToken ct)
         {
 
             var booking = await _context.Bookings
                 .Include(b => b.Apartment)
-                .FirstOrDefaultAsync(b => b.Id == bookingId);
+                .FirstOrDefaultAsync(b => b.Id == bookingId, ct);
 
             if (booking == null)
                 return null;
@@ -184,9 +184,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             return _mapper.Map<BookingDto>(booking);
         }
-        public async Task<bool> CancelAsync(int id, int userId)
+        public async Task<bool> CancelAsync(int id, int userId, CancellationToken ct)
         {
-            var booking = await _context.Bookings.FindAsync(id);
+            var booking = await _context.Bookings.FindAsync(id,ct);
             if (booking == null) return false;
 
             if (booking.UserId != userId)
@@ -198,12 +198,12 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             return true;
         }
-        public async Task<bool> CancelByOwnerAsync(int bookingId, int ownerId, string? reason = null)
+        public async Task<bool> CancelByOwnerAsync(CancellationToken ct, int bookingId, int ownerId, string? reason = null)
         {
             var booking = await _context.Bookings
                 .Include(b => b.Apartment)
                 .Where(b => b.Apartment != null && b.Apartment.OwnerId == ownerId)   // ← حماية قوية
-                .FirstOrDefaultAsync(b => b.Id == bookingId);
+                .FirstOrDefaultAsync(b => b.Id == bookingId, ct);
 
             if (booking == null) return false;
 

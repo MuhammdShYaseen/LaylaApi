@@ -17,6 +17,11 @@ namespace LaylaApi.DataAccess.Configurations
                   .WithMany()
                   .HasForeignKey(r => r.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(r => new
+            {
+                r.ApartmentId,
+                r.Rating
+            });
         }
     }
 }

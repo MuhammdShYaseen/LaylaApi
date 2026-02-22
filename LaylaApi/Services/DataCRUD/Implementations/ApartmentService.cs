@@ -29,17 +29,31 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<PagedResult<ApartmentDto>> GetTopBookedApartmentsAsync(CancellationToken ct = default, int pageNumber = 1, int pageSize = 10)
         {
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Clamp(pageSize, 1, 50);
 
-            var items = await _context.Bookings
-                .GroupBy(b => b.ApartmentId)  // Group by ID فقط
+            // Base query: ranking
+            var baseQuery = _context.Bookings
+                .GroupBy(b => b.ApartmentId)
                 .Select(g => new
                 {
                     ApartmentId = g.Key,
                     TotalBookings = g.Count()
-                })
+                });
+
+            // Total count (before paging)
+            var totalCount = await baseQuery.CountAsync(ct);
+
+            // Apply paging on ranking
+            var rankedQuery = baseQuery
                 .OrderByDescending(x => x.TotalBookings)
-                .Take(pageSize)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            // Join with apartments
+            var items = await rankedQuery
                 .Join(_context.Apartments
+                    .AsNoTracking()
                     .Include(a => a.Location)
                     .Include(a => a.MediaFiles)
                     .Include(a => a.Owner)
@@ -51,48 +65,67 @@ namespace LaylaApi.Services.DataCRUD.Implementations
                         Id = apartment.Id,
                         Title = apartment.Title,
                         TotalBookings = booking.TotalBookings,
+                        
                         PricePerDay = apartment.PricePerDay!.Value,
                         PricePerHour = apartment.PricePerHour!.Value,
-                        MediaUrls = apartment.MediaFiles!.Select(m => m.FileUrl).ToList(),
+
+                        MediaUrls = apartment.MediaFiles!
+                            .Select(m => m.FileUrl)
+                            .ToList(),
+
                         Latitude = apartment.Location!.Location.Y,
                         Longitude = apartment.Location.Location.X,
+
                         City = apartment.Location.City,
                         Country = apartment.Location.Country,
                         Area = apartment.Area,
+
                         FloorNumber = apartment.FloorNumber,
+
                         NumberOfBedRooms = apartment.NumberOfBedRooms,
                         NumberOfBalconies = apartment.NumberOfBalconies,
                         NumberOfLivingRooms = apartment.NumberOfLivingRooms,
                         NumberOfReceptionRooms = apartment.NumberOfReceptionRooms,
                         NumberOfBathrooms = apartment.NumberOfBathrooms,
+
                         IsChatEnabled = apartment.IsChatEnabled,
+
                         Street = apartment.Location.Street,
                         ApartmentNumber = apartment.Location.ApartmentNumber,
-                        AverageRating = apartment.Reviews!.Any() ? apartment.Reviews!.Average(r => r.Rating) : 0,
+
+                        AverageRating = apartment.Reviews!.Any()
+                            ? apartment.Reviews.Average(r => r.Rating)
+                            : 0,
+
                         CreatedAt = apartment.CreatedAt,
+
                         Finishing = apartment.Finishing,
                         Type = apartment.Type,
                         Description = apartment.Description,
                         View = apartment.View,
+
                         OwnerName = apartment.Owner!.FullName,
                         OwnerId = apartment.OwnerId,
+
                         Orientation = apartment.Orientation,
+
                         District = apartment.Location.District,
                         BuildingNumber = apartment.Location.BuildingNumber,
+
                         HasElevator = apartment.HasElevator,
                         HasParking = apartment.HasParking,
                         HasPool = apartment.HasPool,
+
                         TotalReviews = apartment.Reviews!.Count(),
+
                         IsAvailable = apartment.IsAvailable
-                })
-                 .OrderByDescending(x => x.TotalBookings)
-                 .Take(pageSize)
-                 .ToListAsync(ct);
+                    })
+                .ToListAsync(ct);
 
             return new PagedResult<ApartmentDto>
             {
                 Items = items,
-                TotalCount = items.Count,
+                TotalCount = totalCount, // 👈 الصحيح
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
@@ -100,70 +133,93 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<PagedResult<ApartmentDto>> GetTopRatedApartmentsAsync(CancellationToken ct = default, int pageNumber = 1, int pageSize = 10)
         {
-            var query = from review in _context.Reviews
-                        group review by review.ApartmentId into g
-                        select new
-                        {
-                            ApartmentId = g.Key,
-                            AverageRating = g.Average(r => r.Rating),
-                            TotalReviews = g.Count()
-                        };
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Clamp(pageSize, 1, 50);
 
-            var totalCount = await query.CountAsync(ct);
+            // Base stats query
+            var baseQuery = _context.Reviews
+                .GroupBy(r => r.ApartmentId)
+                .Select(g => new
+                {
+                    ApartmentId = g.Key,
+                    AverageRating = g.Average(r => r.Rating),
+                    TotalReviews = g.Count()
+                });
 
-            var items = await query
+            // Total count (before paging)
+            var totalCount = await baseQuery.CountAsync(ct);
+
+            // Apply ranking + paging
+            var rankedQuery = baseQuery
                 .OrderByDescending(x => x.AverageRating)
                 .ThenByDescending(x => x.TotalReviews)
                 .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Join(_context.Apartments
-                    .Include(a => a.Location)
-                    .Include(a => a.MediaFiles)
-                    .Include(a => a.Owner),
+                .Take(pageSize);
+
+            // Join with apartments
+            var items = await rankedQuery
+                .Join(_context.Apartments.AsNoTracking(),
                     stats => stats.ApartmentId,
                     apartment => apartment.Id,
                     (stats, apartment) => new ApartmentDto
                     {
                         Id = apartment.Id,
+
                         AverageRating = stats.AverageRating,
                         TotalReviews = stats.TotalReviews,
-                        Title = apartment!.Title,
+
+                        Title = apartment.Title,
+
                         PricePerDay = apartment.PricePerDay!.Value,
                         PricePerHour = apartment.PricePerHour!.Value,
-                        MediaUrls = apartment.MediaFiles!.Select(m => m.FileUrl).ToList(),
+
+                        MediaUrls = apartment.MediaFiles!
+                            .Select(m => m.FileUrl)
+                            .ToList(),
+
                         Latitude = apartment.Location!.Location.Y,
                         Longitude = apartment.Location.Location.X,
+
                         City = apartment.Location.City,
                         Country = apartment.Location.Country,
                         Area = apartment.Area,
+
                         FloorNumber = apartment.FloorNumber,
+
                         NumberOfBedRooms = apartment.NumberOfBedRooms,
                         NumberOfBalconies = apartment.NumberOfBalconies,
                         NumberOfLivingRooms = apartment.NumberOfLivingRooms,
                         NumberOfReceptionRooms = apartment.NumberOfReceptionRooms,
                         NumberOfBathrooms = apartment.NumberOfBathrooms,
+
                         IsChatEnabled = apartment.IsChatEnabled,
+
                         Street = apartment.Location.Street,
                         ApartmentNumber = apartment.Location.ApartmentNumber,
+
                         CreatedAt = apartment.CreatedAt,
+
                         Finishing = apartment.Finishing,
                         Type = apartment.Type,
                         Description = apartment.Description,
                         View = apartment.View,
+
                         OwnerName = apartment.Owner!.FullName,
                         OwnerId = apartment.OwnerId,
+
                         Orientation = apartment.Orientation,
+
                         District = apartment.Location.District,
                         BuildingNumber = apartment.Location.BuildingNumber,
+
                         HasElevator = apartment.HasElevator,
                         HasParking = apartment.HasParking,
                         HasPool = apartment.HasPool,
+                        
                         IsAvailable = apartment.IsAvailable
-                })
-                .OrderByDescending(x => x.AverageRating)
-                .ThenByDescending(x => x.TotalReviews)
-                .Take(pageSize)
+                    })
                 .ToListAsync(ct);
+
             return new PagedResult<ApartmentDto>
             {
                 Items = items,

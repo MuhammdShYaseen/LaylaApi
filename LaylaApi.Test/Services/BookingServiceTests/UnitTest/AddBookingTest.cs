@@ -30,7 +30,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
 
             var service =new BookingService(context,mapper.Object);
 
-            var result = await service.AddAsync(dto, 2);
+            var result = await service.AddAsync(dto, 2, CancellationToken.None);
 
             result.Should().NotBeNull();
             context.Bookings.Count().Should().Be(1);
@@ -47,7 +47,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
                   .Returns(new BookingDto());
             var service = new BookingService(context, mapper.Object);
             await Assert.ThrowsAsync<BadHttpRequestException>(
-                () => service.AddAsync(dto, 2));
+                () => service.AddAsync(dto, 2, CancellationToken.None));
         }
         [Fact]
         public async Task AddAsync_ShouldThrow_WhenOwnerBooksOwnApartment()
@@ -62,7 +62,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             var service = new BookingService(context, mapper.Object);
 
             await Assert.ThrowsAsync<BadHttpRequestException>(
-                () => service.AddAsync(dto, 1));
+                () => service.AddAsync(dto, 1, CancellationToken.None));
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             var service = new BookingService(context, mapper.Object);
 
             await Assert.ThrowsAsync<BadHttpRequestException>(
-                () => service.AddAsync(dto, 999));
+                () => service.AddAsync(dto, 999, CancellationToken.None));
         }
 
         [Fact]
@@ -94,12 +94,12 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
                   .Returns(new BookingDto());
             var service = new BookingService(context, mapper.Object);
 
-            var addBooking1 = await service.AddAsync(dto, 2);
-            addBooking1 = await service.UpdateStatusAsync(1, BookingStatus.Accepted, 1, false);
-            addBooking1 = await service.UpdateStatusAsync(1, BookingStatus.Confirmed, 1, false);   
+            var addBooking1 = await service.AddAsync(dto, 2,CancellationToken.None);
+            addBooking1 = await service.UpdateStatusAsync(1, BookingStatus.Accepted, 1, false, CancellationToken.None);
+            addBooking1 = await service.UpdateStatusAsync(1, BookingStatus.Confirmed, 1, false, CancellationToken.None);   
 
             await Assert.ThrowsAsync<BadHttpRequestException>(
-                () => service.AddAsync(dto2,3));
+                () => service.AddAsync(dto2,3, CancellationToken.None));
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             await Assert.ThrowsAsync<BadHttpRequestException>(() =>
                 service.IsDateAvailableAsync(1,
                     DateTime.UtcNow.AddDays(5),
-                    DateTime.UtcNow.AddDays(2)));
+                    DateTime.UtcNow.AddDays(2), CancellationToken.None));
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             await Assert.ThrowsAsync<BadHttpRequestException>(() =>
                 service.IsDateAvailableAsync(1,
                     DateTime.UtcNow.AddDays(-1),
-                    DateTime.UtcNow.AddDays(2)));
+                    DateTime.UtcNow.AddDays(2), CancellationToken.None));
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace LaylaApi.Test.Services.BookingServiceTests.UnitTest
             var result = await service.IsDateAvailableAsync(
                 1,
                 DateTime.UtcNow.AddDays(10),
-                DateTime.UtcNow.AddDays(12));
+                DateTime.UtcNow.AddDays(12), CancellationToken.None);
 
             result.Should().BeTrue();
         }

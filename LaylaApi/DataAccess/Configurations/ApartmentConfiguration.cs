@@ -39,22 +39,15 @@ namespace LaylaApi.DataAccess.Configurations
                   .HasForeignKey(a => a.OwnerId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(a => new
-            {
-                a.PricePerDay,
-                a.PricePerHour,
-                a.Area,
-                a.FloorNumber,
-                a.NumberOfBedRooms,
-                a.NumberOfBathrooms,
-                a.NumberOfLivingRooms,
-            });
+            builder.HasIndex(a => a.CreatedAt);
+            builder.HasIndex(a => a.PricePerDay);
+            builder.HasIndex(a => a.PricePerHour);
+            builder.HasIndex(a => a.Area);
 
             builder.HasIndex(a => new
             {
                 a.IsAvailable,
-                a.Type,
-                a.Finishing
+                a.Type
             });
         }
 

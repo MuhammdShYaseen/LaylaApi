@@ -10,13 +10,13 @@ namespace LaylaApi.Models.MainModels
     {
         public enum BookingStatus
         {
-            Pending,
-            Accepted,
-            Confirmed,
-            Rejected,
-            CancelledByRenter,
-            CancelledByOwner,
-            Completed
+            Pending = 0,
+            Accepted = 1,
+            Confirmed = 2,
+            Rejected = 3,
+            CancelledByRenter = 4,
+            CancelledByOwner = 5,
+            Completed = 6,
         }
 
         [Required]

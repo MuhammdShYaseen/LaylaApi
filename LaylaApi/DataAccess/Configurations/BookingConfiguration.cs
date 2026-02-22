@@ -1,6 +1,7 @@
 ﻿using LaylaApi.Models.MainModels;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using static LaylaApi.Models.MainModels.Booking;
 
 namespace LaylaApi.DataAccess.Configurations
 {
@@ -18,7 +19,15 @@ namespace LaylaApi.DataAccess.Configurations
                   .HasForeignKey(b => b.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(b => new { b.ApartmentId, b.Status, b.StartDate, b.EndDate });
+            // For availability / overlaps (confirmed only)
+            entity.HasIndex(b => new { b.ApartmentId, b.StartDate, b.EndDate })
+                     .HasFilter($"[Status] = {(int)BookingStatus.Confirmed}");
+
+            // For user queries
+            entity.HasIndex(b => b.UserId);
+
+            // For stats / grouping
+            entity.HasIndex(b => b.ApartmentId);
         }
     }
 }
