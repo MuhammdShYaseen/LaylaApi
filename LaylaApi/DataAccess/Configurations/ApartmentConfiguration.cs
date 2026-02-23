@@ -35,17 +35,14 @@ namespace LaylaApi.DataAccess.Configurations
             builder.Property(x => x.PricePerHour).HasPrecision(18, 2).HasConversion(moneyConverter!).IsRequired();
 
             builder.HasOne(a => a.Owner)
-                  .WithMany(u => u.Apartments)
-                  .HasForeignKey(a => a.OwnerId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                   .WithMany(u => u.Apartments)
+                   .HasForeignKey(a => a.OwnerId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(a => a.City)
-            .WithMany(c => c.Apartments)
-            .HasForeignKey(a => a.CityId);
+                   .WithMany(c => c.Apartments)
+                   .HasForeignKey(a => a.CityId);
 
-            builder.HasOne(a => a.Country)
-                   .WithMany() // no reverse nav needed
-                   .HasForeignKey(a => a.CountryId);
 
             builder.HasIndex(a => new
             {
@@ -75,8 +72,7 @@ namespace LaylaApi.DataAccess.Configurations
 
             builder.HasIndex(a => a.Orientation);
 
-            builder.HasIndex("CityNormalized");
-            builder.HasIndex("CountryNormalized");
+            builder.HasIndex(a => a.CityId);
 
             builder.HasIndex(a => new
             {

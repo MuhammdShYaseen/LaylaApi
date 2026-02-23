@@ -4,6 +4,7 @@ using LaylaApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace LaylaApi.Migrations
 {
     [DbContext(typeof(LaylaContext))]
-    partial class LaylaContextModelSnapshot : ModelSnapshot
+    [Migration("20260223152934_CreateCityAndCountryWithIndexing")]
+    partial class CreateCityAndCountryWithIndexing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,6 +38,9 @@ namespace LaylaApi.Migrations
                         .HasColumnType("float");
 
                     b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CountryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -118,6 +124,8 @@ namespace LaylaApi.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
+
+                    b.HasIndex("CountryId");
 
                     b.HasIndex("Guid")
                         .IsUnique();
@@ -823,6 +831,12 @@ namespace LaylaApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("LaylaApi.Models.MainModels.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("LaylaApi.Models.MainModels.User", "Owner")
                         .WithMany("Apartments")
                         .HasForeignKey("OwnerId")
@@ -877,6 +891,8 @@ namespace LaylaApi.Migrations
                         });
 
                     b.Navigation("City");
+
+                    b.Navigation("Country");
 
                     b.Navigation("Location")
                         .IsRequired();

@@ -60,9 +60,6 @@ namespace LaylaApi.Models.MainModels
         public int CityId { get; private set; }
         public City City { get; private set; } = null!;
 
-        public int CountryId { get; private set; }
-        public Country Country { get; private set; } = null!;
-
         #region Detiles
         public int NumberOfBedRooms { get; private set; } = 1;
         public int NumberOfLivingRooms { get; private set; } = 1;

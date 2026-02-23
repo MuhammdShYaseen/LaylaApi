@@ -17,6 +17,8 @@ namespace LaylaApi.DataAccess.Configurations
             builder.HasOne(c => c.Country)
                    .WithMany(c => c.Cities)
                    .HasForeignKey(c => c.CountryId);
+
+            builder.HasIndex(c => c.CountryId);
         }
     }
 
