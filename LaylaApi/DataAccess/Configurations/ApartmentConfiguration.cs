@@ -39,15 +39,58 @@ namespace LaylaApi.DataAccess.Configurations
                   .HasForeignKey(a => a.OwnerId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(a => a.CreatedAt);
-            builder.HasIndex(a => a.PricePerDay);
-            builder.HasIndex(a => a.PricePerHour);
-            builder.HasIndex(a => a.Area);
+            builder.HasOne(a => a.City)
+            .WithMany(c => c.Apartments)
+            .HasForeignKey(a => a.CityId);
+
+            builder.HasOne(a => a.Country)
+                   .WithMany() // no reverse nav needed
+                   .HasForeignKey(a => a.CountryId);
 
             builder.HasIndex(a => new
             {
                 a.IsAvailable,
-                a.Type
+                a.Type,
+                a.Finishing,
+                a.HasElevator,
+                a.HasParking,
+                a.HasPool,
+                a.View
+            });
+
+            builder.HasIndex(a => new
+            {
+                a.PricePerDay,
+                a.PricePerHour,
+                a.Area
+            });
+
+            builder.HasIndex(a => new
+            {
+                a.NumberOfBedRooms,
+                a.NumberOfBathrooms,
+                a.NumberOfLivingRooms,
+                a.FloorNumber
+            });
+
+            builder.HasIndex(a => a.Orientation);
+
+            builder.HasIndex("CityNormalized");
+            builder.HasIndex("CountryNormalized");
+
+            builder.HasIndex(a => new
+            {
+                a.IsAvailable,
+                a.Type,
+                a.Finishing,
+                a.PricePerDay,
+                a.Area
+            })
+            .IncludeProperties(new[]
+            {
+                 nameof(Apartment.Id),
+                 nameof(Apartment.Title),
+                 nameof(Apartment.CreatedAt)
             });
         }
 

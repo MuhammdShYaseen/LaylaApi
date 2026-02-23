@@ -20,14 +20,16 @@ namespace LaylaApi.DataAccess.Configurations
                   .OnDelete(DeleteBehavior.Restrict);
 
             // For availability / overlaps (confirmed only)
-            entity.HasIndex(b => new { b.ApartmentId, b.StartDate, b.EndDate })
-                     .HasFilter($"[Status] = {(int)BookingStatus.Confirmed}");
+            entity.HasIndex(b => new
+            {
+                b.ApartmentId,
+                b.StartDate,
+                b.EndDate
+            })
+            .HasFilter($@"[Status] IN ({(int)BookingStatus.Accepted}, {(int)BookingStatus.Confirmed})");
 
             // For user queries
             entity.HasIndex(b => b.UserId);
-
-            // For stats / grouping
-            entity.HasIndex(b => b.ApartmentId);
         }
     }
 }
