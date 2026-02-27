@@ -23,7 +23,7 @@ namespace LaylaApi.DomainEvents.Handlers
         }
         public async Task HandleAsync(MessageSentDomainEvent @event, CancellationToken ct = default)
         {
-            var receiver = await _userService.GetByIdAsync(@event.ReceiverId);
+            var receiver = await _userService.GetByIdAsync(@event.ReceiverId, ct);
             var apartment = await _apartmentService.GetByIdAsync(@event.ApartmentId, ct);
 
             using (LocalizationHelper.UseCulture(receiver!.Lang!.ToString() ?? "en"))

@@ -12,12 +12,12 @@ namespace LaylaApi.Middleware.Localization
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, IUserService userService)
+        public async Task InvokeAsync(HttpContext context, IUserService userService, CancellationToken ct = default)
         {
             if (context.User.Identity?.IsAuthenticated == true)
             {
                 var userId = int.Parse(context.User.FindFirst("id")!.Value);
-                var lang = await userService.GetUserPreferredLanguage(userId);
+                var lang = await userService.GetUserPreferredLanguage(userId, ct);
 
                 if (!string.IsNullOrEmpty(lang))
                 {

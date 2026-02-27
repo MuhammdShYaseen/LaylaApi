@@ -23,30 +23,30 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             _mapper = mapper;
         }
 
-        public async Task<int>GetCountAsync()=>
-            await _context.Users.CountAsync();
-        public async Task<IEnumerable<User>> GetAllAsync() =>
-            await _context.Users.ToListAsync();
+        public async Task<int>GetCountAsync(CancellationToken ct)=>
+            await _context.Users.CountAsync(ct);
+        public async Task<IEnumerable<User>> GetAllAsync(CancellationToken ct) =>
+            await _context.Users.ToListAsync(ct);
 
-        public async Task<User?> GetByIdAsync(int id) =>
-            await _context.Users.FindAsync(id);
+        public async Task<User?> GetByIdAsync(int id, CancellationToken ct) =>
+            await _context.Users.FindAsync(id, ct);
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
         {
             var normalized = email.Trim().ToLowerInvariant();
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == Email.Create(normalized));
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == Email.Create(normalized), ct);
         }
 
-        public async Task<User> AddAsync(User user)
+        public async Task<User> AddAsync(User user, CancellationToken ct)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
         }
 
-        public async Task<UpdateUserDto?> UpdateEmailAsync(int targetUserId, int currentUserId, bool isAdmin, string newEmail)
+        public async Task<UpdateUserDto?> UpdateEmailAsync(int targetUserId, int currentUserId, bool isAdmin, string newEmail, CancellationToken ct)
         {
-            var user = await _context.Users.FindAsync(targetUserId);
+            var user = await _context.Users.FindAsync(targetUserId, ct);
 
             if (user == null)
                 return null;
@@ -66,7 +66,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             var exists = await _context.Users
                 .AnyAsync(u =>
                     u.Email!.Value == newEmail &&
-                    u.Id != currentUserId);
+                    u.Id != currentUserId, ct);
 
             if (exists)
                 throw new ArgumentException("Email is already in use.");
@@ -80,9 +80,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         }
 
-        public async Task<UpdateUserDto?> UpdateAsync(int id, UpdateUserDto dto, bool isAdmin)
+        public async Task<UpdateUserDto?> UpdateAsync(int id, UpdateUserDto dto, bool isAdmin, CancellationToken ct)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(id, ct);
 
             if (user == null)
                 return null;
@@ -98,9 +98,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<UpdateUserDto>(user);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
-            var existing = await _context.Users.FindAsync(id);
+            var existing = await _context.Users.FindAsync(id, ct);
             if (existing == null) return false;
 
             _context.Users.Remove(existing);
@@ -108,32 +108,32 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return true;
         }
 
-        public async Task<string> GetUserPreferredLanguage(int userId)
+        public async Task<string> GetUserPreferredLanguage(int userId, CancellationToken ct)
         {
-            var existing = await _context.Users.FindAsync(userId);
+            var existing = await _context.Users.FindAsync(userId,ct);
             if (existing == null) throw new DirectoryNotFoundException("UserNotFound");
             return existing.Lang!.Code;
 
         }
 
-        public async Task<User?> GetByResetTokenAsync(string token)
+        public async Task<User?> GetByResetTokenAsync(string token, CancellationToken ct)
         {
             return await _context.Users.FirstOrDefaultAsync(u =>
                 u.ResetPasswordToken == token &&
-                u.ResetPasswordTokenExpires > DateTime.UtcNow);
+                u.ResetPasswordTokenExpires > DateTime.UtcNow, ct);
         }
 
-        public async Task<bool> ExistsByEmailAsync(string email) =>
-             await _context.Users.AnyAsync(u => u.Email! == Email.Create(email.Trim().ToLowerInvariant()));
+        public async Task<bool> ExistsByEmailAsync(string email, CancellationToken ct) =>
+             await _context.Users.AnyAsync(u => u.Email! == Email.Create(email.Trim().ToLowerInvariant()),ct);
 
             
         
 
-        public async Task<bool> ExistsByPhoneAsync(string phone)=>
-             await _context.Users.AnyAsync(u => u.PhoneNumber == PhoneNumber.Create(phone.Trim().ToLowerInvariant()));
+        public async Task<bool> ExistsByPhoneAsync(string phone, CancellationToken ct)=>
+             await _context.Users.AnyAsync(u => u.PhoneNumber == PhoneNumber.Create(phone.Trim().ToLowerInvariant()), ct);
 
-        public async Task<User?> GetByEmailTokenAsync(string emailToken)=>
-            await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == emailToken);
+        public async Task<User?> GetByEmailTokenAsync(string emailToken, CancellationToken ct)=>
+            await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == emailToken, ct);
 
         public async Task SaveAsync()
         {

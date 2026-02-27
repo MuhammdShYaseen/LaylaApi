@@ -38,10 +38,7 @@ namespace LaylaApi
             builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"));
             builder.Services.Configure<LanguageOptions>(builder.Configuration.GetSection("AppSetting"));
             builder.Services.AddSingleton<GeometryFactory>(_ => NtsGeometryServices.Instance.CreateGeometryFactory(4326));
-            builder.Services.AddResponseCompression(options =>
-            {
-                options.EnableForHttps = true;
-            });
+            builder.Services.AddResponseCompression(options => { options.EnableForHttps = true; });
             builder.Services.AddSupportedLanguageService();
             builder.Services.Configure<ChatOptions>(builder.Configuration.GetSection("Chat"));
             builder.AddFirebaseApp();

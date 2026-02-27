@@ -54,7 +54,7 @@ namespace LaylaApi.Test.Services.UserServiceTests
             var mapper = new Mock<IMapper>();
             var service = new UserService(context, SupportedLanguagePolicy(), mapper.Object);
 
-            var result = await service.UpdateEmailAsync(1,1, true, "test@test.com");
+            var result = await service.UpdateEmailAsync(1,1, true, "test@test.com", CancellationToken.None);
 
             result.Should().BeNull();
         }
@@ -70,7 +70,7 @@ namespace LaylaApi.Test.Services.UserServiceTests
             var service = new UserService(context, SupportedLanguagePolicy(), mapper.Object);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                service.UpdateEmailAsync( targetUserId: 1, currentUserId: 2, isAdmin: false, newEmail: "b@test.com")
+                service.UpdateEmailAsync( targetUserId: 1, currentUserId: 2, isAdmin: false, newEmail: "b@test.com", CancellationToken.None)
             );
         }
         [Fact]
@@ -86,7 +86,7 @@ namespace LaylaApi.Test.Services.UserServiceTests
 
             var service = new UserService(context,SupportedLanguagePolicy(), mapper.Object);
 
-            var result = await service.UpdateEmailAsync(1,2, true, "  TEST@test.com ");
+            var result = await service.UpdateEmailAsync(1,2, true, "  TEST@test.com ", CancellationToken.None);
 
             result.Should().NotBeNull();
         }
@@ -103,7 +103,7 @@ namespace LaylaApi.Test.Services.UserServiceTests
             var service = new UserService(context,SupportedLanguagePolicy(), mapper.Object);
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
-                service.UpdateEmailAsync(1, 1, true, "b@test.com")
+                service.UpdateEmailAsync(1, 1, true, "b@test.com", CancellationToken.None)
             );
         }
 
@@ -124,7 +124,7 @@ namespace LaylaApi.Test.Services.UserServiceTests
                 targetUserId: 1,
                 currentUserId: 1,
                 isAdmin: true,
-                newEmail: "new@test.com"
+                newEmail: "new@test.com",CancellationToken.None
             );
 
             var user = context.Users.Single();

@@ -18,14 +18,14 @@ namespace LaylaApi.Services.AuthServices.Implementations
             _tokenService = tokenService;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string originIp)
+        public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string originIp, CancellationToken ct)
         {
 
             // تحقق وجود المستخدم
-            if (await _userService.ExistsByEmailAsync(request.Email))
+            if (await _userService.ExistsByEmailAsync(request.Email, ct))
                 throw new BadHttpRequestException("Email already registered");
 
-            if (await _userService.ExistsByPhoneAsync(request.PhoneNumber))
+            if (await _userService.ExistsByPhoneAsync(request.PhoneNumber, ct))
                 throw new BadHttpRequestException("Phone already registered");
 
 
@@ -33,15 +33,15 @@ namespace LaylaApi.Services.AuthServices.Implementations
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var user = User.Create(request.FullName, request.Email, request.PhoneNumber, request.Password, passwordHash, request.Lang, _tokenService.GenerateRandomToken(), _languagePolicy);
-            await _userService.AddAsync(user);
+            await _userService.AddAsync(user, ct);
 
             var authResponse = await _tokenService.GenerateAuthResponseAsync(user, originIp);
             return authResponse;
         }
 
-        public async Task<bool> VerifyEmailAsync(string token)
+        public async Task<bool> VerifyEmailAsync(string token, CancellationToken ct)
         {
-            var user = await _userService.GetByEmailTokenAsync(token);
+            var user = await _userService.GetByEmailTokenAsync(token, ct);
             if (user == null) return false;
             if (user.EmailVerificationTokenExpires == null || user.EmailVerificationTokenExpires < DateTime.UtcNow) return false;
 
@@ -50,10 +50,10 @@ namespace LaylaApi.Services.AuthServices.Implementations
             return true;
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request, string originIp)
+        public async Task<AuthResponse> LoginAsync(LoginRequest request, string originIp, CancellationToken ct)
         {
             //var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == request.Email);
-            var user = await _userService.GetByEmailAsync(request.Email);
+            var user = await _userService.GetByEmailAsync(request.Email,ct);
             if (user == null) throw new 
                     BadHttpRequestException("Invalid credentials.");
 
@@ -70,9 +70,9 @@ namespace LaylaApi.Services.AuthServices.Implementations
             return authResponse;
         }
 
-        public async Task<bool> SendPasswordResetAsync(string email)
+        public async Task<bool> SendPasswordResetAsync(string email, CancellationToken ct)
         {
-            var user = await _userService.GetByEmailAsync(email);
+            var user = await _userService.GetByEmailAsync(email, ct);
             if (user == null) return false;
 
            var resetPasswordToken = _tokenService.GenerateRandomToken();
@@ -85,9 +85,9 @@ namespace LaylaApi.Services.AuthServices.Implementations
             return true;
         }
 
-        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken ct)
         {
-            var user = await _userService.GetByResetTokenAsync(token);
+            var user = await _userService.GetByResetTokenAsync(token, ct);
 
             if (user == null) return false;
 

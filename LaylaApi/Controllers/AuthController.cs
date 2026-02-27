@@ -18,19 +18,19 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
         {
             var originIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var result = await _auth.RegisterAsync(request, originIp);
+            var result = await _auth.RegisterAsync(request, originIp, ct);
 
             return Ok(ApiResponse<AuthResponse>.Ok(result));
         }
 
         [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail([FromQuery] string token)
+        public async Task<IActionResult> VerifyEmail([FromQuery] string token, CancellationToken ct)
         {
-            var success = await _auth.VerifyEmailAsync(token);
+            var success = await _auth.VerifyEmailAsync(token, ct);
 
             if (!success)
                 throw new BadHttpRequestException("Invalid or expired token.");
@@ -39,22 +39,22 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
         {
            
             var originIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var result = await _auth.LoginAsync(request, originIp);
+            var result = await _auth.LoginAsync(request, originIp, ct);
 
             return Ok(ApiResponse<AuthResponse>.Ok(result));
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> Refresh([FromBody] string refreshToken)
+        public async Task<IActionResult> Refresh([FromBody] string refreshToken, CancellationToken ct)
         {
             var originIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var response = await _refreshToken.RefreshTokenAsync(refreshToken, originIp);
+            var response = await _refreshToken.RefreshTokenAsync(refreshToken, originIp, ct);
 
             if (response == null)
                 throw new BadHttpRequestException("Invalid token");
@@ -63,11 +63,11 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("revoke-token")]
-        public async Task<IActionResult> Revoke([FromBody] string refreshToken)
+        public async Task<IActionResult> Revoke([FromBody] string refreshToken, CancellationToken ct)
         {
             var originIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var result = await _refreshToken.RevokeRefreshTokenAsync(refreshToken, originIp);
+            var result = await _refreshToken.RevokeRefreshTokenAsync(refreshToken, originIp, ct);
 
             if (!result) 
                 throw new KeyNotFoundException("Token not found or already revoked");
@@ -76,9 +76,9 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] string email)
+        public async Task<IActionResult> ForgotPassword([FromBody] string email, CancellationToken ct)
         {
-            var sent = await _auth.SendPasswordResetAsync(email);
+            var sent = await _auth.SendPasswordResetAsync(email, ct);
 
             if (!sent)
                 throw new BadHttpRequestException("Account not found.");
@@ -87,9 +87,9 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
         {
-            var success = await _auth.ResetPasswordAsync(request.Token, request.NewPassword);
+            var success = await _auth.ResetPasswordAsync(request.Token, request.NewPassword, ct);
 
             if (!success)
                 throw new BadHttpRequestException("Invalid or expired token.");
