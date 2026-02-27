@@ -3,6 +3,7 @@ using LaylaApi.Models.GenericResponseModels;
 using LaylaApi.Services.DataCRUD.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.CodeDom;
 using System.Security.Claims;
 
 namespace LaylaApi.Controllers
@@ -40,12 +41,12 @@ namespace LaylaApi.Controllers
             if (!isAdmin && id != currentUserId)
                 throw new UnauthorizedAccessException("Unauthorized access");
 
-            var result = await _userService.UpdateAsync(id, dto, isAdmin, ct);
+            var result = await _userService.UpdateAsync(id,currentUserId, dto, isAdmin, ct);
 
             if (result is null)
                throw new KeyNotFoundException("user not found");
 
-            return Ok(ApiResponse<UpdateUserDto>.Ok(result));
+            return Ok(ApiResponse<UserDto>.Ok(result));
         }
 
         [HttpPatch("{id:int}/email")]
@@ -67,7 +68,22 @@ namespace LaylaApi.Controllers
             if (result is null)
                 throw new KeyNotFoundException("user in not exist");
 
-            return Ok(result);
+            return Ok(ApiResponse<UserDto>.Ok(result));
+        }
+
+        // GET: /api/users/me
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
+        {
+            var userId = CurrentUserId();
+
+            var result = await _userService.GetCurrentUserAsync(userId, ct);
+
+            if (result is null)
+                throw new KeyNotFoundException ("user is not exist") ;
+
+            return Ok(ApiResponse<UserDto>.Ok(result));
         }
     }
 }

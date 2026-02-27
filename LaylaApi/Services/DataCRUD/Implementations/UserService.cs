@@ -24,12 +24,12 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         }
 
         public async Task<int>GetCountAsync(CancellationToken ct)=>
-            await _context.Users.CountAsync(ct);
+            await _context.Users.AsNoTracking().CountAsync(ct);
         public async Task<IEnumerable<User>> GetAllAsync(CancellationToken ct) =>
-            await _context.Users.ToListAsync(ct);
+            await _context.Users.AsNoTracking().ToListAsync(ct);
 
         public async Task<User?> GetByIdAsync(int id, CancellationToken ct) =>
-            await _context.Users.FindAsync(id, ct);
+            await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
         {
@@ -44,9 +44,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return user;
         }
 
-        public async Task<UpdateUserDto?> UpdateEmailAsync(int targetUserId, int currentUserId, bool isAdmin, string newEmail, CancellationToken ct)
+        public async Task<UserDto?> UpdateEmailAsync(int targetUserId, int currentUserId, bool isAdmin, string newEmail, CancellationToken ct)
         {
-            var user = await _context.Users.FindAsync(targetUserId, ct);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == targetUserId, ct);
 
             if (user == null)
                 return null;
@@ -60,7 +60,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             // لا تعيد الطلب إذا نفس الإيميل
             if (user.Email!.Value == newEmail)
-                return _mapper.Map<UpdateUserDto>(user);
+                return _mapper.Map<UserDto>(user);
 
             // تحقق من التكرار
             var exists = await _context.Users
@@ -76,26 +76,26 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<UpdateUserDto>(user);
+            return _mapper.Map<UserDto>(user);
 
         }
 
-        public async Task<UpdateUserDto?> UpdateAsync(int id, UpdateUserDto dto, bool isAdmin, CancellationToken ct)
+        public async Task<UserDto?> UpdateAsync(int targetUserId, int currentUserId, UpdateUserDto dto, bool isAdmin, CancellationToken ct)
         {
-            var user = await _context.Users.FindAsync(id, ct);
+            if (!isAdmin && currentUserId != targetUserId)
+                throw new UnauthorizedAccessException("Access denied");
 
-            if (user == null)
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == targetUserId, ct);
+
+            if (user is null)
                 return null;
 
-            if (!isAdmin && user.Id != id)
-                throw new UnauthorizedAccessException("Access denied.");
-
-            // Delegate logic to Aggregate
             user.Update(dto.FullName, dto.PhoneNumber, dto.Lang, _languagePolicy);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
 
-            return _mapper.Map<UpdateUserDto>(user);
+            return _mapper.Map<UserDto>(user);
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct)
@@ -110,21 +110,33 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
         public async Task<string> GetUserPreferredLanguage(int userId, CancellationToken ct)
         {
-            var existing = await _context.Users.FindAsync(userId,ct);
-            if (existing == null) throw new DirectoryNotFoundException("UserNotFound");
-            return existing.Lang!.Code;
+            var result = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new
+                {
+                    Exists = true,
+                    Lang = u.Lang != null ? u.Lang.Code : null
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (result is null)
+                throw new KeyNotFoundException("User not found");
+
+            if (result.Lang is null)
+                return "en";
+
+            return result.Lang;
 
         }
 
         public async Task<User?> GetByResetTokenAsync(string token, CancellationToken ct)
         {
-            return await _context.Users.FirstOrDefaultAsync(u =>
-                u.ResetPasswordToken == token &&
-                u.ResetPasswordTokenExpires > DateTime.UtcNow, ct);
+            return await _context.Users.FirstOrDefaultAsync(u => u.ResetPasswordToken == token && u.ResetPasswordTokenExpires > DateTime.UtcNow, ct);
         }
 
         public async Task<bool> ExistsByEmailAsync(string email, CancellationToken ct) =>
-             await _context.Users.AnyAsync(u => u.Email! == Email.Create(email.Trim().ToLowerInvariant()),ct);
+             await _context.Users.AsNoTracking().AnyAsync(u => u.Email! == Email.Create(email.Trim().ToLowerInvariant()),ct);
 
             
         
@@ -138,6 +150,27 @@ namespace LaylaApi.Services.DataCRUD.Implementations
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<UserDto?> GetCurrentUserAsync(int id, CancellationToken ct)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == id)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    Email = u.Email != null ? u.Email.Value : string.Empty,
+                    PhoneNumber = u.PhoneNumber != null ? u.PhoneNumber.Value : string.Empty,
+                    EmailConfirmed = u.EmailConfirmed,
+                    Role = u.Role,
+                    Language = u.Lang != null ? u.Lang.Code : "en",
+                    ApartmentsCount = u.Apartments != null ? u.Apartments.Count : 0,
+                    BookingsCount = u.Bookings != null ? u.Bookings.Count : 0,
+                    CreatedAt = u.CreatedAt,
+                })
+                .FirstOrDefaultAsync(ct);
         }
     }
 }
