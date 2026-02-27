@@ -12,9 +12,9 @@ namespace LaylaApi.Services.ChatServices.Implementations
         {
             _context = context;
         }
-        public async Task CloseAsync(int conversationId, int ownerId)
+        public async Task CloseAsync(int conversationId, int ownerId, CancellationToken ct)
         {
-            var conversation = await _context.Conversations.FindAsync(conversationId)?? 
+            var conversation = await _context.Conversations.FindAsync(conversationId, ct)?? 
                 throw new KeyNotFoundException("conversation not found");
 
             if (conversation.OwnerId != ownerId)
@@ -24,9 +24,9 @@ namespace LaylaApi.Services.ChatServices.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task OpenAsync(int conversationId, int ownerId)
+        public async Task OpenAsync(int conversationId, int ownerId, CancellationToken ct)
         {
-            var conversation = await _context.Conversations.FindAsync(conversationId) ??
+            var conversation = await _context.Conversations.FindAsync(conversationId, ct) ??
                 throw new KeyNotFoundException("conversation not found");
 
             if (conversation.OwnerId != ownerId)
@@ -37,16 +37,16 @@ namespace LaylaApi.Services.ChatServices.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Conversation> GetOrCreateAsync(int apartmentId, int userId)
+        public async Task<Conversation> GetOrCreateAsync(int apartmentId, int userId, CancellationToken ct)
         {
-            var apartment = await _context.Apartments.FindAsync(apartmentId)?? 
+            var apartment = await _context.Apartments.FindAsync(apartmentId, ct)?? 
                 throw new KeyNotFoundException("Apartment Not found");
 
             if (!apartment.IsChatEnabled)
                 throw new BadHttpRequestException("Chat is not Enabled on this apartment");
 
                 var conversation = await _context.Conversations.
-                                   FirstOrDefaultAsync(x => x.ApartmentId == apartmentId && x.UserId == userId);
+                                   FirstOrDefaultAsync(x => x.ApartmentId == apartmentId && x.UserId == userId, ct);
            
             if (conversation != null)
                 return conversation;

@@ -22,23 +22,23 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ContractDto>> GetAllAsync()
+        public async Task<IEnumerable<ContractDto>> GetAllAsync(CancellationToken ct)
         {
             var contracts = await _context.Contracts
                 .AsNoTracking()
                 .Include(c => c.Booking)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             return _mapper.Map<IEnumerable<ContractDto>>(contracts);
         }
 
-        public async Task<ContractDto> GetByIdAsync(int id, int userId, bool isAdmin)
+        public async Task<ContractDto> GetByIdAsync(int id, int userId, bool isAdmin, CancellationToken ct)
         {
             var contract = await _context.Contracts
                .AsNoTracking()
                .Include(c => c.Booking)
                .ThenInclude(b => b!.Apartment!)
-               .FirstOrDefaultAsync(c => c.Id == id);
+               .FirstOrDefaultAsync(c => c.Id == id, ct);
 
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found");
@@ -60,12 +60,12 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return contract;
         }
 
-        public async Task<ContractDto> GetByBookingIdAsync(int bookingId, int userId, bool isAdmin)
+        public async Task<ContractDto> GetByBookingIdAsync(int bookingId, int userId, bool isAdmin, CancellationToken ct)
         {
             var contract = await _context.Contracts
                 .AsNoTracking()
                 .Include(c => c.Booking).ThenInclude(a => a!.Apartment)
-                .FirstOrDefaultAsync(c => c.BookingId == bookingId);
+                .FirstOrDefaultAsync(c => c.BookingId == bookingId, ct);
 
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found");
@@ -98,9 +98,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return contract;
         }
 
-        public async Task<ContractDto> UpdateAsync(int id, CreateContractDto dto)
+        public async Task<ContractDto> UpdateAsync(int id, CreateContractDto dto, CancellationToken ct)
         {
-            var contract = await _context.Contracts.FindAsync(id);
+            var contract = await _context.Contracts.FindAsync(id, ct);
             if (contract == null) 
                 throw new KeyNotFoundException();
 
@@ -124,9 +124,9 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             Owner,
             Renter
         }
-        public async Task<ContractDto> SignContractAsync(int id, int userId, bool isAdmin, ContractSigner contractSigner)
+        public async Task<ContractDto> SignContractAsync(int id, int userId, bool isAdmin, ContractSigner contractSigner, CancellationToken ct)
         {
-            var contract = await _context.Contracts.SingleOrDefaultAsync(c => c.Id == id) ?? throw new KeyNotFoundException("Contract not found.");
+            var contract = await _context.Contracts.SingleOrDefaultAsync(c => c.Id == id, ct) ?? throw new KeyNotFoundException("Contract not found.");
 
             var ownerId = contract.OwnerId;
             var renterId = contract.RenterId;
@@ -156,12 +156,12 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return _mapper.Map<ContractDto>(contract);
         }
 
-        public async Task<bool> DeleteAsync(int id, int userId, bool isAdmin)
+        public async Task<bool> DeleteAsync(int id, int userId, bool isAdmin, CancellationToken ct)
         {
             var contract = await _context.Contracts
          .Include(c => c.Booking)
             .ThenInclude(b => b!.Apartment)
-         .FirstOrDefaultAsync(c => c.Id == id);
+         .FirstOrDefaultAsync(c => c.Id == id, ct);
 
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found.");
@@ -223,14 +223,14 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return booking.UserId == userId || apartment.OwnerId == userId || isAdmin;
         }
 
-        public async Task<ContractDto> GenerateContractAsync(int userId, ContractCreateDto model, bool isAdmin)
+        public async Task<ContractDto> GenerateContractAsync(int userId, ContractCreateDto model, bool isAdmin, CancellationToken ct)
         {
 
             var booking = await _context.Bookings
                 .Include(a => a.Apartment)
                     .ThenInclude(o => o!.Owner)
                 .Include(r => r.User)
-                .FirstOrDefaultAsync(i => i.Id == model.BookingId);
+                .FirstOrDefaultAsync(i => i.Id == model.BookingId, ct);
 
             if (booking == null)
                 throw new KeyNotFoundException("booking not found");

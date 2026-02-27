@@ -15,9 +15,9 @@ namespace LaylaApi.Services.ChatServices.Implementations
             _context = context;
             _voiceStorage = voiceStorage;
         }
-        public async Task<Message> SendTextAsync(int conversationId, int senderId, string content)
+        public async Task<Message> SendTextAsync(int conversationId, int senderId, string content, CancellationToken ct)
         {
-            var conversation = await ValidateConversation(conversationId, senderId);
+            var conversation = await ValidateConversation(conversationId, senderId, ct);
             
             var message = Message.Create(conversationId, senderId, MessageType.Text, content, "", 0, conversation);
 
@@ -27,9 +27,9 @@ namespace LaylaApi.Services.ChatServices.Implementations
 
         }
 
-        public async Task<Message> SendVoiceAsync(int conversationId, int senderId, IFormFile file, int duration)
+        public async Task<Message> SendVoiceAsync(int conversationId, int senderId, IFormFile file, int duration, CancellationToken ct)
         {
-            var conversation = await ValidateConversation(conversationId, senderId);
+            var conversation = await ValidateConversation(conversationId, senderId, ct);
 
             var message = Message.Create(conversationId, senderId, MessageType.Voice, "Voice Message", "", duration, conversation);
 
@@ -46,9 +46,9 @@ namespace LaylaApi.Services.ChatServices.Implementations
             return message;
         }
 
-        private async Task<Conversation> ValidateConversation(int conversationId, int senderId)
+        private async Task<Conversation> ValidateConversation(int conversationId, int senderId, CancellationToken ct)
         {
-            var conversation = await _context.Conversations.FindAsync(conversationId)?? 
+            var conversation = await _context.Conversations.FindAsync(conversationId, ct)?? 
                 throw new KeyNotFoundException();
 
             if (conversation.IsClosedByOwner)

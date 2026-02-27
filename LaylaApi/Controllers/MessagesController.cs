@@ -33,29 +33,29 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPost("text")]
-        public async Task<IActionResult> SendText(SendTextDto dto)
+        public async Task<IActionResult> SendText(SendTextDto dto, CancellationToken ct)
         {
             var userId = GetUserID();
 
-            var conversation =await _conversationService.GetOrCreateAsync(dto.ApartmentId, userId);
+            var conversation =await _conversationService.GetOrCreateAsync(dto.ApartmentId, userId, ct);
 
-            var message = await _messageService.SendTextAsync(conversation.Id, userId, dto.Content);
+            var message = await _messageService.SendTextAsync(conversation.Id, userId, dto.Content, ct);
 
-            await _hub.Clients.Group(conversation.Id.ToString()).SendAsync("ReceiveMessage", message);
+            await _hub.Clients.Group(conversation.Id.ToString()).SendAsync("ReceiveMessage", message, ct);
 
             return Ok(_mapper.Map<MessageDto>(message));
         }
 
         [HttpPost("voice")]
-        public async Task<IActionResult> SendVoice([FromForm] SendVoiceDto dto)
+        public async Task<IActionResult> SendVoice([FromForm] SendVoiceDto dto, CancellationToken ct)
         {
             var userId = GetUserID();
 
-            var conversation =await _conversationService.GetOrCreateAsync(dto.ApartmentId, userId);
+            var conversation =await _conversationService.GetOrCreateAsync(dto.ApartmentId, userId, ct);
 
-            var message = await _messageService.SendVoiceAsync(conversation.Id, userId, dto.AudioFile, dto.DurationSeconds);
+            var message = await _messageService.SendVoiceAsync(conversation.Id, userId, dto.AudioFile, dto.DurationSeconds, ct);
 
-            await _hub.Clients.Group(conversation.Id.ToString()).SendAsync("ReceiveMessage", message);
+            await _hub.Clients.Group(conversation.Id.ToString()).SendAsync("ReceiveMessage", message, ct);
 
             return Ok(_mapper.Map<MessageDto>(message));
         }

@@ -14,16 +14,10 @@ namespace LaylaApi.Controllers
     public class ContractController : ControllerBase
     {
         private readonly IContractService _contractService;
-        private readonly IBookingService _bookingService;
-        private readonly IApartmentService _apartmentService;
-        private readonly IUserService _userService;
-        public ContractController(IContractService contractService, IBookingService bookingService, IApartmentService apartmentService, IUserService userService)
+
+        public ContractController(IContractService contractService)
         {
             _contractService = contractService;
-            _bookingService = bookingService;
-            _apartmentService = apartmentService;
-            _userService = userService;
-
         }
         private int CurrentUserId()
         {
@@ -37,12 +31,12 @@ namespace LaylaApi.Controllers
         }
         
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.GetByIdAsync(id, userId, isAdmin);
+            var contract = await _contractService.GetByIdAsync(id, userId, isAdmin, ct);
 
             if (contract == null) 
                 throw new KeyNotFoundException("Contract not found or access denied.");
@@ -51,12 +45,12 @@ namespace LaylaApi.Controllers
         }
 
         [HttpGet("booking/{bookingId}")]
-        public async Task<IActionResult> GetByBooking(int bookingId)
+        public async Task<IActionResult> GetByBooking(int bookingId, CancellationToken ct)
         {
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.GetByBookingIdAsync(bookingId, userId, isAdmin);
+            var contract = await _contractService.GetByBookingIdAsync(bookingId, userId, isAdmin, ct);
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found or access denied.");
 
@@ -64,12 +58,12 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}/sign-owner")]
-        public async Task<IActionResult> SignByOwner(int id)
+        public async Task<IActionResult> SignByOwner(int id, CancellationToken ct)
         {
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.SignContractAsync(id, userId, isAdmin, ContractSigner.Owner);
+            var contract = await _contractService.SignContractAsync(id, userId, isAdmin, ContractSigner.Owner, ct);
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found or access denied.");
 
@@ -77,12 +71,12 @@ namespace LaylaApi.Controllers
         }
 
         [HttpPut("{id}/sign-renter")]
-        public async Task<IActionResult> SignByRenter(int id)
+        public async Task<IActionResult> SignByRenter(int id, CancellationToken ct)
         {
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.SignContractAsync(id, userId, isAdmin, ContractSigner.Renter);
+            var contract = await _contractService.SignContractAsync(id, userId, isAdmin, ContractSigner.Renter, ct);
             if (contract == null)
                 throw new KeyNotFoundException("Contract not found or access denied.");
 
@@ -91,12 +85,12 @@ namespace LaylaApi.Controllers
 
 
         [HttpPost("generate")]
-        public async Task<IActionResult> GenerateContract([FromBody] ContractCreateDto model)
+        public async Task<IActionResult> GenerateContract([FromBody] ContractCreateDto model, CancellationToken ct)
         {
             var userId = CurrentUserId();
             var isAdmin = IsAdmin();
 
-            var contract = await _contractService.GenerateContractAsync(userId, model, isAdmin);
+            var contract = await _contractService.GenerateContractAsync(userId, model, isAdmin, ct);
             if (contract == null)
                 throw new BadHttpRequestException("Contract is not Generated");
 
@@ -105,9 +99,9 @@ namespace LaylaApi.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var isDeleted = await _contractService.DeleteAsync(id, CurrentUserId(), IsAdmin());
+            var isDeleted = await _contractService.DeleteAsync(id, CurrentUserId(), IsAdmin(), ct);
 
             if (!isDeleted)
                 throw new BadHttpRequestException("Could not delete contract.");
