@@ -31,17 +31,17 @@ namespace LaylaApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(CancellationToken ct)
         {
-            var all = await _reviewService.GetAllAsync();
+            var all = await _reviewService.GetAllAsync(ct);
 
             return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(all));
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
-            var review = await _reviewService.GetByIdAsync(id);
+            var review = await _reviewService.GetByIdAsync(id, ct);
 
             if (review == null) 
                 throw new KeyNotFoundException();
@@ -50,52 +50,52 @@ namespace LaylaApi.Controllers
         }
 
         [HttpGet("apartment/{apartmentId}")]
-        public async Task<IActionResult> GetByApartment(int apartmentId)
+        public async Task<IActionResult> GetByApartment(int apartmentId, CancellationToken ct)
         {
-            var reviews = await _reviewService.GetByApartmentIdAsync(apartmentId);
+            var reviews = await _reviewService.GetByApartmentIdAsync(apartmentId, ct);
 
             return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(reviews));
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetByUser(int userId)
+        public async Task<IActionResult> GetByUser(int userId, CancellationToken ct)
         {
-            var reviews = await _reviewService.GetByUserIdAsync(userId);
+            var reviews = await _reviewService.GetByUserIdAsync(userId, ct);
 
             return Ok(ApiResponse<IEnumerable<ReviewDto>>.Ok(reviews));
         }
 
         [HttpGet("apartment/{apartmentId}/average")]
-        public async Task<IActionResult> GetAverageRating(int apartmentId)
+        public async Task<IActionResult> GetAverageRating(int apartmentId, CancellationToken ct)
         {
-            var result = await _reviewService.GetAverageRatingAsync(apartmentId);
+            var result = await _reviewService.GetAverageRatingAsync(apartmentId, ct);
 
             return Ok(ApiResponse<object>.Ok(result));
         }
 
         [HttpPost]
         [Authorize(Policy = "ConfirmedEmail")]
-        public async Task<IActionResult> Create([FromBody] ReviewCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] ReviewCreateDto dto, CancellationToken ct)
         {
-            var result = await _reviewService.AddAsync(dto, CurrentUserId(), IsAdmin());
+            var result = await _reviewService.AddAsync(dto, CurrentUserId(), IsAdmin(), ct);
 
             return Ok(ApiResponse<ReviewDto>.Ok(result, "Review created successfully."));
         }
 
         [HttpPut("{id}")]
         [Authorize(Policy = "ConfirmedEmail")]
-        public async Task<IActionResult> Update(int id, [FromBody] ReviewCreateDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] ReviewCreateDto dto, CancellationToken ct)
         {
-            var result = await _reviewService.UpdateAsync(id, dto, CurrentUserId(), IsAdmin());
+            var result = await _reviewService.UpdateAsync(id, dto, CurrentUserId(), IsAdmin(), ct);
 
             return Ok(ApiResponse<ReviewDto>.Ok(result, "Review updated successfully."));
         }
 
         [HttpDelete("{id}")]
         [Authorize(Policy = "ConfirmedEmail")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            await _reviewService.DeleteAsync(id, CurrentUserId(), IsAdmin());
+            await _reviewService.DeleteAsync(id, CurrentUserId(), IsAdmin(), ct);
 
             return Ok(ApiResponse<object>.Ok("Review deleted."));
         }

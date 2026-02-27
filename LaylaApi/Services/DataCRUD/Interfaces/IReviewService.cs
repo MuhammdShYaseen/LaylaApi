@@ -5,15 +5,15 @@ namespace LaylaApi.Services.DataCRUD.Interfaces
 {
     public interface IReviewService
     {
-        Task<IEnumerable<ReviewDto>> GetAllAsync();
-        Task<ReviewDto> GetByIdAsync(int id);
-        Task<IEnumerable<ReviewDto>> GetByUserIdAsync(int id);
-        Task<IEnumerable<ReviewDto>> GetByApartmentIdAsync(int apartmentId);
-        Task<object> GetAverageRatingAsync(int apartmentId);
-        Task<bool> ExistsAsync(int userId,int ApartmentId);
-        Task<ReviewDto> AddAsync(ReviewCreateDto dto, int userId, bool isAdmin);
-        Task<ReviewDto> UpdateAsync(int id, ReviewCreateDto dto, int userId, bool isAdmin);
+        Task<IEnumerable<ReviewDto>> GetAllAsync(CancellationToken ct);
+        Task<ReviewDto> GetByIdAsync(int id, CancellationToken ct);
+        Task<IEnumerable<ReviewDto>> GetByUserIdAsync(int id, CancellationToken ct);
+        Task<IEnumerable<ReviewDto>> GetByApartmentIdAsync(int apartmentId, CancellationToken ct);
+        Task<object> GetAverageRatingAsync(int apartmentId, CancellationToken ct);
+        Task<bool> ExistsAsync(int userId, int ApartmentId, CancellationToken ct);
+        Task<ReviewDto> AddAsync(ReviewCreateDto dto, int userId, bool isAdmin, CancellationToken ct);
+        Task<ReviewDto> UpdateAsync(int id, ReviewCreateDto dto, int userId, bool isAdmin, CancellationToken ct);
 
-        Task DeleteAsync(int id, int userId, bool isAdmin);
+        Task DeleteAsync(int id, int userId, bool isAdmin, CancellationToken ct);
     }
 }
