@@ -6,5 +6,6 @@ namespace LaylaApi.Services.ChatServices.Interfaces
     {
         Task<Message> SendTextAsync(int conversationId, int senderId, string content, CancellationToken ct);
         Task<Message> SendVoiceAsync(int conversationId, int senderId, IFormFile file, int duration, CancellationToken ct);
+        Task<bool> MarkAsReadAsync(int conversationId, int userId, CancellationToken ct);
     }
 }

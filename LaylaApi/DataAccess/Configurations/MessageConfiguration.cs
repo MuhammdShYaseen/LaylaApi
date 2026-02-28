@@ -12,6 +12,9 @@ namespace LaylaApi.DataAccess.Configurations
             builder.HasOne(m => m.Conversation)
                    .WithMany(c => c.Messages)
                    .HasForeignKey(m => m.ConversationId);
+            //builder.HasIndex(m => new { m.ConversationId, m.IsRead });
+            builder.HasIndex(m => new { m.ReceiverId, m.IsRead });
+            builder.HasIndex(m => new { m.ConversationId, m.ReceiverId, m.IsRead });
         }
     }
 }

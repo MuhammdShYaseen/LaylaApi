@@ -41,6 +41,7 @@ namespace LaylaApi.Models.MainModels
         
         //Status
         public MediaStatus Status { get; private set; }
+        public bool IsPrimary { get; private set; } = false;
 
         //Provider
         public string MediaStorageProvider { get; private set; } = "";
@@ -61,6 +62,10 @@ namespace LaylaApi.Models.MainModels
             return media;
         }
 
+        public void SetAsPrime()
+        {
+            IsPrimary = true;
+        }
         public static MediaFile CreatePending(int userId, int apartmentId, string mediaStorageProvider)
         {
             return new MediaFile

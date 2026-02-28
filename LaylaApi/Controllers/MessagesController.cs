@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LaylaApi.Models.DtosModels.MessageDtos;
+using LaylaApi.Models.MainModels;
 using LaylaApi.Services.ChatServices.Interfaces;
 using LaylaApi.SignalR_Hubs;
 using Microsoft.AspNetCore.Authorization;
@@ -51,13 +52,29 @@ namespace LaylaApi.Controllers
         {
             var userId = GetUserID();
 
-            var conversation =await _conversationService.GetOrCreateAsync(dto.ApartmentId, userId, ct);
+            var conversation = await _conversationService.GetOrCreateAsync(dto.ApartmentId, userId, ct);
 
             var message = await _messageService.SendVoiceAsync(conversation.Id, userId, dto.AudioFile, dto.DurationSeconds, ct);
 
             await _hub.Clients.Group(conversation.Id.ToString()).SendAsync("ReceiveMessage", message, ct);
 
             return Ok(_mapper.Map<MessageDto>(message));
+        }
+
+        [HttpPost("mark-read")]
+        public async Task<IActionResult> MarkAsRead(int conversationId, CancellationToken ct)
+        {
+            var userId = GetUserID();
+
+            var updated = await _messageService.MarkAsReadAsync(conversationId, userId, ct);
+
+            if (!updated)
+                return NoContent(); // already read
+            var messageReadEvent = new MessagesReadEvent(conversationId, userId, DateTime.UtcNow);
+
+            await _hub.Clients.Group(conversationId.ToString()).SendAsync("MessagesRead", messageReadEvent, ct);
+
+            return Ok();
         }
 
     }

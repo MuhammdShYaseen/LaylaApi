@@ -1,4 +1,7 @@
-﻿using LaylaApi.DataAccess;
+﻿using AutoMapper;
+using LaylaApi.DataAccess;
+using LaylaApi.Models.DtosModels.ConversationDtos;
+using LaylaApi.Models.DtosModels.MessageDtos;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.ChatServices.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +11,11 @@ namespace LaylaApi.Services.ChatServices.Implementations
     public class ConversationService : IConversationService
     {
         private readonly LaylaContext _context;
-        public ConversationService(LaylaContext context)
+        private readonly IMapper _mapper;
+        public ConversationService(LaylaContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
         public async Task CloseAsync(int conversationId, int ownerId, CancellationToken ct)
         {
@@ -58,6 +63,80 @@ namespace LaylaApi.Services.ChatServices.Implementations
             await _context.SaveChangesAsync();
 
             return conversation;
+        }
+
+        public async Task<IReadOnlyList<ConversationDto>> GetUserConversationsAsync(int userId, CancellationToken ct)
+        {
+            return await _context.Conversations
+                .AsNoTracking()
+
+                 // Authorization at Query Level
+                .Where(c => c.UserId == userId || c.OwnerId == userId)
+
+                // Performance: Project in DB
+                .Select(c => new ConversationDto
+                {
+                    Id = c.Id,
+                    ApartmentId = c.ApartmentId,
+                    ApartmentTitle = c.Apartment.Title,
+                    ApartmentImageUrl = c.Apartment.MediaFiles
+                        .Where(m => m.IsPrimary)
+                        .Select(m => m.FileUrl)
+                        .FirstOrDefault(),
+                    OwnerId = c.OwnerId,
+                    UserId = c.UserId,
+                    UserName = c.User.FullName,
+                    OwnerName = c.Apartment.Owner.FullName,
+                    IsClosedByOwner = c.IsClosedByOwner,
+                    LastMessage = c.Messages!
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => m.Content)
+                        .FirstOrDefault(),
+                    LastMessageAt = c.Messages!.Max(m => (DateTime?)m.CreatedAt),
+                    UnreadCount = c.Messages!.Count(m => !m.IsRead && m.ReceiverId == userId),
+                    CreatedAt = c.CreatedAt
+                })
+
+                // UX: newest first
+                .OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt)
+
+                .ToListAsync(ct);
+        }
+
+        public async Task<ConversationDetailsDto?> GetDetailsAsync(int conversationId, int userId, CancellationToken ct)
+        {
+            return await _context.Conversations
+                .AsNoTracking()
+
+                // Authorization
+                 .Where(c => c.Id == conversationId && (c.UserId == userId || c.OwnerId == userId))
+
+                .Select(c => new ConversationDetailsDto
+                {
+                    Id = c.Id,
+                    ApartmentId = c.ApartmentId,
+                    ApartmentTitle = c.Apartment.Title,
+                    OwnerId = c.OwnerId,
+                    UserId = c.UserId,
+                    IsClosedByOwner = c.IsClosedByOwner,
+                    CreatedAt = c.CreatedAt,
+                    Messages = c.Messages!
+                        .OrderBy(m => m.CreatedAt)
+                        .Select(m => new MessageDto
+                        {
+                            Id = m.Id,
+                            SenderId = m.SenderId,
+                            Content = m.Content,
+                            Type = m.Type,
+                            VoiceUrl = m.VoiceFilePath,
+                            VoiceDurationSeconds = m.VoiceDurationSeconds,
+                            IsRead = m.IsRead,
+                            SentAt = m.CreatedAt
+                        })
+                        .ToList()
+                })
+
+                .FirstOrDefaultAsync(ct);
         }
     }
 }

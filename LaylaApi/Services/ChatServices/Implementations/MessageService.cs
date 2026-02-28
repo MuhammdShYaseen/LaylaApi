@@ -2,7 +2,10 @@
 using LaylaApi.DomainEvents.Domain.Exceptions;
 using LaylaApi.Models.MainModels;
 using LaylaApi.Services.ChatServices.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Security;
 using static LaylaApi.Models.MainModels.Message;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace LaylaApi.Services.ChatServices.Implementations
 {
@@ -18,7 +21,7 @@ namespace LaylaApi.Services.ChatServices.Implementations
         public async Task<Message> SendTextAsync(int conversationId, int senderId, string content, CancellationToken ct)
         {
             var conversation = await ValidateConversation(conversationId, senderId, ct);
-            
+
             var message = Message.Create(conversationId, senderId, MessageType.Text, content, "", 0, conversation);
 
             _context.Messages.Add(message);
@@ -58,6 +61,27 @@ namespace LaylaApi.Services.ChatServices.Implementations
                 throw new UnauthorizedAccessException("Access denied");
 
             return conversation;
+        }
+
+        public async Task<bool> MarkAsReadAsync(int conversationId, int userId, CancellationToken ct)
+        {
+            var isParticipant = await _context.Conversations
+                .AnyAsync(c => c.Id == conversationId && (c.UserId == userId || c.OwnerId == userId), ct);
+
+            if (!isParticipant)
+                throw new UnauthorizedAccessException();
+
+            var messages = await _context.Messages
+                .Where(m => m.ConversationId == conversationId && m.ReceiverId == userId && !m.IsRead)
+                .ToListAsync(ct);
+
+             foreach (var msg in messages)
+             {
+                 msg.SetAsRead(userId);
+            }
+
+            var updated =  await _context.SaveChangesAsync();
+            return updated > 0;
         }
     }
 }

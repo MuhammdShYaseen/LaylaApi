@@ -1,5 +1,6 @@
 ﻿using LaylaApi.DomainEvents.Domain.Common;
 using LaylaApi.DomainEvents.Domain.Events;
+using Microsoft.VisualBasic;
 
 namespace LaylaApi.Models.MainModels
 {
@@ -13,13 +14,18 @@ namespace LaylaApi.Models.MainModels
         public int ConversationId { get; private set; }
         public Conversation Conversation { get; set; } = null!;
         public int SenderId { get; private set; }
+        public int ReceiverId { get; private set; }
         public MessageType Type { get; private set; }
         public string Content { get; private set; } = string.Empty;
         public string? VoiceFilePath { get; private set; }
         public int? VoiceDurationSeconds { get; private set; }
-   
+        public bool IsRead { get; private set; } = false;
         public static Message Create(int conversationId, int senderId, MessageType messageType, string content, string voiceFilePath, int voiceDurationSeconds, Conversation conversation)
         {
+            if (senderId != conversation.OwnerId && senderId != conversation.UserId)
+            {
+                throw new UnauthorizedAccessException("Sender is not participant of this conversation.");
+            }
             var receiverId = senderId == conversation.OwnerId? conversation.UserId : conversation.OwnerId;
             var message = new Message
             {
@@ -28,7 +34,8 @@ namespace LaylaApi.Models.MainModels
                 Type = messageType,
                 Content = content,
                 VoiceFilePath = voiceFilePath,
-                VoiceDurationSeconds = voiceDurationSeconds
+                VoiceDurationSeconds = voiceDurationSeconds,
+                ReceiverId = receiverId,
             };
             message.AddDomainEvent(new MessageSentDomainEvent(conversationId, senderId, receiverId, content, conversation.ApartmentId));
             return message;
@@ -40,6 +47,17 @@ namespace LaylaApi.Models.MainModels
             Touch();
         }
 
+        public void SetAsRead(int readerId)
+        {
+            if (readerId != ReceiverId)
+                throw new UnauthorizedAccessException("Only receiver can read message");
+
+            if (IsRead)
+                return;
+
+            IsRead = true;
+            Touch();
+        }
         public void SetVoiceFilePath(string voiceFilePath)
         {
             VoiceFilePath = VoiceFilePath ?? string.Empty;

@@ -19,5 +19,7 @@ namespace LaylaApi.Models.DtosModels.MessageDtos
         public int? VoiceDurationSeconds { get; init; }
 
         public DateTime SentAt { get; init; }
+
+        public bool IsRead { get; init; }
     }
 }
