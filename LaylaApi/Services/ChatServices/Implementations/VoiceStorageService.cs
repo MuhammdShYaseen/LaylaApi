@@ -27,7 +27,7 @@ namespace LaylaApi.Services.ChatServices.Implementations
                 throw new BadHttpRequestException("File too large");
 
 
-            var extension = Path.GetExtension(file.FileName)?.ToLowerInvariant() ?? ".webm";
+            var extension = Path.GetExtension(file.FileName)?.ToLowerInvariant();
 
             if (extension != ".webm" && extension != ".ogg" && extension != ".wav")
                 throw new BadHttpRequestException("Unsupported audio format");
