@@ -15,6 +15,7 @@ namespace LaylaApi.DataAccess.Configurations
             //builder.HasIndex(m => new { m.ConversationId, m.IsRead });
             builder.HasIndex(m => new { m.ReceiverId, m.IsRead });
             builder.HasIndex(m => new { m.ConversationId, m.ReceiverId, m.IsRead });
+            builder.HasIndex(m => new {  m.ConversationId,  m.CreatedAt });
         }
     }
 }

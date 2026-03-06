@@ -1,6 +1,7 @@
 ﻿using LaylaApi.Models.MainModels;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace LaylaApi.DataAccess.Configurations
 {
@@ -23,6 +24,9 @@ namespace LaylaApi.DataAccess.Configurations
                   .WithOne(m => m.Conversation)
                   .HasForeignKey(m => m.ConversationId)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(c => c.UserId);
+            entity.HasIndex(c => c.OwnerId);
         }
     }
 }

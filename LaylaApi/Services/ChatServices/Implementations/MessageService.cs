@@ -32,21 +32,31 @@ namespace LaylaApi.Services.ChatServices.Implementations
 
         public async Task<Message> SendVoiceAsync(int conversationId, int senderId, IFormFile file, int duration, CancellationToken ct)
         {
+            ValidateVoiceFile(file);
             var conversation = await ValidateConversation(conversationId, senderId, ct);
 
-            var message = Message.Create(conversationId, senderId, MessageType.Voice, "Voice Message", "", duration, conversation);
+            await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+            try
+            {
+                var message = Message.Create(conversationId, senderId, MessageType.Voice, "Voice Message", "", duration, conversation);
 
-            _context.Messages.Add(message);
+                _context.Messages.Add(message);
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            var voiceFilePath = await _voiceStorage.SaveAsync(file, message.Id);
+                var voiceFilePath = await _voiceStorage.SaveAsync(file, message.Id);
 
-            message.SetVoiceFilePath(voiceFilePath);
+                message.SetVoiceFilePath(voiceFilePath);
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return message;
+                return message;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
         }
 
         private async Task<Conversation> ValidateConversation(int conversationId, int senderId, CancellationToken ct)
@@ -63,6 +73,27 @@ namespace LaylaApi.Services.ChatServices.Implementations
             return conversation;
         }
 
+        private void ValidateVoiceFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new BadHttpRequestException("Empty file");
+
+            const long maxSize = 2 * 1024 * 1024; // 2 MB
+
+            if (file.Length > maxSize)
+                throw new BadHttpRequestException("File too large");
+
+            var allowedTypes = new[]
+            {
+                "audio/mpeg",
+                "audio/wav",
+                "audio/ogg"
+            };
+
+            if (!allowedTypes.Contains(file.ContentType))
+                throw new BadHttpRequestException("Invalid audio format");
+        }
+
         public async Task<bool> MarkAsReadAsync(int conversationId, int userId, CancellationToken ct)
         {
             var isParticipant = await _context.Conversations
@@ -71,16 +102,15 @@ namespace LaylaApi.Services.ChatServices.Implementations
             if (!isParticipant)
                 throw new UnauthorizedAccessException();
 
-            var messages = await _context.Messages
-                .Where(m => m.ConversationId == conversationId && m.ReceiverId == userId && !m.IsRead)
-                .ToListAsync(ct);
+            var updated = await _context.Messages
+                .Where(m =>
+                    m.ConversationId == conversationId &&
+                    m.ReceiverId == userId &&
+                    !m.IsRead)
+                .ExecuteUpdateAsync(
+                    setters => setters
+                .SetProperty(m => m.IsRead, true), ct);
 
-             foreach (var msg in messages)
-             {
-                 msg.SetAsRead(userId);
-            }
-
-            var updated =  await _context.SaveChangesAsync();
             return updated > 0;
         }
     }

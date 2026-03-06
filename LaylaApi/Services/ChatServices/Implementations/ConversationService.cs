@@ -50,19 +50,25 @@ namespace LaylaApi.Services.ChatServices.Implementations
             if (!apartment.IsChatEnabled)
                 throw new BadHttpRequestException("Chat is not Enabled on this apartment");
 
-                var conversation = await _context.Conversations.
+                var existing = await _context.Conversations.
                                    FirstOrDefaultAsync(x => x.ApartmentId == apartmentId && x.UserId == userId, ct);
            
-            if (conversation != null)
-                return conversation;
+            if (existing != null)
+                return existing;
 
-            conversation = Conversation.Create(apartmentId, apartment.OwnerId, userId);
+            var conversation = Conversation.Create(apartmentId, apartment.OwnerId, userId);
 
             _context.Conversations.Add(conversation);
+            try
+            {
+                await _context.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
-
-            return conversation;
+                return conversation;
+            }
+            catch (DbUpdateException)
+            {
+                return await _context.Conversations.FirstAsync(x => x.ApartmentId == apartmentId && x.UserId == userId, ct);
+            }
         }
 
         public async Task<IReadOnlyList<ConversationDto>> GetUserConversationsAsync(int userId, CancellationToken ct)

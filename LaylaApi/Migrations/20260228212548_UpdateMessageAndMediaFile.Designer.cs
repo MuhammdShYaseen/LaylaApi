@@ -4,6 +4,7 @@ using LaylaApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace LaylaApi.Migrations
 {
     [DbContext(typeof(LaylaContext))]
-    partial class LaylaContextModelSnapshot : ModelSnapshot
+    [Migration("20260228212548_UpdateMessageAndMediaFile")]
+    partial class UpdateMessageAndMediaFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

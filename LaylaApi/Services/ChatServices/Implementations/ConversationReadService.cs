@@ -20,5 +20,17 @@ namespace LaylaApi.Services.ChatServices.Implementations
                  c.Id == conversationId &&
                  (c.OwnerId == userId || c.UserId == userId));
         }
+        public async Task<List<int>> GetUserConversationIdsAsync(int userId)
+        {
+            
+             return await _context.Conversations
+                    .AsNoTracking()
+                    .Where(c =>
+                        c.UserId == userId ||
+                        c.OwnerId == userId)
+                    .Select(c => c.Id)
+                    .ToListAsync();
+            
+        }
     }
 }
