@@ -36,7 +36,7 @@ namespace LaylaApi.Controllers
         {
             var tokens = await _service.GetByUserIdAsync(userId, ct);
 
-            return Ok(ApiResponse<IEnumerable<DeviceToken>>.Ok(tokens));
+            return Ok(ApiResponse<IEnumerable<DeviceTokenDto>>.Ok(tokens));
         }
 
         [HttpPut]
@@ -47,7 +47,7 @@ namespace LaylaApi.Controllers
 
             var token = await _service.UpsertAsync(dto, GetUserId(), ct);
 
-            return Ok(ApiResponse<DeviceToken>.Ok(token));
+            return Ok(ApiResponse<DeviceTokenDto>.Ok(token));
         }
 
         [Authorize(Roles = "Admin")]

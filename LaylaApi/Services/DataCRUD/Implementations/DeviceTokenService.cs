@@ -1,4 +1,5 @@
 ﻿
+using AutoMapper;
 using LaylaApi.DataRepository;
 using LaylaApi.Models.DtosModels.MainDtos;
 using LaylaApi.Models.MainModels;
@@ -10,9 +11,11 @@ namespace LaylaApi.Services.DataCRUD.Implementations
     public class DeviceTokenService : IDeviceTokenService
     {
         private readonly IRepository<DeviceToken> _repository;
-        public DeviceTokenService(IRepository<DeviceToken> repository) 
+        private readonly IMapper _mapper;
+        public DeviceTokenService(IRepository<DeviceToken> repository, IMapper mapper) 
         {
             _repository = repository;
+            _mapper = mapper;
         }
         public async Task CleanupInactiveAsync(TimeSpan maxAge)
         {
@@ -43,17 +46,25 @@ namespace LaylaApi.Services.DataCRUD.Implementations
             return true;
         }
 
-        public async Task<IEnumerable<DeviceToken>> GetByUserIdAsync(int userId, CancellationToken ct)
+        public async Task<IEnumerable<DeviceTokenDto>> GetByUserIdAsync(int userId, CancellationToken ct)
         {
             if (userId <= 0)
                 throw new BadHttpRequestException("user id is required");
 
             return await _repository.Query().AsNoTracking()
             .Where(dt => dt.UserId == userId)
+            .Select (d => new DeviceTokenDto
+            {
+                UserId = d.UserId,
+                DeviceId = d.DeviceId,
+                LastSeenAt = d.LastSeenAt,
+                Platform = d.Platform,
+                Token = d.Token
+            })
             .ToListAsync(ct);
         }
 
-        public async Task<DeviceToken> UpsertAsync(DeviceTokenUpsertDto dto, int currentUserId, CancellationToken ct)
+        public async Task<DeviceTokenDto> UpsertAsync(DeviceTokenUpsertDto dto, int currentUserId, CancellationToken ct)
         {
             if (currentUserId <= 0)
                 throw new BadHttpRequestException("user id is required");
@@ -73,7 +84,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
                 await _repository.SaveChangesAsync();
 
-                return existing;
+                return _mapper.Map<DeviceTokenDto>(existing) ;
             }
 
             var deviceToken = DeviceToken.Create(currentUserId, dto.Token , dto.Platform, dto.DeviceId);
@@ -81,7 +92,7 @@ namespace LaylaApi.Services.DataCRUD.Implementations
 
             await _repository.AddAsync(deviceToken);
             await _repository.SaveChangesAsync();
-            return deviceToken;
+            return _mapper.Map <DeviceTokenDto> (deviceToken);
         }
     }
 }
