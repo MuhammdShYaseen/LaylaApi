@@ -30,7 +30,13 @@ namespace LaylaApi.DomainEvents.Handlers
             {
                 var title = _localizer["Chat_Message_Title", apartment.Title];
                 var body = BuildNotificationBody(@event.Content).Replace("\r", " ").Replace("\n", " ");
-                await _firebase.SendToUserAsync(@event.ReceiverId, title, body);
+                var data = new Dictionary<string, string>
+                {
+                    ["Type"] = "chat_message",
+                    ["ConversationId"] = @event.ConversationId.ToString(),
+                    ["SenderId"] = @event.SenderId.ToString(),
+                };
+                await _firebase.SendToUserAsync(@event.ReceiverId, title, body, data, ct);
             }
                 
         }
